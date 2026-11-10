@@ -6,13 +6,20 @@ from datetime import datetime, timedelta
 import time
 import requests
 
+# --- AUTO REFRESH - TAKE APP KHUD TELEGRAM DEKHE ---
+try:
+    from streamlit_autorefresh import st_autorefresh
+    st_autorefresh(interval=10000, key="tg_refresh")
+except:
+    pass
+
 st.set_page_config(page_title="WASEEM TRADER - V4.3", layout="wide")
 
-# ---------- TELEGRAM SYSTEM ----------
+# ---------- TELEGRAM SYSTEM - FIXED ----------
 def TG_SEND(msg):
     try:
-        token = st.secrets["TELEGRAM_TOKEN"]
-        chat_id = st.secrets["CHAT_ID"]
+        token = str(st.secrets["TELEGRAM_TOKEN"]).strip()
+        chat_id = str(st.secrets["CHAT_ID"]).strip()
         url = f"https://api.telegram.org/bot{token}/sendMessage"
         requests.post(url, data={"chat_id": chat_id, "text": msg}, timeout=10)
         return True
@@ -21,18 +28,19 @@ def TG_SEND(msg):
 
 def TG_GET_UPDATES():
     try:
-        token = st.secrets["TELEGRAM_TOKEN"]
+        token = str(st.secrets["TELEGRAM_TOKEN"]).strip()
+        my_id = str(st.secrets["CHAT_ID"]).strip()
         if "tg_offset" not in st.session_state:
             st.session_state["tg_offset"] = 0
-        url = f"https://api.telegram.org/bot{token}/getUpdates?offset={st.session_state['tg_offset']}&timeout=2"
-        r = requests.get(url, timeout=5).json()
+        url = f"https://api.telegram.org/bot{token}/getUpdates"
+        r = requests.get(url, params={"offset": st.session_state["tg_offset"], "timeout": 2}, timeout=5).json()
         msgs = []
         for u in r.get("result", []):
             st.session_state["tg_offset"] = u["update_id"] + 1
             m = u.get("message", {})
             txt = m.get("text", "").strip()
-            cid = str(m.get("chat", {}).get("id", ""))
-            if cid == str(st.secrets["CHAT_ID"]):
+            cid = str(m.get("chat", {}).get("id", "")).strip()
+            if cid == my_id:
                 msgs.append(txt)
         return msgs
     except:
@@ -307,7 +315,6 @@ sell_buttons.append(("11 Session SELL", sess_sell_txt, sess_sell_ok))
 sell_buttons.append(("12 Volume SELL", "VOL STRONG" if volume_strong else "VOL KAM", (not volume_strong) and abhi<ema15_v))
 buy_c=sum(1 for _,_,v in buy_buttons if v); sell_c=sum(1 for _,_,v in sell_buttons if v)
 
-# ---------- TELEGRAM KE LIYE POORA STATUS - 12 BUTTON KE SAATH ----------
 buy_detail = "\n".join([f"{n} - {v} - {'✅ SABZ' if ok else '❌ NAHI'}" for n,v,ok in buy_buttons])
 sell_detail = "\n".join([f"{n} - {v} - {'✅ LAL' if ok else '❌ NAHI'}" for n,v,ok in sell_buttons])
 
