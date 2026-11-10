@@ -92,13 +92,13 @@ date_txt = pak_time.strftime("%d %B %Y")
 time_txt = pak_time.strftime("%I:%M %p")
 abhi_s = str(int(abhi))
 
-# --- ATR LIVE - 15 WALI CAP HATA DI ---
+# --- ATR SIRF DIKHANE KE LIYE - SL KE LIYE NAHI ---
+# USTAD JI WALA FINAL HISAB - SL 7, TP1 10, TP2 30
 df['TR'] = np.maximum(df['High']-df['Low'], np.maximum(abs(df['High']-df['Close'].shift(1)), abs(df['Low']-df['Close'].shift(1))))
 atr_v = float(df['TR'].rolling(14).mean().iloc[-1])
 if atr_v < 3: atr_v = 3.0
 atr_s = str(round(atr_v,1))
-sl_dist = int(atr_v*1.0)
-if sl_dist < 4: sl_dist = 4
+sl_dist = 7
 
 def SETUP_CALC(d, tf_name, demand_size):
     last_high = float(d['High'].iloc[-10:-1].max())
@@ -153,46 +153,45 @@ def SETUP_CALC(d, tf_name, demand_size):
     if trend_down: sell_score+=20
     bos_txt = "BOS UP" if bos_up else "BOS DOWN" if bos_down else "BOS Nahi"
     fvg_txt = "FVG Bullish" if fvg_bull else "FVG Bearish" if fvg_bear else "FVG Nahi"
-    # --- TP SL AUTO - PRICE KE SAATH BADLEGA ---
-    buy_sl_val = int(d_bot-sl_dist)
-    buy_tp_val = int(d_top+sl_dist*2)
-    sell_sl_val = int(s_top+sl_dist)
-    sell_tp_val = int(s_bot-sl_dist*2)
-    # --- WAIT HI RAHEGA JAB TAK SAB CONFIRM NA HO ---
+    # --- USTAD JI WALA FINAL - SL 7, TP1 10, TP2 30 ---
+    buy_sl_val = int(d_bot - 7)
+    buy_tp1_val = int(d_top + 10)
+    buy_tp2_val = int(d_top + 30)
+    sell_sl_val = int(s_top + 7)
+    sell_tp1_val = int(s_bot - 10)
+    sell_tp2_val = int(s_bot - 30)
+    # --- WAIT HI RAHEGA JAB TAK SAB CONFIRM NA HO - WAIT ME SL/TP KHALI ---
     if at_d and (bos_up or fvg_bull) and react_buy and vol_ok:
         faisla = tf_name+" BUY SETUP - SAB MIL GAYA"; fcol="#00FF88"
-        entry="Buy "+str(int(d_bot))+" - "+str(int(d_top)); sl="SL: "+str(buy_sl_val); tp="TP: "+str(buy_tp_val)
+        entry="Buy "+str(int(d_bot))+" - "+str(int(d_top)); sl="SL: "+str(buy_sl_val); tp="TP1: "+str(buy_tp1_val)+" | TP2: "+str(buy_tp2_val)
         chance=buy_score; chance_txt="CHANCE: "+str(chance)+"% - MAZBOOT" if chance>=80 else "CHANCE: "+str(chance)+"% - THEEK HAI"
         rr_txt="RR: 1:2 - TRADE LENE LAYAQ"
     elif at_s and (bos_down or fvg_bear) and react_sell and vol_ok:
         faisla = tf_name+" SELL SETUP - SAB MIL GAYA"; fcol="#FF4444"
-        entry="Sell "+str(int(s_bot))+" - "+str(int(s_top)); sl="SL: "+str(sell_sl_val); tp="TP: "+str(sell_tp_val)
+        entry="Sell "+str(int(s_bot))+" - "+str(int(s_top)); sl="SL: "+str(sell_sl_val); tp="TP1: "+str(sell_tp1_val)+" | TP2: "+str(sell_tp2_val)
         chance=sell_score; chance_txt="CHANCE: "+str(chance)+"% - MAZBOOT" if chance>=80 else "CHANCE: "+str(chance)+"% - THEEK HAI"
         rr_txt="RR: 1:2 - TRADE LENE LAYAQ"
     elif at_d:
         faisla = tf_name+" WAIT - DEMAND PAR HAI - ABHI CONFIRM NAHI HUA"; fcol="#FFAA00"
         entry="Wait - Demand "+str(int(d_bot))+"-"+str(int(d_top))+" par hai - BUY MAT KARO"
-        sl="SL: Abhi Entry Nahi - ATR "+atr_s+" | BUY SL: "+str(buy_sl_val)+" | SELL SL: "+str(sell_sl_val)
-        tp="TP: Wait Karo | BUY TP: "+str(buy_tp_val)+" | SELL TP: "+str(sell_tp_val)
+        sl=""; tp=""
         chance=buy_score; chance_txt="CHANCE: "+str(chance)+"% - ABHI KAM HAI"; rr_txt="RR: Abhi Entry Nahi"
     elif at_s:
         faisla = tf_name+" WAIT - SUPPLY PAR HAI - ABHI CONFIRM NAHI HUA"; fcol="#FFAA00"
         entry="Wait - Supply "+str(int(s_bot))+"-"+str(int(s_top))+" par hai - SELL MAT KARO"
-        sl="SL: Abhi Entry Nahi - ATR "+atr_s+" | BUY SL: "+str(buy_sl_val)+" | SELL SL: "+str(sell_sl_val)
-        tp="TP: Wait Karo | BUY TP: "+str(buy_tp_val)+" | SELL TP: "+str(sell_tp_val)
+        sl=""; tp=""
         chance=sell_score; chance_txt="CHANCE: "+str(chance)+"% - ABHI KAM HAI"; rr_txt="RR: Abhi Entry Nahi"
     else:
         faisla = tf_name+" WAIT - PRICE BEECH ME HAI"; fcol="#FFAA00"
         entry="Wait - Abhi Entry Nahi"
-        sl="SL: Abhi Entry Nahi - ATR "+atr_s+" | BUY SL: "+str(buy_sl_val)+" | SELL SL: "+str(sell_sl_val)
-        tp="TP: Wait Karo | BUY TP: "+str(buy_tp_val)+" | SELL TP: "+str(sell_tp_val)
+        sl=""; tp=""
         chance=max(buy_score,sell_score); chance_txt="CHANCE: "+str(chance)+"% - ABHI KAM HAI"; rr_txt="RR: Abhi Entry Nahi"
     if react_buy: react_txt="REACTION: MAZBOOT - UPAR UTHA"
     elif react_sell: react_txt="REACTION: MAZBOOT - NEECHE GIRA"
     elif at_d: react_txt="REACTION: KAMZOR - DEMAND PAR RUKA NAHI"
     elif at_s: react_txt="REACTION: KAMZOR - SUPPLY PAR RUKA NAHI"
     else: react_txt="REACTION: ABHI OB PAR NAHI"
-    return {'faisla':faisla,'fcol':fcol,'entry':entry,'sl':sl,'tp':tp,'chance':chance,'chance_txt':chance_txt,'rr':rr_txt,'bos':bos_txt,'fvg':fvg_txt,'react':react_txt,'vol_ok':vol_ok,'d_bot':int(d_bot),'d_top':int(d_top),'s_bot':int(s_bot),'s_top':int(s_top),'fvg_bot':int(fvg_bot),'fvg_top':int(fvg_top),'trend_up':trend_up,'res':int(RES),'sup':int(SUP),'buy_sl':buy_sl_val,'buy_tp':buy_tp_val,'sell_sl':sell_sl_val,'sell_tp':sell_tp_val}
+    return {'faisla':faisla,'fcol':fcol,'entry':entry,'sl':sl,'tp':tp,'chance':chance,'chance_txt':chance_txt,'rr':rr_txt,'bos':bos_txt,'fvg':fvg_txt,'react':react_txt,'vol_ok':vol_ok,'d_bot':int(d_bot),'d_top':int(d_top),'s_bot':int(s_bot),'s_top':int(s_top),'fvg_bot':int(fvg_bot),'fvg_top':int(fvg_top),'trend_up':trend_up,'res':int(RES),'sup':int(SUP),'buy_sl':buy_sl_val,'buy_tp':buy_tp1_val,'sell_sl':sell_sl_val,'sell_tp':sell_tp1_val}
 
 r4h = SETUP_CALC(df4h, "4H", 12)
 r1h = SETUP_CALC(df, "1H", 10)
