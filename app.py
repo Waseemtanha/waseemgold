@@ -7,16 +7,18 @@ import time
 
 st.set_page_config(page_title="WASEEM TRADER - V4.1", layout="wide")
 
-# --- FIX 2: SIZE CHHOTA - EK HI PAGE ME AAYE ---
+# --- SIZE CHHOTA - EK SCROLL ME PURA NAZAR AAYE ---
 st.markdown("""
 <style>
-.block-container{padding-top:5px !important; padding-bottom:5px !important; padding-left:8px !important; padding-right:8px !important; max-width:100% !important;}
-h1{font-size:18px !important; margin:0px !important;}
-h2{font-size:14px !important; margin:2px !important;}
-h3{font-size:13px !important; margin:2px !important;}
-p{font-size:12px !important; margin:1px !important;}
-div[data-testid="stVerticalBlock"]{gap:4px !important;}
-button{padding:4px !important; min-height:28px !important;}
+.block-container{padding-top:2px !important; padding-bottom:2px !important; padding-left:5px !important; padding-right:5px !important; max-width:100% !important;}
+h1{font-size:16px !important; margin:0px !important; line-height:1.1 !important;}
+h2{font-size:13px !important; margin:1px !important; line-height:1.1 !important;}
+h3{font-size:12px !important; margin:1px !important; line-height:1.1 !important;}
+p{font-size:11px !important; margin:0px !important; line-height:1.2 !important;}
+div[data-testid="stVerticalBlock"]{gap:2px !important;}
+div[data-testid="stHorizontalBlock"]{gap:4px !important;}
+button{padding:2px !important; min-height:26px !important; font-size:12px !important;}
+input{height:26px !important;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -90,16 +92,13 @@ date_txt = pak_time.strftime("%d %B %Y")
 time_txt = pak_time.strftime("%I:%M %p")
 abhi_s = str(int(abhi))
 
-# --- FIX 1: ATR LIVE - 15 WALI CAP HATA DI ---
+# --- ATR LIVE - 15 WALI CAP HATA DI ---
 df['TR'] = np.maximum(df['High']-df['Low'], np.maximum(abs(df['High']-df['Close'].shift(1)), abs(df['Low']-df['Close'].shift(1))))
 atr_v = float(df['TR'].rolling(14).mean().iloc[-1])
 if atr_v < 3: atr_v = 3.0
-# UPAR WALI 15 KI CAP HATA DI - AB LIVE HAI
 atr_s = str(round(atr_v,1))
 sl_dist = int(atr_v*1.0)
 if sl_dist < 4: sl_dist = 4
-# SL KI UPAR WALI CAP BHI HATA DI - ATR KE SAATH CHALEGA
-# Agar ATR 20 hoga to SL 20 hoga, pehle 15 par ruk jata tha
 
 def SETUP_CALC(d, tf_name, demand_size):
     last_high = float(d['High'].iloc[-10:-1].max())
@@ -115,6 +114,7 @@ def SETUP_CALC(d, tf_name, demand_size):
             fvg_bull = True; fvg_bot = h2; fvg_top = l0
         if l2 - h0 > 1 and l2 - h0 < 8:
             fvg_bear = True; fvg_bot = h0; fvg_top = l2
+    # --- NAYA ZONE AUTO - PICHLI CANDLES SE NIKALTA HAI, PAKA NAHI ---
     highs=[]; lows=[]
     for i in range(2, len(d)-2):
         h=float(d['High'].iloc[i]); l2=float(d['Low'].iloc[i])
@@ -153,12 +153,12 @@ def SETUP_CALC(d, tf_name, demand_size):
     if trend_down: sell_score+=20
     bos_txt = "BOS UP" if bos_up else "BOS DOWN" if bos_down else "BOS Nahi"
     fvg_txt = "FVG Bullish" if fvg_bull else "FVG Bearish" if fvg_bear else "FVG Nahi"
-    # --- FIX 3: TP SL - DONO SIDE KA PLAN HAMESHA ---
-    # Ye hisab pehle se tha, sirf WAIT me bhi dikhane ke liye bahar nikal diya
+    # --- TP SL AUTO - PRICE KE SAATH BADLEGA ---
     buy_sl_val = int(d_bot-sl_dist)
     buy_tp_val = int(d_top+sl_dist*2)
     sell_sl_val = int(s_top+sl_dist)
     sell_tp_val = int(s_bot-sl_dist*2)
+    # --- WAIT HI RAHEGA JAB TAK SAB CONFIRM NA HO ---
     if at_d and (bos_up or fvg_bull) and react_buy and vol_ok:
         faisla = tf_name+" BUY SETUP - SAB MIL GAYA"; fcol="#00FF88"
         entry="Buy "+str(int(d_bot))+" - "+str(int(d_top)); sl="SL: "+str(buy_sl_val); tp="TP: "+str(buy_tp_val)
@@ -170,15 +170,14 @@ def SETUP_CALC(d, tf_name, demand_size):
         chance=sell_score; chance_txt="CHANCE: "+str(chance)+"% - MAZBOOT" if chance>=80 else "CHANCE: "+str(chance)+"% - THEEK HAI"
         rr_txt="RR: 1:2 - TRADE LENE LAYAQ"
     elif at_d:
-        faisla = tf_name+" WAIT - DEMAND PAR HAI"; fcol="#FFAA00"
-        entry="Wait - Demand "+str(int(d_bot))+"-"+str(int(d_top))+" par hai"
-        # WAIT ME BHI DONO SIDE KA TP SL - YEHI FIX HAI
+        faisla = tf_name+" WAIT - DEMAND PAR HAI - ABHI CONFIRM NAHI HUA"; fcol="#FFAA00"
+        entry="Wait - Demand "+str(int(d_bot))+"-"+str(int(d_top))+" par hai - BUY MAT KARO"
         sl="SL: Abhi Entry Nahi - ATR "+atr_s+" | BUY SL: "+str(buy_sl_val)+" | SELL SL: "+str(sell_sl_val)
         tp="TP: Wait Karo | BUY TP: "+str(buy_tp_val)+" | SELL TP: "+str(sell_tp_val)
         chance=buy_score; chance_txt="CHANCE: "+str(chance)+"% - ABHI KAM HAI"; rr_txt="RR: Abhi Entry Nahi"
     elif at_s:
-        faisla = tf_name+" WAIT - SUPPLY PAR HAI"; fcol="#FFAA00"
-        entry="Wait - Supply "+str(int(s_bot))+"-"+str(int(s_top))+" par hai"
+        faisla = tf_name+" WAIT - SUPPLY PAR HAI - ABHI CONFIRM NAHI HUA"; fcol="#FFAA00"
+        entry="Wait - Supply "+str(int(s_bot))+"-"+str(int(s_top))+" par hai - SELL MAT KARO"
         sl="SL: Abhi Entry Nahi - ATR "+atr_s+" | BUY SL: "+str(buy_sl_val)+" | SELL SL: "+str(sell_sl_val)
         tp="TP: Wait Karo | BUY TP: "+str(buy_tp_val)+" | SELL TP: "+str(sell_tp_val)
         chance=sell_score; chance_txt="CHANCE: "+str(chance)+"% - ABHI KAM HAI"; rr_txt="RR: Abhi Entry Nahi"
@@ -255,26 +254,26 @@ sell_buttons.append(("12 Volume SELL", "VOL STRONG" if volume_strong else "VOL K
 buy_c=sum(1 for _,_,v in buy_buttons if v); sell_c=sum(1 for _,_,v in sell_buttons if v)
 
 st.markdown(f"<p style='text-align:center; color:white;'>{date_txt} | {time_txt} | PAKISTAN TIME</p>", unsafe_allow_html=True)
-st.markdown(f"<div style='border:2px solid #FFD700; background:#1A1A1A; padding:12px; border-radius:10px; text-align:center;'><h2 style='color:white;'>GOLD: {abhi_s} [MANUAL] | ATR: {atr_s} LIVE</h2><p style='color:#FFD700;'>4H = MAZBOOT LATE | 1H = BEECH | 15M = JALDI</p></div>", unsafe_allow_html=True)
-st.markdown(f"<div style='border:2px solid {r4h['fcol']}; background:#1A1A1A; padding:12px; border-radius:10px; text-align:center; margin-top:10px;'><h3 style='color:#FFD700;'>4H SETUP - MAZBOOT WALA - LATE - DIN ME 1 BAAR</h3><h3 style='color:{r4h['fcol']};'>{r4h['faisla']}</h3><p style='color:white;'>{r4h['entry']} | {r4h['sl']} | {r4h['tp']}</p><p style='color:white;'>BOS: {r4h['bos']} | {r4h['fvg']} | {r4h['react']}</p><p style='color:white;'>4H D: {r4h['d_bot']}-{r4h['d_top']} | 4H S: {r4h['s_bot']}-{r4h['s_top']} | VOL: {'MAZBOOT' if r4h['vol_ok'] else 'KAMZOR'}</p><p style='color:#00FF88;'><b>{r4h['chance_txt']} | {r4h['rr']}</b></p></div>", unsafe_allow_html=True)
-st.markdown(f"<div style='background:#FFD700; color:black; text-align:center; padding:10px; border-radius:8px; font-weight:bold; margin-top:10px;'>BUTTON - SIRF ANDAZA - FAISLA NAHI KARTA<br>BUY {buy_c}/12 | SELL {sell_c}/12 | Resistance 1H: {r1h['res']} | Support 1H: {r1h['sup']} | RSI: {rsi_s}</div>", unsafe_allow_html=True)
+st.markdown(f"<div style='border:2px solid #FFD700; background:#1A1A1A; padding:8px; border-radius:10px; text-align:center;'><h2 style='color:white;'>GOLD: {abhi_s} [MANUAL] | ATR: {atr_s} LIVE</h2><p style='color:#FFD700;'>4H = MAZBOOT LATE | 1H = BEECH | 15M = JALDI</p></div>", unsafe_allow_html=True)
+st.markdown(f"<div style='border:2px solid {r4h['fcol']}; background:#1A1A1A; padding:8px; border-radius:10px; text-align:center; margin-top:6px;'><h3 style='color:#FFD700;'>4H SETUP - MAZBOOT WALA - LATE - DIN ME 1 BAAR</h3><h3 style='color:{r4h['fcol']};'>{r4h['faisla']}</h3><p style='color:white;'>{r4h['entry']} | {r4h['sl']} | {r4h['tp']}</p><p style='color:white;'>BOS: {r4h['bos']} | {r4h['fvg']} | {r4h['react']}</p><p style='color:white;'>4H D: {r4h['d_bot']}-{r4h['d_top']} | 4H S: {r4h['s_bot']}-{r4h['s_top']} | VOL: {'MAZBOOT' if r4h['vol_ok'] else 'KAMZOR'}</p><p style='color:#00FF88;'><b>{r4h['chance_txt']} | {r4h['rr']}</b></p></div>", unsafe_allow_html=True)
+st.markdown(f"<div style='background:#FFD700; color:black; text-align:center; padding:6px; border-radius:8px; font-weight:bold; margin-top:6px;'>BUTTON - SIRF ANDAZA - FAISLA NAHI KARTA<br>BUY {buy_c}/12 | SELL {sell_c}/12 | Resistance 1H: {r1h['res']} | Support 1H: {r1h['sup']} | RSI: {rsi_s}</div>", unsafe_allow_html=True)
 bcol, scol = st.columns(2)
 with bcol:
     st.markdown(f"<h3 style='color:#00FF88; text-align:center;'>BUY - SIRF ANDAZA<br>BUY: {buy_c}/12</h3>", unsafe_allow_html=True)
     for naam, val, ok in buy_buttons:
         bg = "#003311" if ok else "#1A1A1A"
         txt = "SABZ" if ok else "NAHI"
-        st.markdown(f"<div style='background:{bg}; border:1px solid #555; padding:8px; border-radius:6px; margin:4px 0; color:white;'><b>{naam}</b><br>{val} - <b>{txt}</b></div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='background:{bg}; border:1px solid #555; padding:5px; border-radius:6px; margin:2px 0; color:white;'><b>{naam}</b><br>{val} - <b>{txt}</b></div>", unsafe_allow_html=True)
 with scol:
     st.markdown(f"<h3 style='color:#FF4444; text-align:center;'>SELL - SIRF ANDAZA<br>SELL: {sell_c}/12</h3>", unsafe_allow_html=True)
     for naam, val, ok in sell_buttons:
         bg = "#330000" if ok else "#1A1A1A"
         txt = "LAL" if ok else "NAHI"
-        st.markdown(f"<div style='background:{bg}; border:1px solid #555; padding:8px; border-radius:6px; margin:4px 0; color:white;'><b>{naam}</b><br>{val} - <b>{txt}</b></div>", unsafe_allow_html=True)
-st.markdown("<div style='background:#FFD700; color:black; text-align:center; padding:10px; border-radius:8px; font-weight:bold; margin-top:15px;'>NEECHE WALA - JALDI WALA - BUTTON KE NEECHE</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='background:{bg}; border:1px solid #555; padding:5px; border-radius:6px; margin:2px 0; color:white;'><b>{naam}</b><br>{val} - <b>{txt}</b></div>", unsafe_allow_html=True)
+st.markdown("<div style='background:#FFD700; color:black; text-align:center; padding:6px; border-radius:8px; font-weight:bold; margin-top:8px;'>NEECHE WALA - JALDI WALA - BUTTON KE NEECHE</div>", unsafe_allow_html=True)
 c1, c2 = st.columns(2)
 with c1:
-    st.markdown(f"<div style='border:2px solid {r15['fcol']}; background:#1A1A1A; padding:10px; border-radius:10px; text-align:center;'><h3 style='color:#FFD700;'>15M - JALDI WALA</h3><h3 style='color:{r15['fcol']};'>{r15['faisla']}</h3><p style='color:white;'>{r15['entry']}</p><p style='color:white;'>{r15['sl']} | {r15['tp']}</p><p style='color:white;'>BOS: {r15['bos']} | {r15['fvg']}</p><p style='color:white;'>{r15['react']} | VOL: {'MAZBOOT' if r15['vol_ok'] else 'KAMZOR'}</p><p style='color:white;'>15M D: {r15['d_bot']}-{r15['d_top']} | S: {r15['s_bot']}-{r15['s_top']}</p><p style='color:white;'><b>{r15['chance_txt']} | {r15['rr']}</b></p></div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='border:2px solid {r15['fcol']}; background:#1A1A1A; padding:7px; border-radius:10px; text-align:center;'><h3 style='color:#FFD700;'>15M - JALDI WALA</h3><h3 style='color:{r15['fcol']};'>{r15['faisla']}</h3><p style='color:white;'>{r15['entry']}</p><p style='color:white;'>{r15['sl']} | {r15['tp']}</p><p style='color:white;'>BOS: {r15['bos']} | {r15['fvg']}</p><p style='color:white;'>{r15['react']} | VOL: {'MAZBOOT' if r15['vol_ok'] else 'KAMZOR'}</p><p style='color:white;'>15M D: {r15['d_bot']}-{r15['d_top']} | S: {r15['s_bot']}-{r15['s_top']}</p><p style='color:white;'><b>{r15['chance_txt']} | {r15['rr']}</b></p></div>", unsafe_allow_html=True)
 with c2:
-    st.markdown(f"<div style='border:2px solid {r1h['fcol']}; background:#1A1A1A; padding:10px; border-radius:10px; text-align:center;'><h3 style='color:#FFD700;'>1H - BEECH WALA</h3><h3 style='color:{r1h['fcol']};'>{r1h['faisla']}</h3><p style='color:white;'>{r1h['entry']}</p><p style='color:white;'>{r1h['sl']} | {r1h['tp']}</p><p style='color:white;'>BOS: {r1h['bos']} | {r1h['fvg']}</p><p style='color:white;'>{r1h['react']} | VOL: {'MAZBOOT' if r1h['vol_ok'] else 'KAMZOR'}</p><p style='color:white;'>1H D: {r1h['d_bot']}-{r1h['d_top']} | S: {r1h['s_bot']}-{r1h['s_top']}</p><p style='color:white;'><b>{r1h['chance_txt']} | {r1h['rr']}</b></p></div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='border:2px solid {r1h['fcol']}; background:#1A1A1A; padding:7px; border-radius:10px; text-align:center;'><h3 style='color:#FFD700;'>1H - BEECH WALA</h3><h3 style='color:{r1h['fcol']};'>{r1h['faisla']}</h3><p style='color:white;'>{r1h['entry']}</p><p style='color:white;'>{r1h['sl']} | {r1h['tp']}</p><p style='color:white;'>BOS: {r1h['bos']} | {r1h['fvg']}</p><p style='color:white;'>{r1h['react']} | VOL: {'MAZBOOT' if r1h['vol_ok'] else 'KAMZOR'}</p><p style='color:white;'>1H D: {r1h['d_bot']}-{r1h['d_top']} | S: {r1h['s_bot']}-{r1h['s_top']}</p><p style='color:white;'><b>{r1h['chance_txt']} | {r1h['rr']}</b></p></div>", unsafe_allow_html=True)
 st.markdown("<p style='text-align:center; color:white;'>CHANCE 80%+ HO TO HI MAZBOOT SAMJHO - 60% SE KAM HO TO WAIT KARO</p>", unsafe_allow_html=True)
