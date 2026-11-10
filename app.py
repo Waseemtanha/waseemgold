@@ -4,6 +4,17 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import time
+import requests
+
+def TELEGRAM_BHEJO(msg):
+    try:
+        token = st.secrets["TELEGRAM_TOKEN"]
+        chat_id = st.secrets["CHAT_ID"]
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        requests.post(url, data={"chat_id": chat_id, "text": msg}, timeout=10)
+        return True
+    except:
+        return False
 
 st.set_page_config(page_title="WASEEM TRADER - V4.1", layout="wide")
 
@@ -276,3 +287,22 @@ with c1:
 with c2:
     st.markdown(f"<div style='border:2px solid {r1h['fcol']}; background:#1A1A1A; padding:7px; border-radius:10px; text-align:center;'><h3 style='color:#FFD700;'>1H - BEECH WALA</h3><h3 style='color:{r1h['fcol']};'>{r1h['faisla']}</h3><p style='color:white;'>{r1h['entry']}</p><p style='color:white;'>{r1h['sl']} | {r1h['tp']}</p><p style='color:white;'>BOS: {r1h['bos']} | {r1h['fvg']}</p><p style='color:white;'>{r1h['react']} | VOL: {'MAZBOOT' if r1h['vol_ok'] else 'KAMZOR'}</p><p style='color:white;'>1H D: {r1h['d_bot']}-{r1h['d_top']} | S: {r1h['s_bot']}-{r1h['s_top']}</p><p style='color:white;'><b>{r1h['chance_txt']} | {r1h['rr']}</b></p></div>", unsafe_allow_html=True)
 st.markdown("<p style='text-align:center; color:white;'>CHANCE 80%+ HO TO HI MAZBOOT SAMJHO - 60% SE KAM HO TO WAIT KARO</p>", unsafe_allow_html=True)
+# ===== TELEGRAM ALERT - CHACHA WALA =====
+st.markdown("---")
+st.markdown("<h3 style='text-align:center; color:#FFD700;'>TELEGRAM ALERT</h3>", unsafe_allow_html=True)
+
+alert_msg = ""
+if r1h['d_bot'] <= abhi <= r1h['d_top']:
+    alert_msg = f"CHACHA - SETUP BAN GAYA!\nGOLD BUY ZONE ME AA GAYA HAI\nPrice: {int(abhi)}\nZone: {r1h['d_bot']}-{r1h['d_top']}\n{r1h['entry']} | {r1h['sl']} | {r1h['tp']}"
+elif r1h['s_bot'] <= abhi <= r1h['s_top']:
+    alert_msg = f"CHACHA - SETUP BAN GAYA!\nGOLD SELL ZONE ME AA GAYA HAI\nPrice: {int(abhi)}\nZone: {r1h['s_bot']}-{r1h['s_top']}\n{r1h['entry']} | {r1h['sl']} | {r1h['tp']}"
+else:
+    alert_msg = f"Abhi Zone me nahi hai. Price: {int(abhi)} | Buy Zone: {r1h['d_bot']}-{r1h['d_top']} | Sell Zone: {r1h['s_bot']}-{r1h['s_top']}"
+
+st.info(alert_msg)
+
+if st.button("TELEGRAM PAR ALERT BHEJO", use_container_width=True):
+    if TELEGRAM_BHEJO(alert_msg):
+        st.success("Ho gaya Chacha! Telegram par chala gaya!")
+    else:
+        st.error("Nahi gaya - Secrets me TOKEN aur CHAT_ID check karo")
