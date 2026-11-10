@@ -6,7 +6,10 @@ from datetime import datetime, timedelta
 import time
 import requests
 
-def TELEGRAM_BHEJO(msg):
+st.set_page_config(page_title="WASEEM TRADER - V4.3", layout="wide")
+
+# ---------- TELEGRAM SYSTEM ----------
+def TG_SEND(msg):
     try:
         token = st.secrets["TELEGRAM_TOKEN"]
         chat_id = st.secrets["CHAT_ID"]
@@ -16,9 +19,50 @@ def TELEGRAM_BHEJO(msg):
     except:
         return False
 
-st.set_page_config(page_title="WASEEM TRADER - V4.1", layout="wide")
+def TG_GET_UPDATES():
+    try:
+        token = st.secrets["TELEGRAM_TOKEN"]
+        if "tg_offset" not in st.session_state:
+            st.session_state["tg_offset"] = 0
+        url = f"https://api.telegram.org/bot{token}/getUpdates?offset={st.session_state['tg_offset']}&timeout=2"
+        r = requests.get(url, timeout=5).json()
+        msgs = []
+        for u in r.get("result", []):
+            st.session_state["tg_offset"] = u["update_id"] + 1
+            m = u.get("message", {})
+            txt = m.get("text", "").strip()
+            cid = str(m.get("chat", {}).get("id", ""))
+            if cid == str(st.secrets["CHAT_ID"]):
+                msgs.append(txt)
+        return msgs
+    except:
+        return []
 
-# --- SIZE CHHOTA - EK SCROLL ME PURA NAZAR AAYE ---
+tg_msgs = TG_GET_UPDATES()
+tg_price = None
+tg_status_chahiye = False
+tg_start_chahiye = False
+
+for t in tg_msgs:
+    tl = t.lower()
+    if tl == "/start":
+        tg_start_chahiye = True
+    elif tl == "/status":
+        tg_status_chahiye = True
+    elif tl.startswith("/price"):
+        try:
+            tg_price = float(tl.replace("/price", "").strip())
+        except:
+            pass
+    elif tl.startswith("price"):
+        try:
+            tg_price = float(tl.replace("price", "").strip())
+        except:
+            pass
+
+if tg_start_chahiye:
+    TG_SEND("Assalam-o-Alaikum Ustad Ji! 🙏\nBot ZINDA hai.\n\nUse karo:\n/status - poora status\n/price 4025 - is price par status")
+
 st.markdown("""
 <style>
 .block-container{padding-top:2px !important; padding-bottom:2px !important; padding-left:5px !important; padding-right:5px !important; max-width:100% !important;}
@@ -33,19 +77,25 @@ input{height:26px !important;}
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("<h1 style='color:#FFD700; text-align:center;'>WASEEM TRADER - V4.1</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center; color:white;'>UPAR 4H MAZBOOT LATE + NEECHE JALDI WALA - CHANCE KE SAATH</p>", unsafe_allow_html=True)
+st.markdown("<h1 style='color:#FFD700; text-align:center;'>WASEEM TRADER - V4.3</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:white;'>TELEGRAM SE PRICE BHEJO - /price 4025 - AUTO ALERT</p>", unsafe_allow_html=True)
+
+default_price = tg_price if tg_price else 4021.0
+if tg_price:
+    st.session_state["chalaya"] = True
+    st.session_state["price"] = tg_price
+    st.success(f"Telegram se Price mil gaya: {int(tg_price)}")
 
 colA, colB, colC = st.columns([2,2,1])
 with colA:
-    MANUAL_PRICE = st.number_input("GOLD PRICE LIKHEIN - MANUAL", value=4021.0, step=1.0)
+    MANUAL_PRICE = st.number_input("GOLD PRICE LIKHEIN - MANUAL", value=float(default_price), step=1.0)
 with colB:
     auto = st.checkbox("AUTO PRICE - Yahoo se le lo", value=False)
 with colC:
     chalao = st.button("CHALAO - CALCULATE KARO", use_container_width=True)
 
 if not chalao and "chalaya" not in st.session_state:
-    st.info("Upar GOLD PRICE likhein aur CHALAO dabayein")
+    st.info("Upar GOLD PRICE likhein aur CHALAO dabayein - Ya Telegram me /price 4025 likhein")
     st.stop()
 
 if chalao:
@@ -103,13 +153,10 @@ date_txt = pak_time.strftime("%d %B %Y")
 time_txt = pak_time.strftime("%I:%M %p")
 abhi_s = str(int(abhi))
 
-# --- ATR SIRF DIKHANE KE LIYE - SL KE LIYE NAHI ---
-# USTAD JI WALA FINAL HISAB - SL 7, TP1 10, TP2 30
 df['TR'] = np.maximum(df['High']-df['Low'], np.maximum(abs(df['High']-df['Close'].shift(1)), abs(df['Low']-df['Close'].shift(1))))
 atr_v = float(df['TR'].rolling(14).mean().iloc[-1])
 if atr_v < 3: atr_v = 3.0
 atr_s = str(round(atr_v,1))
-sl_dist = 7
 
 def SETUP_CALC(d, tf_name, demand_size):
     last_high = float(d['High'].iloc[-10:-1].max())
@@ -125,7 +172,6 @@ def SETUP_CALC(d, tf_name, demand_size):
             fvg_bull = True; fvg_bot = h2; fvg_top = l0
         if l2 - h0 > 1 and l2 - h0 < 8:
             fvg_bear = True; fvg_bot = h0; fvg_top = l2
-    # --- NAYA ZONE AUTO - PICHLI CANDLES SE NIKALTA HAI, PAKA NAHI ---
     highs=[]; lows=[]
     for i in range(2, len(d)-2):
         h=float(d['High'].iloc[i]); l2=float(d['Low'].iloc[i])
@@ -164,14 +210,12 @@ def SETUP_CALC(d, tf_name, demand_size):
     if trend_down: sell_score+=20
     bos_txt = "BOS UP" if bos_up else "BOS DOWN" if bos_down else "BOS Nahi"
     fvg_txt = "FVG Bullish" if fvg_bull else "FVG Bearish" if fvg_bear else "FVG Nahi"
-    # --- USTAD JI WALA FINAL - SL 7, TP1 10, TP2 30 ---
     buy_sl_val = int(d_bot - 7)
     buy_tp1_val = int(d_top + 10)
     buy_tp2_val = int(d_top + 30)
     sell_sl_val = int(s_top + 7)
     sell_tp1_val = int(s_bot - 10)
     sell_tp2_val = int(s_bot - 30)
-    # --- WAIT HI RAHEGA JAB TAK SAB CONFIRM NA HO - WAIT ME SL/TP KHALI ---
     if at_d and (bos_up or fvg_bull) and react_buy and vol_ok:
         faisla = tf_name+" BUY SETUP - SAB MIL GAYA"; fcol="#00FF88"
         entry="Buy "+str(int(d_bot))+" - "+str(int(d_top)); sl="SL: "+str(buy_sl_val); tp="TP1: "+str(buy_tp1_val)+" | TP2: "+str(buy_tp2_val)
@@ -263,8 +307,57 @@ sell_buttons.append(("11 Session SELL", sess_sell_txt, sess_sell_ok))
 sell_buttons.append(("12 Volume SELL", "VOL STRONG" if volume_strong else "VOL KAM", (not volume_strong) and abhi<ema15_v))
 buy_c=sum(1 for _,_,v in buy_buttons if v); sell_c=sum(1 for _,_,v in sell_buttons if v)
 
+# ---------- TELEGRAM KE LIYE POORA STATUS - 12 BUTTON KE SAATH ----------
+buy_detail = "\n".join([f"{n} - {v} - {'✅ SABZ' if ok else '❌ NAHI'}" for n,v,ok in buy_buttons])
+sell_detail = "\n".join([f"{n} - {v} - {'✅ LAL' if ok else '❌ NAHI'}" for n,v,ok in sell_buttons])
+
+status_msg = f"""WASEEM TRADER - V4.3
+{date_txt} | {time_txt} | PAK TIME
+GOLD: {abhi_s} | ATR: {atr_s}
+
+4H - MAZBOOT:
+{r4h['faisla']}
+{r4h['entry']} | {r4h['sl']} | {r4h['tp']}
+{r4h['chance_txt']} | {r4h['rr']}
+BOS: {r4h['bos']} | {r4h['fvg']} | {r4h['react']}
+4H D: {r4h['d_bot']}-{r4h['d_top']} | S: {r4h['s_bot']}-{r4h['s_top']}
+
+1H - BEECH:
+{r1h['faisla']}
+{r1h['entry']} | {r1h['sl']} | {r1h['tp']}
+{r1h['chance_txt']} | {r1h['rr']}
+BOS: {r1h['bos']} | {r1h['fvg']} | {r1h['react']}
+1H D: {r1h['d_bot']}-{r1h['d_top']} | S: {r1h['s_bot']}-{r1h['s_top']}
+
+15M - JALDI:
+{r15['faisla']}
+{r15['entry']} | {r15['sl']} | {r15['tp']}
+{r15['chance_txt']} | {r15['rr']}
+
+BUTTON TOTAL: BUY {buy_c}/12 | SELL {sell_c}/12
+Support 1H: {r1h['sup']} | Resistance 1H: {r1h['res']}
+RSI: {rsi_s} | VWAP: {vwap_s} | EMA50: {ema50_s} | EMA15: {ema15_s}
+BB: {bb_low_s} - {bb_up_s} | VOL: {vol_s}/{vol_avg_s}
+
+--- BUY 12 BUTTON ---
+{buy_detail}
+
+--- SELL 12 BUTTON ---
+{sell_detail}
+"""
+
+if tg_status_chahiye or tg_price is not None:
+    TG_SEND(status_msg)
+
+setup_bana = "BUY SETUP" in r1h['faisla'] or "SELL SETUP" in r1h['faisla'] or "BUY SETUP" in r4h['faisla'] or "SELL SETUP" in r4h['faisla']
+if setup_bana:
+    alert_key = f"{r1h['faisla']}-{int(abhi)}"
+    if st.session_state.get("last_alert") != alert_key:
+        st.session_state["last_alert"] = alert_key
+        TG_SEND(f"CHACHA - SETUP BAN GAYA! 🔥\n\n{status_msg}")
+
 st.markdown(f"<p style='text-align:center; color:white;'>{date_txt} | {time_txt} | PAKISTAN TIME</p>", unsafe_allow_html=True)
-st.markdown(f"<div style='border:2px solid #FFD700; background:#1A1A1A; padding:8px; border-radius:10px; text-align:center;'><h2 style='color:white;'>GOLD: {abhi_s} [MANUAL] | ATR: {atr_s} LIVE</h2><p style='color:#FFD700;'>4H = MAZBOOT LATE | 1H = BEECH | 15M = JALDI</p></div>", unsafe_allow_html=True)
+st.markdown(f"<div style='border:2px solid #FFD700; background:#1A1A1A; padding:8px; border-radius:10px; text-align:center;'><h2 style='color:white;'>GOLD: {abhi_s} | ATR: {atr_s} LIVE</h2><p style='color:#FFD700;'>4H = MAZBOOT LATE | 1H = BEECH | 15M = JALDI</p></div>", unsafe_allow_html=True)
 st.markdown(f"<div style='border:2px solid {r4h['fcol']}; background:#1A1A1A; padding:8px; border-radius:10px; text-align:center; margin-top:6px;'><h3 style='color:#FFD700;'>4H SETUP - MAZBOOT WALA - LATE - DIN ME 1 BAAR</h3><h3 style='color:{r4h['fcol']};'>{r4h['faisla']}</h3><p style='color:white;'>{r4h['entry']} | {r4h['sl']} | {r4h['tp']}</p><p style='color:white;'>BOS: {r4h['bos']} | {r4h['fvg']} | {r4h['react']}</p><p style='color:white;'>4H D: {r4h['d_bot']}-{r4h['d_top']} | 4H S: {r4h['s_bot']}-{r4h['s_top']} | VOL: {'MAZBOOT' if r4h['vol_ok'] else 'KAMZOR'}</p><p style='color:#00FF88;'><b>{r4h['chance_txt']} | {r4h['rr']}</b></p></div>", unsafe_allow_html=True)
 st.markdown(f"<div style='background:#FFD700; color:black; text-align:center; padding:6px; border-radius:8px; font-weight:bold; margin-top:6px;'>BUTTON - SIRF ANDAZA - FAISLA NAHI KARTA<br>BUY {buy_c}/12 | SELL {sell_c}/12 | Resistance 1H: {r1h['res']} | Support 1H: {r1h['sup']} | RSI: {rsi_s}</div>", unsafe_allow_html=True)
 bcol, scol = st.columns(2)
@@ -287,22 +380,17 @@ with c1:
 with c2:
     st.markdown(f"<div style='border:2px solid {r1h['fcol']}; background:#1A1A1A; padding:7px; border-radius:10px; text-align:center;'><h3 style='color:#FFD700;'>1H - BEECH WALA</h3><h3 style='color:{r1h['fcol']};'>{r1h['faisla']}</h3><p style='color:white;'>{r1h['entry']}</p><p style='color:white;'>{r1h['sl']} | {r1h['tp']}</p><p style='color:white;'>BOS: {r1h['bos']} | {r1h['fvg']}</p><p style='color:white;'>{r1h['react']} | VOL: {'MAZBOOT' if r1h['vol_ok'] else 'KAMZOR'}</p><p style='color:white;'>1H D: {r1h['d_bot']}-{r1h['d_top']} | S: {r1h['s_bot']}-{r1h['s_top']}</p><p style='color:white;'><b>{r1h['chance_txt']} | {r1h['rr']}</b></p></div>", unsafe_allow_html=True)
 st.markdown("<p style='text-align:center; color:white;'>CHANCE 80%+ HO TO HI MAZBOOT SAMJHO - 60% SE KAM HO TO WAIT KARO</p>", unsafe_allow_html=True)
-# ===== TELEGRAM ALERT - CHACHA WALA =====
 st.markdown("---")
 st.markdown("<h3 style='text-align:center; color:#FFD700;'>TELEGRAM ALERT</h3>", unsafe_allow_html=True)
-
-alert_msg = ""
 if r1h['d_bot'] <= abhi <= r1h['d_top']:
     alert_msg = f"CHACHA - SETUP BAN GAYA!\nGOLD BUY ZONE ME AA GAYA HAI\nPrice: {int(abhi)}\nZone: {r1h['d_bot']}-{r1h['d_top']}\n{r1h['entry']} | {r1h['sl']} | {r1h['tp']}"
 elif r1h['s_bot'] <= abhi <= r1h['s_top']:
     alert_msg = f"CHACHA - SETUP BAN GAYA!\nGOLD SELL ZONE ME AA GAYA HAI\nPrice: {int(abhi)}\nZone: {r1h['s_bot']}-{r1h['s_top']}\n{r1h['entry']} | {r1h['sl']} | {r1h['tp']}"
 else:
     alert_msg = f"Abhi Zone me nahi hai. Price: {int(abhi)} | Buy Zone: {r1h['d_bot']}-{r1h['d_top']} | Sell Zone: {r1h['s_bot']}-{r1h['s_top']}"
-
 st.info(alert_msg)
-
 if st.button("TELEGRAM PAR ALERT BHEJO", use_container_width=True):
-    if TELEGRAM_BHEJO(alert_msg):
+    if TG_SEND(alert_msg):
         st.success("Ho gaya Chacha! Telegram par chala gaya!")
     else:
         st.error("Nahi gaya - Secrets me TOKEN aur CHAT_ID check karo")
