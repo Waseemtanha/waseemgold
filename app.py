@@ -1,5 +1,5 @@
-# WASEEM - V5.1 - HISSA 1 - PAGE 1 WASEEM WALA
-# PURANI FILE KO KHALI KAR KE YAHI PASTE KARO - PHIR HISSA 2 NEECHE LAGANA
+# WASEEM - V5.2 - HISSA 1 - UPAR WALA + HISAB WALA
+# PURANI FILE KHALI KAR KE YAHI PASTE KARO - PHIR HISSA 2 NEECHE LAGANA
 import streamlit as st
 import yfinance as yf
 import pandas as pd
@@ -10,29 +10,28 @@ import requests
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-st.set_page_config(page_title="WASEEM TRADER - V5.1", layout="centered")
+st.set_page_config(page_title="WASEEM TRADER - V5.2", layout="centered")
 
+# استاد جی - PAGE WALA - SAB SE UPAR - SIGNAL SE PEHLE - IS LIYE NEXT KABHI NAHI RUKEGA
 if 'page' not in st.session_state:
     st.session_state['page'] = 1
-
-c1, c2, c3 = st.columns([1, 2, 1])
-with c1:
-    if st.button("⬅ BACK", key="back_v51"):
+b1, b2 = st.columns(2)
+with b1:
+    if st.button("⬅ BACK", key="back_v52", use_container_width=True):
         if st.session_state['page'] > 1:
             st.session_state['page'] -= 1
             st.rerun()
-with c3:
-    if st.button("NEXT ➡", key="next_v51"):
-        if st.session_state['page'] < 2:
+with b2:
+    if st.button("NEXT ➡", key="next_v52", use_container_width=True):
+        if st.session_state['page'] < 3:
             st.session_state['page'] += 1
             st.rerun()
-
-st.write(f"PAGE: {st.session_state['page']} / 2 - 1 = WASEEM WALA | 2 = BLACK GOLD WALA")
-st.title("WASEEM TRADER - V5.1")
+st.write(f"PAGE: {st.session_state['page']} / 3 - 1 = WASEEM | 2 = BLACK GOLD | 3 = WAJAH")
+st.title("WASEEM TRADER - V5.2")
 
 # استاد جی - PRICE WALA - AUTO + MANUAL DONO
-price_mode = st.radio("PRICE KAHA SE LEIN?", ["AUTO - YAHOO WALI", "MANUAL - KHUD DALO - TRADINGVIEW WALI"], key="price_mode_v51", horizontal=True)
-manual_price = st.number_input("MANUAL PRICE - JAISE 4060.33", value=4060.33, key="manual_v51")
+price_mode = st.radio("PRICE KAHA SE LEIN?", ["AUTO - YAHOO WALI", "MANUAL - KHUD DALO - TRADINGVIEW WALI"], key="price_mode_v52", horizontal=True)
+manual_price = st.number_input("MANUAL PRICE - JAISE 4060.33", value=4060.33, key="manual_v52")
 try:
     yf_data = yf.download("GC=F", period="1d", interval="1m", progress=False)
     if isinstance(yf_data.columns, pd.MultiIndex):
@@ -40,7 +39,6 @@ try:
     yahoo_price = float(yf_data['Close'].iloc[-1])
 except:
     yahoo_price = float(manual_price)
-
 if price_mode == "AUTO - YAHOO WALI":
     FINAL_PRICE = float(yahoo_price)
     st.info(f"AUTO PRICE: {FINAL_PRICE} | MANUAL THI: {manual_price}")
@@ -48,10 +46,9 @@ else:
     FINAL_PRICE = float(manual_price)
     st.success(f"MANUAL PRICE: {FINAL_PRICE} | YAHOO THI: {yahoo_price}")
 
-AUTO_ON = st.checkbox("AUTO ON - SETUP BANTE HI TELEGRAM KHUD JAYEGA", value=False, key="auto_v51")
-AUTO_MINUTE = st.selectbox("KITNI DEER BAAD CHECK KARE?", [1, 5, 15], index=1, key="auto_min_v51")
-TRAILING_ON = st.checkbox("TRAILING ON - TP LAGNE PAR SL KHUD B/E PAR + PRICE KE SAATH CHALEGA", value=True, key="trail_v51")
-
+AUTO_ON = st.checkbox("AUTO ON - SETUP BANTE HI TELEGRAM KHUD JAYEGA", value=False, key="auto_v52")
+AUTO_MINUTE = st.selectbox("KITNI DEER BAAD CHECK KARE?", [1, 5, 15], index=1, key="auto_min_v52")
+TRAILING_ON = st.checkbox("TRAILING ON - TP1 PAR SL B/E PAR", value=True, key="trail_v52")
 BOT_TOKEN = st.secrets["BOT_TOKEN"]
 CHAT_ID = st.secrets["CHAT_ID"]
 
@@ -62,19 +59,17 @@ def TELEGRAM_BHEJO(message):
     except Exception as e:
         st.error(f"TELEGRAM ME GALTI: {e}")
         return None
-
 def ALAG_ALAG_BHEJO(m1, m2, m3, m4, m5, m6):
     for m in [m1, m2, m3, m4, m5, m6]:
         if m and m.strip() != "":
             TELEGRAM_BHEJO(m)
             time.sleep(1)
-
-if st.button("TEST TELEGRAM", key="test_v51"):
-    TELEGRAM_BHEJO("TEST - WASEEM TRADER V5.1 CHAL RAHA HAI")
+if st.button("TEST TELEGRAM", key="test_v52"):
+    TELEGRAM_BHEJO("TEST - WASEEM TRADER V5.2 CHAL RAHA HAI")
 
 abhi = float(FINAL_PRICE)
 abhi_s = str(abhi)
-CHALAO = st.button("SIGNAL BANAO", key="signal_v51") or AUTO_ON
+CHALAO = st.button("SIGNAL BANAO", key="signal_v52") or AUTO_ON
 
 if CHALAO:
     def CLEAN(d):
@@ -96,7 +91,6 @@ if CHALAO:
             except:
                 time.sleep(2)
         return None
-
     df4h = GET_DATA("1mo","4h",60)
     df = GET_DATA("5d","1h",120)
     df15 = GET_DATA("2d","15m",120)
@@ -109,25 +103,20 @@ if CHALAO:
             d.loc[d.index[-1], 'High'] = abhi
         if abhi < float(d.loc[d.index[-1], 'Low']):
             d.loc[d.index[-1], 'Low'] = abhi
-
     pak_time = datetime.now() + timedelta(hours=5)
     date_txt = pak_time.strftime("%d %B %Y")
     time_txt = pak_time.strftime("%I:%M %p")
-
     df['TR'] = np.maximum(df['High']-df['Low'], np.maximum(abs(df['High']-df['Close'].shift(1)), abs(df['Low']-df['Close'].shift(1))))
     atr_v = float(df['TR'].rolling(14).mean().iloc[-1])
     if atr_v < 3: atr_v = 3.0
     if atr_v > 15: atr_v = 15.0
     atr_s = str(round(atr_v,1))
 
-    # استاد جی - NAYA SETUP - ALLIANCE WALA - SAKHT NAHI - INDICATOR + CHoCH WALA
     def NAYA_SETUP(d, tf_name, demand_size):
-        # CHoCH - pehle trend ulta hua ya nahi
         last_high = float(d['High'].iloc[-10:-1].max())
         last_low = float(d['Low'].iloc[-10:-1].min())
         bos_up = abhi > last_high
         bos_down = abhi < last_low
-        # FVG
         fvg_bull=False; fvg_bear=False; fvg_bot=0; fvg_top=0
         for i in range(len(d)-15, len(d)):
             if i < 2: continue
@@ -136,7 +125,6 @@ if CHALAO:
                 fvg_bull=True; fvg_bot=h2; fvg_top=l0
             if l2-h0>1 and l2-h0<8:
                 fvg_bear=True; fvg_bot=h0; fvg_top=l2
-        # SUP / RES
         highs=[]; lows=[]
         for i in range(2, len(d)-2):
             h=float(d['High'].iloc[i]); l2=float(d['Low'].iloc[i])
@@ -149,14 +137,12 @@ if CHALAO:
         d_bot=SUP; d_top=SUP+demand_size; s_bot=RES-demand_size; s_top=RES
         at_d = d_bot-3 <= abhi <= d_top+3
         at_s = s_bot-3 <= abhi <= s_top+3
-        # INDICATOR - EMA + RSI
         ema50=float(d['Close'].ewm(span=50, adjust=False).mean().iloc[-1])
         delta=d['Close'].diff(); gain=delta.where(delta>0,0).rolling(14).mean(); loss=-delta.where(delta<0,0).rolling(14).mean()
         rs=gain/(loss+0.00001); rsi=float(100-(100/(1+rs.iloc[-1])))
         o=float(d['Open'].iloc[-1]); c=float(d['Close'].iloc[-1]); h=float(d['High'].iloc[-1]); l=float(d['Low'].iloc[-1])
         body=abs(c-o); up_w=h-max(c,o); low_w=min(c,o)-l
         pin_buy=low_w>body and c>o; pin_sell=up_w>body and c<o
-        # استاد جی - SCORE - SAKHT NAHI - 3 CHEEZ MILI TO SETUP DE DO
         buy_score=0
         if at_d: buy_score+=1
         if bos_up or fvg_bull: buy_score+=1
@@ -169,29 +155,21 @@ if CHALAO:
         if abhi<ema50: sell_score+=1
         if rsi<50: sell_score+=1
         if pin_sell: sell_score+=1
-        # استاد جی - FIX HISAB - SL 6 | TP1 11 | TP2 22 | TP3 DYNAMIC
-        sl_dist=6; tp1_dist=11; tp2_dist=22
-        # TP3 - WAQT KE SAATH BADLEGA - ABHI KE HISAB SE
-        tp3_dist = tp2_dist + 11
+        sl_dist=6; tp1_dist=11; tp2_dist=22; tp3_dist=33
         if buy_score>=3:
             entry_bot=int(d_bot); entry_top=int(d_top); entry_mid=int((d_bot+d_top)/2)
             sl=int(entry_bot-sl_dist)
             tp1=int(entry_top+tp1_dist); tp2=int(entry_top+tp2_dist); tp3=int(entry_top+tp3_dist)
-            # TP1 GOL NUMBER WALA - ALLIANCE JAISE 4000 WALA
-            tp1_gol = round(tp1/10)*10
+            tp1_gol=round(tp1/10)*10
             if abs(tp1_gol-tp1)<=5: tp1=tp1_gol
-            # استاد جی - TRAILING + B/E
+            # استاد جی - TRAILING FIX - TP1 LAGNE SE PEHLE SL NAHI HILEGA
             sl_show=sl; trail_txt="SL FIX HAI - 6 DOLLAR"
             if TRAILING_ON:
                 if abhi>=tp1:
-                    sl_show=entry_mid; trail_txt=f"TP1 LAG GAYA - SL AB B/E PAR {sl_show} - NUQSAN NAHI"
+                    sl_show=entry_mid; trail_txt=f"TP1 LAG GAYA - SL AB B/E PAR {sl_show}"
                 if abhi>=tp2:
-                    sl_show=tp1; trail_txt=f"TP2 LAG GAYA - SL AB TP1 PAR {sl_show} - 11 DOLLAR PAKKA"
-                if abhi>=tp2:
-                    trail_sl=int(abhi-15)
-                    if trail_sl>sl_show: sl_show=trail_sl
-                    trail_txt=f"TRAILING CHAL RAHA HAI - SL AB {sl_show} - PRICE KE SAATH"
-            return {'side':'BUY','faisla':f"{tf_name} BUY SETUP - {buy_score}/5 MIL GAYA",'fcol':'#00FF88','entry':f"Buy {entry_bot} - {entry_top}",'entry_bot':entry_bot,'entry_top':entry_top,'entry_mid':entry_mid,'sl':sl,'sl_show':sl_show,'tp1':tp1,'tp2':tp2,'tp3':tp3,'tp_txt':f"TP1: {tp1} | TP2: {tp2} | TP3: {tp3} OPEN",'sl_txt':f"SL: {sl_show} - {trail_txt}",'chance':buy_score*20,'chance_txt':f"CHANCE: {buy_score*20}%",'rr':"SL 6 | TP1 11 | TP2 22 | TP3 OPEN",'bos':"BOS UP" if bos_up else "BOS Nahi",'fvg':"FVG Bullish" if fvg_bull else "FVG Nahi",'d_bot':entry_bot,'d_top':entry_top,'s_bot':int(s_bot),'s_top':int(s_top),'res':int(RES),'sup':int(SUP),'fvg_bot':int(fvg_bot),'fvg_top':int(fvg_top),'rsi':rsi,'ema50':ema50,'trail_txt':trail_txt,'round2':False}
+                    sl_show=tp1; trail_txt=f"TP2 LAG GAYA - SL AB TP1 PAR {sl_show} - 11 PAKKA"
+            return {'side':'BUY','faisla':f"{tf_name} BUY SETUP - {buy_score}/5 MIL GAYA",'fcol':'#00FF88','entry':f"Buy {entry_bot} - {entry_top}",'entry_bot':entry_bot,'entry_top':entry_top,'entry_mid':entry_mid,'sl':sl,'sl_show':sl_show,'tp1':tp1,'tp2':tp2,'tp3':tp3,'tp_txt':f"TP1: {tp1} | TP2: {tp2} | TP3: {tp3} OPEN",'sl_txt':f"SL: {sl_show} - {trail_txt}",'chance':buy_score*20,'chance_txt':f"CHANCE: {buy_score*20}%",'rr':"SL 6 | TP1 11 | TP2 22 | TP3 OPEN",'bos':"BOS UP" if bos_up else "BOS Nahi",'fvg':"FVG Bullish" if fvg_bull else "FVG Nahi",'d_bot':entry_bot,'d_top':entry_top,'s_bot':int(s_bot),'s_top':int(s_top),'res':int(RES),'sup':int(SUP),'fvg_bot':int(fvg_bot),'fvg_top':int(fvg_top),'rsi':rsi,'ema50':ema50,'trail_txt':trail_txt,'buy_score':buy_score,'sell_score':sell_score}
         if sell_score>=3:
             entry_bot=int(s_bot); entry_top=int(s_top); entry_mid=int((s_bot+s_top)/2)
             sl=int(entry_top+sl_dist)
@@ -201,23 +179,14 @@ if CHALAO:
             sl_show=sl; trail_txt="SL FIX HAI - 6 DOLLAR"
             if TRAILING_ON:
                 if abhi<=tp1:
-                    sl_show=entry_mid; trail_txt=f"TP1 LAG GAYA - SL AB B/E PAR {sl_show} - NUQSAN NAHI"
+                    sl_show=entry_mid; trail_txt=f"TP1 LAG GAYA - SL AB B/E PAR {sl_show}"
                 if abhi<=tp2:
-                    sl_show=tp1; trail_txt=f"TP2 LAG GAYA - SL AB TP1 PAR {sl_show} - 11 DOLLAR PAKKA"
-                if abhi<=tp2:
-                    trail_sl=int(abhi+15)
-                    if trail_sl<sl_show: sl_show=trail_sl
-                    trail_txt=f"TRAILING CHAL RAHA HAI - SL AB {sl_show} - PRICE KE SAATH"
-            return {'side':'SELL','faisla':f"{tf_name} SELL SETUP - {sell_score}/5 MIL GAYA",'fcol':'#FF4444','entry':f"Sell {entry_bot} - {entry_top}",'entry_bot':entry_bot,'entry_top':entry_top,'entry_mid':entry_mid,'sl':sl,'sl_show':sl_show,'tp1':tp1,'tp2':tp2,'tp3':tp3,'tp_txt':f"TP1: {tp1} | TP2: {tp2} | TP3: {tp3} OPEN",'sl_txt':f"SL: {sl_show} - {trail_txt}",'chance':sell_score*20,'chance_txt':f"CHANCE: {sell_score*20}%",'rr':"SL 6 | TP1 11 | TP2 22 | TP3 OPEN",'bos':"BOS DOWN" if bos_down else "BOS Nahi",'fvg':"FVG Bearish" if fvg_bear else "FVG Nahi",'d_bot':int(d_bot),'d_top':int(d_top),'s_bot':entry_bot,'s_top':entry_top,'res':int(RES),'sup':int(SUP),'fvg_bot':int(fvg_bot),'fvg_top':int(fvg_top),'rsi':rsi,'ema50':ema50,'trail_txt':trail_txt,'round2':False}
-        # استاد جی - AGAR SETUP NAHI BANA TO WAIT NAHI - ROUND 2 CHECK KARO - PURANA ZONE WAPAS AAYA?
-        # ROUND 2 - AGAR PRICE PURANE ZONE ME WAPAS AAYI TO PHIR SE SETUP
-        return {'side':'WAIT','faisla':f"{tf_name} WAIT - ABHI {buy_score}/5 BUY | {sell_score}/5 SELL - 3 CHAHIYE",'fcol':'#FFAA00','entry':f"Wait - Demand {int(d_bot)}-{int(d_top)} | Supply {int(s_bot)}-{int(s_top)}",'entry_bot':int(d_bot),'entry_top':int(d_top),'entry_mid':int((d_bot+d_top)/2),'sl':0,'sl_show':0,'tp1':0,'tp2':0,'tp3':0,'tp_txt':"TP: Wait Karo",'sl_txt':f"SL: Abhi Entry Nahi - ATR {atr_s}",'chance':max(buy_score,sell_score)*20,'chance_txt':f"CHANCE: {max(buy_score,sell_score)*20}% - ABHI KAM HAI",'rr':"RR: Abhi Entry Nahi",'bos':"BOS UP" if bos_up else "BOS DOWN" if bos_down else "BOS Nahi",'fvg':"FVG Bullish" if fvg_bull else "FVG Bearish" if fvg_bear else "FVG Nahi",'d_bot':int(d_bot),'d_top':int(d_top),'s_bot':int(s_bot),'s_top':int(s_top),'res':int(RES),'sup':int(SUP),'fvg_bot':int(fvg_bot),'fvg_top':int(fvg_top),'rsi':rsi,'ema50':ema50,'trail_txt':"",'round2':False}
-
+                    sl_show=tp1; trail_txt=f"TP2 LAG GAYA - SL AB TP1 PAR {sl_show} - 11 PAKKA"
+            return {'side':'SELL','faisla':f"{tf_name} SELL SETUP - {sell_score}/5 MIL GAYA",'fcol':'#FF4444','entry':f"Sell {entry_bot} - {entry_top}",'entry_bot':entry_bot,'entry_top':entry_top,'entry_mid':entry_mid,'sl':sl,'sl_show':sl_show,'tp1':tp1,'tp2':tp2,'tp3':tp3,'tp_txt':f"TP1: {tp1} | TP2: {tp2} | TP3: {tp3} OPEN",'sl_txt':f"SL: {sl_show} - {trail_txt}",'chance':sell_score*20,'chance_txt':f"CHANCE: {sell_score*20}%",'rr':"SL 6 | TP1 11 | TP2 22 | TP3 OPEN",'bos':"BOS DOWN" if bos_down else "BOS Nahi",'fvg':"FVG Bearish" if fvg_bear else "FVG Nahi",'d_bot':int(d_bot),'d_top':int(d_top),'s_bot':entry_bot,'s_top':entry_top,'res':int(RES),'sup':int(SUP),'fvg_bot':int(fvg_bot),'fvg_top':int(fvg_top),'rsi':rsi,'ema50':ema50,'trail_txt':trail_txt,'buy_score':buy_score,'sell_score':sell_score}
+        return {'side':'WAIT','faisla':f"{tf_name} WAIT - {buy_score}/5 BUY | {sell_score}/5 SELL - 3 CHAHIYE",'fcol':'#FFAA00','entry':f"Wait - Demand {int(d_bot)}-{int(d_top)} | Supply {int(s_bot)}-{int(s_top)}",'entry_bot':int(d_bot),'entry_top':int(d_top),'entry_mid':int((d_bot+d_top)/2),'sl':0,'sl_show':0,'tp1':0,'tp2':0,'tp3':0,'tp_txt':"TP: Wait Karo",'sl_txt':f"SL: Abhi Entry Nahi - ATR {atr_s}",'chance':max(buy_score,sell_score)*20,'chance_txt':f"CHANCE: {max(buy_score,sell_score)*20}% - KAM HAI",'rr':"RR: Abhi Entry Nahi",'bos':"BOS UP" if bos_up else "BOS DOWN" if bos_down else "BOS Nahi",'fvg':"FVG Bullish" if fvg_bull else "FVG Bearish" if fvg_bear else "FVG Nahi",'d_bot':int(d_bot),'d_top':int(d_top),'s_bot':int(s_bot),'s_top':int(s_top),'res':int(RES),'sup':int(SUP),'fvg_bot':int(fvg_bot),'fvg_top':int(fvg_top),'rsi':rsi,'ema50':ema50,'trail_txt':"",'buy_score':buy_score,'sell_score':sell_score}
     r4h = NAYA_SETUP(df4h, "4H", 12)
     r1h = NAYA_SETUP(df, "1H", 10)
     r15 = NAYA_SETUP(df15, "15M", 6)
-
-    # استاد جی - 12 WALA BUTTON - SIRF ANDAZA
     ema50_v=float(df['Close'].ewm(span=50, adjust=False).mean().iloc[-1]); ema50_s=str(int(ema50_v))
     ema15_v=float(df['Close'].ewm(span=15, adjust=False).mean().iloc[-1]); ema15_s=str(int(ema15_v))
     delta=df['Close'].diff(); gain=delta.where(delta>0,0).rolling(14).mean(); loss=-delta.where(delta<0,0).rolling(14).mean()
@@ -264,15 +233,54 @@ if CHALAO:
     sell_buttons.append(("11 Session SELL", "London/NY ON + Neeche" if session_on and abhi<ema15_v else "Session Off / Upar", session_on and abhi<ema15_v))
     sell_buttons.append(("12 Volume SELL ★", "VOL STRONG" if volume_strong else "VOL KAM", (not volume_strong) and abhi<ema15_v))
     buy_c=sum(1 for _,_,v in buy_buttons if v); sell_c=sum(1 for _,_,v in sell_buttons if v)
-        # استاد جی - HISSA 2 SHURU - PAGE 1 + PAGE 2 DONO KA TASVEER + TELEGRAM
-    # PAGE 1 - WASEEM WALA - TASVEER
+    # استاد جی - FIX - SIGNAL KO YAAD RAKHO - NEXT DABANE PAR BHI NA BHULE
+    st.session_state['has_data'] = True
+    st.session_state['last_r4h'] = r4h
+    st.session_state['last_r1h'] = r1h
+    st.session_state['last_r15'] = r15
+    st.session_state['last_buy_buttons'] = buy_buttons
+    st.session_state['last_sell_buttons'] = sell_buttons
+    st.session_state['last_buy_c'] = buy_c
+    st.session_state['last_sell_c'] = sell_c
+    st.session_state['last_abhi'] = abhi
+    st.session_state['last_abhi_s'] = abhi_s
+    st.session_state['last_rsi_s'] = rsi_s
+    st.session_state['last_ema15_s'] = ema15_s
+    st.session_state['last_ema50_s'] = ema50_s
+    st.session_state['last_vwap_s'] = vwap_s
+    st.session_state['last_atr_s'] = atr_s
+    st.session_state['last_date'] = date_txt
+    st.session_state['last_time'] = time_txt
+    st.session_state['last_df15'] = df15.tail(50).copy()
+    # WASEEM - V5.2 - HISSA 2 - PAGE 1 + PAGE 2 + PAGE 3 + TELEGRAM
+# IS KO HISSA 1 KE BILKUL NEECHE LAGAO - YE if CHALAO KE BAHAR HAI - IS LIYE NEXT KAM KAREGA
+if st.session_state.get('has_data', False):
+    r4h = st.session_state['last_r4h']
+    r1h = st.session_state['last_r1h']
+    r15 = st.session_state['last_r15']
+    buy_buttons = st.session_state['last_buy_buttons']
+    sell_buttons = st.session_state['last_sell_buttons']
+    buy_c = st.session_state['last_buy_c']
+    sell_c = st.session_state['last_sell_c']
+    abhi = st.session_state['last_abhi']
+    abhi_s = st.session_state['last_abhi_s']
+    rsi_s = st.session_state['last_rsi_s']
+    ema15_s = st.session_state['last_ema15_s']
+    ema50_s = st.session_state['last_ema50_s']
+    vwap_s = st.session_state['last_vwap_s']
+    atr_s = st.session_state['last_atr_s']
+    date_txt = st.session_state['last_date']
+    time_txt = st.session_state['last_time']
+    df15_show = st.session_state['last_df15']
+
+    # استاد جی - PAGE 1 - WASEEM WALA - TASVEER - SHAPE WAHI WALI
     if st.session_state['page'] == 1:
         fig,ax = plt.subplots(figsize=(10,30))
         ax.set_xlim(0,10); ax.set_ylim(0,30); ax.axis('off')
         fig.patch.set_facecolor('#0A0A0A'); ax.set_facecolor('#0A0A0A')
         box = patches.FancyBboxPatch
         ax.add_patch(box((0.3,29.0),9.4,0.9, boxstyle="round,pad=0.1", facecolor='#0A0A0A', edgecolor='#FFD700', linewidth=3))
-        ax.text(5,29.45,'WASEEM  TRADER - V5.1', ha='center',va='center', color='#FFD700', fontsize=26,weight='bold')
+        ax.text(5,29.45,'WASEEM  TRADER - V5.2', ha='center',va='center', color='#FFD700', fontsize=26,weight='bold')
         ax.text(5,29.15,'ALLIANCE WALA - CHoCH + RETEST + ROUND 2 + TRAILING', ha='center',va='center', color='white',fontsize=9)
         ax.add_patch(box((0.3,28.3),9.4,0.55, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor='#FFD700', linewidth=1))
         ax.text(5,28.57,date_txt + "  |  " + time_txt + "  |  PAKISTAN TIME", ha='center',va='center', fontsize=11,weight='bold', color='#FFD700')
@@ -341,19 +349,68 @@ if CHALAO:
         ax.text(5,2.55,'★ = ZAROORI BUTTON', ha='center',va='center', fontsize=9,weight='bold', color='#FFD700')
         ax.text(5,2.15,'CHANCE 60%+ HO TO SETUP - 60% SE KAM HO TO WAIT', ha='center',va='center', fontsize=9,weight='bold', color='white')
         ax.text(5,1.75,'TRAILING ON HAI TO TP1 PAR SL B/E PAR AA JAYEGA', ha='center',va='center', fontsize=8,color='#AAAAAA')
-        plt.savefig("Waseem_Buy_Sell_V5_1.jpg",dpi=200)
+        plt.savefig("Waseem_Buy_Sell_V5_2.jpg",dpi=200)
         st.pyplot(fig)
-            # استاد جی - PAGE 3 - WAJAH WALA - KYUN SETUP DIYA? - TEENO + BLACK GOLD
-    # IS KO HISSA 2 KE BILKUL NEECHE, SAB SE AAKHIR ME LAGAO - if CHALAO: KE ANDAR HAI
+
+    # استاد جی - PAGE 2 - BLACK GOLD WALA - AB FIX NAHI - 1H SE BANEGA - INDICATOR DEKH KAR
+    if st.session_state['page'] == 2:
+        bg = r1h
+        if bg['side'] == 'BUY':
+            BG_BOT=bg['entry_bot']; BG_TOP=bg['entry_top']; BG_SL=bg['sl']; BG_TP1=bg['tp1']; BG_TP2=bg['tp2']; BG_TP3=bg['tp3']; BG_TXT="BUY"
+        elif bg['side'] == 'SELL':
+            BG_BOT=bg['entry_bot']; BG_TOP=bg['entry_top']; BG_SL=bg['sl']; BG_TP1=bg['tp1']; BG_TP2=bg['tp2']; BG_TP3=bg['tp3']; BG_TXT="SELL"
+        else:
+            BG_BOT=bg['d_bot']; BG_TOP=bg['d_top']; BG_SL=bg['d_bot']-6; BG_TP1=bg['d_top']+11; BG_TP2=bg['d_top']+22; BG_TP3=bg['d_top']+33; BG_TXT="WAIT"
+        st.markdown("---")
+        st.markdown("### 🖤💛 BLACK GOLD - GOLD SETUP - V5.2")
+        st.markdown(f"**PRICE ABHI: {abhi_s} | DATE: {date_txt} | TIME: {time_txt}**")
+        colA, colB, colC = st.columns(3)
+        with colA:
+            st.markdown(f"**🟢 {BG_TXT} ZONE**\n\n### {BG_BOT} - {BG_TOP}")
+        with colB:
+            st.markdown(f"**🔴 STOP LOSS**\n\n### {BG_SL} - 6 DOLLAR")
+        with colC:
+            st.markdown(f"**🎯 TAKE PROFIT**\n\n### {BG_TP1} | {BG_TP2} | {BG_TP3}")
+        st.write(f"**SETUP:** {bg['faisla']} | {bg['chance_txt']} | {bg['rr']}")
+        st.write(f"**STRUCTURE:** {bg['bos']} | {bg['fvg']} | INDICATOR: BUY {buy_c}/12 | SELL {sell_c}/12 | RSI {rsi_s} | ATR {atr_s}")
+        st.write(f"**TRAILING:** {bg['trail_txt']}")
+        if bg['side'] in ['BUY','SELL']:
+            st.success(f"🚨 BLACK GOLD - {BG_TXT} SETUP BAN GAYA 🚨 - {BG_BOT}-{BG_TOP} | SL {BG_SL} | TP1 {BG_TP1} | TP2 {BG_TP2} | TP3 {BG_TP3} OPEN")
+            st.info(f"ROUND 2 - AGAR PRICE WAPAS {BG_BOT}-{BG_TOP} PAR AAYE TO PHIR SE {BG_TXT} KARNA - SAME SL / SAME TP")
+        else:
+            st.warning(f"⏳ PRICE BEECH ME HAI {abhi_s} - WAIT KARO - ZONE ME AANE DO - DEMAND {BG_BOT}-{BG_TOP}")
+        fig_bg, ax_bg = plt.subplots(figsize=(10,4))
+        fig_bg.patch.set_facecolor('white'); ax_bg.set_facecolor('white')
+        d_bg = df15_show.copy()
+        ax_bg.axhspan(BG_BOT, BG_TOP, color='#00FF88' if BG_TXT=='BUY' else '#FF4444' if BG_TXT=='SELL' else '#FFAA00', alpha=0.25)
+        ax_bg.text(len(d_bg)-1, BG_TOP+1, f"{BG_TXT} {BG_BOT}-{BG_TOP}", fontsize=8, color='black', weight='bold', ha='right')
+        ax_bg.axhline(BG_SL, color='red', linestyle='--', linewidth=1.2)
+        ax_bg.text(len(d_bg)-1, BG_SL, f" SL {BG_SL}", fontsize=8, color='red', weight='bold', va='bottom')
+        ax_bg.axhline(BG_TP1, color='green', linestyle='--', linewidth=1)
+        ax_bg.text(len(d_bg)-1, BG_TP1, f" TP1 {BG_TP1}", fontsize=8, color='green', weight='bold', va='bottom')
+        ax_bg.axhline(BG_TP2, color='green', linestyle='--', linewidth=1)
+        ax_bg.text(len(d_bg)-1, BG_TP2, f" TP2 {BG_TP2}", fontsize=8, color='green', weight='bold', va='bottom')
+        ax_bg.axhline(BG_TP3, color='green', linestyle='--', linewidth=1)
+        ax_bg.text(len(d_bg)-1, BG_TP3, f" TP3 {BG_TP3}", fontsize=8, color='green', weight='bold', va='bottom')
+        for i in range(len(d_bg)):
+            o=float(d_bg['Open'].iloc[i]); c=float(d_bg['Close'].iloc[i]); h=float(d_bg['High'].iloc[i]); l=float(d_bg['Low'].iloc[i])
+            col = '#00C853' if c>=o else '#FF1744'
+            ax_bg.plot([i,i],[l,h], color=col, linewidth=1)
+            ax_bg.add_patch(patches.Rectangle((i-0.35, min(o,c)), 0.7, max(abs(c-o),0.5), facecolor=col, edgecolor=col))
+        ax_bg.axhline(abhi, color='black', linestyle='--', linewidth=1, alpha=0.6)
+        ax_bg.text(len(d_bg)-1, abhi, f" {abhi_s}", fontsize=9, weight='bold', color='black', va='center')
+        ax_bg.set_xlim(-1, len(d_bg)); ax_bg.grid(False); ax_bg.set_xticks([])
+        for spine in ax_bg.spines.values():
+            spine.set_visible(False)
+        st.pyplot(fig_bg)
+
+    # استاد جی - PAGE 3 - WAJAH WALA - KYUN SETUP DIYA?
     if st.session_state['page'] == 3:
         st.markdown("---")
         st.markdown("### 📖 PAGE 3 - WAJAH WALA - MAIN IS LIYE SETUP DE RAHA HOON")
         st.markdown(f"**PRICE ABHI: {abhi_s} | DATE: {date_txt} | TIME: {time_txt} | RSI: {rsi_s} | ATR: {atr_s}**")
-        st.markdown("**استاد جی، اوپر والا سیٹ اپ میں نے اپنی مرضی سے نہیں دیا، انڈیکیٹر دیکھ کر دیا ہے۔ نیچے ہر ایک کی وجہ الگ الگ لکھی ہے۔**")
-
-        # استاد جی - WAJAH BANANE WALA FUNCTION - HAR TIME FRAME KE LIYE
+        st.markdown("**استاد جی، سیٹ اپ اپنی مرضی سے نہیں دیا، انڈیکیٹر دیکھ کر دیا ہے۔**")
         def WAJAH_BANAO(r, tf_name):
-            # r = r4h ya r1h ya r15
             lines = []
             lines.append(f"**{tf_name} WALA - {r['faisla']}**")
             lines.append(f"**CHANCE: {r['chance_txt']} | {r['rr']}**")
@@ -362,43 +419,29 @@ if CHALAO:
             if r['side'] == 'BUY':
                 lines.append("استاد جی، اوپر والا BUY میں اس لیے دے رہا ہوں کہ:")
                 lines.append(f"**۱۔** پرائس ڈیمانڈ زون **{r['d_bot']} - {r['d_top']}** پر آ گئی ہے، یہاں سے پہلے بھی اوپر اٹھی تھی۔")
-                if "BOS UP" in r['bos']:
-                    lines.append(f"**۲۔** **BOS UP ہو گیا ہے**، مطلب اوپر والا ٹرینڈ ٹوٹ کر اوپر بن گیا ہے، اب اوپر جانا ہے۔")
-                else:
-                    lines.append(f"**۲۔** BOS UP نہیں ہوا، لیکن FVG نے کام کر دیا ہے۔")
-                if "FVG Bullish" in r['fvg']:
-                    lines.append(f"**۳۔** **FVG Bullish ہے - {r['fvg_bot']} - {r['fvg_top']}**، مطلب نیچے سے اوپر کی طرف خالی جگہ ہے، پرائس اس کو بھرنے اوپر جائے گی۔")
-                else:
-                    lines.append(f"**۳۔** FVG Bullish نہیں ہے، لیکن باقی چیزیں مل گئی ہیں۔")
-                lines.append(f"**۴۔** **RSI {round(r['rsi'],1)} ہے**، 50 سے اوپر ہے، مطلب بائے والا طاقتور ہے، سیلر کمزور ہے۔")
+                lines.append(f"**۲۔** **{r['bos']}** ہو گیا ہے، مطلب ٹرینڈ اوپر بن گیا ہے۔")
+                lines.append(f"**۳۔** **{r['fvg']} - {r['fvg_bot']} - {r['fvg_top']}** ہے، مطلب نیچے سے اوپر کی طرف جگہ ہے۔")
+                lines.append(f"**۴۔** **RSI {round(r['rsi'],1)} ہے**، 50 سے اوپر ہے، مطلب بائے والا طاقتور ہے۔")
                 lines.append(f"**۵۔** **EMA 50 {int(r['ema50'])} ہے**، پرائس اس کے اوپر ہے، مطلب بڑا ٹرینڈ بھی اوپر ہے۔")
                 lines.append(f"**۶۔** **{r['trail_txt']}**")
-                lines.append("**اس لیے میں اوپر BUY دے رہا ہوں، اپنی مرضی سے نہیں دے رہا۔**")
+                lines.append("**اس لیے BUY دے رہا ہوں۔**")
             elif r['side'] == 'SELL':
                 lines.append("استاد جی، اوپر والا SELL میں اس لیے دے رہا ہوں کہ:")
                 lines.append(f"**۱۔** پرائس سپلائی زون **{r['s_bot']} - {r['s_top']}** پر آ گئی ہے، یہاں سے پہلے بھی نیچے گری تھی۔")
-                if "BOS DOWN" in r['bos']:
-                    lines.append(f"**۲۔** **BOS DOWN ہو گیا ہے**، مطلب نیچے والا ٹرینڈ ٹوٹ گیا ہے، اب نیچے جانا ہے۔")
-                else:
-                    lines.append(f"**۲۔** BOS DOWN نہیں ہوا، لیکن FVG نے کام کر دیا ہے۔")
-                if "FVG Bearish" in r['fvg']:
-                    lines.append(f"**۳۔** **FVG Bearish ہے - {r['fvg_bot']} - {r['fvg_top']}**، مطلب اوپر سے نیچے کی طرف خالی جگہ ہے، پرائس اس کو بھرنے نیچے آئے گی۔")
-                else:
-                    lines.append(f"**۳۔** FVG Bearish نہیں ہے، لیکن باقی چیزیں مل گئی ہیں۔")
+                lines.append(f"**۲۔** **{r['bos']}** ہو گیا ہے، مطلب ٹرینڈ نیچے بن گیا ہے۔")
+                lines.append(f"**۳۔** **{r['fvg']} - {r['fvg_bot']} - {r['fvg_top']}** ہے، مطلب اوپر سے نیچے کی طرف جگہ ہے۔")
                 lines.append(f"**۴۔** **RSI {round(r['rsi'],1)} ہے**، 50 سے نیچے ہے، مطلب سیلر طاقتور ہیں، بائے والا دباؤ ہی نہیں ہے۔")
                 lines.append(f"**۵۔** **EMA 50 {int(r['ema50'])} ہے**، پرائس اس کے نیچے ہے، مطلب بڑا ٹرینڈ بھی نیچے ہے۔")
                 lines.append(f"**۶۔** **{r['trail_txt']}**")
-                lines.append("**اس لیے میں اوپر SELL دے رہا ہوں، اپنی مرضی سے نہیں دے رہا۔**")
+                lines.append("**اس لیے SELL دے رہا ہوں۔**")
             else:
                 lines.append("استاد جی، اوپر والا WAIT میں اس لیے بول رہا ہوں کہ:")
                 lines.append(f"**۱۔** پرائس بیچ میں ہے، نہ ڈیمانڈ **{r['d_bot']} - {r['d_top']}** پر ہے، نہ سپلائی **{r['s_bot']} - {r['s_top']}** پر ہے۔")
-                lines.append(f"**۲۔** 5 میں سے صرف **{int(r['chance']/20)} چیزیں** ملی ہیں، **3 چاہیے تھیں**، اس لیے سیٹ اپ نہیں دیا۔")
-                lines.append(f"**۳۔** **RSI {round(r['rsi'],1)} ہے**، بیچ میں ہے، نہ اوپر ہے، نہ نیچے ہے۔")
+                lines.append(f"**۲۔** 5 میں سے صرف **{int(r['chance']/20)} چیزیں** ملی ہیں، **3 چاہیے تھیں**۔")
+                lines.append(f"**۳۔** **RSI {round(r['rsi'],1)} ہے**، بیچ میں ہے۔")
                 lines.append(f"**۴۔** **BOS: {r['bos']} | FVG: {r['fvg']}** - ابھی پورا نہیں بنا۔")
-                lines.append("**اس لیے میں نے سیٹ اپ نہیں دیا، WAIT بولا ہے، تاکہ غلط انٹری نہ ہو جائے۔**")
+                lines.append("**اس لیے WAIT بولا ہے، تاکہ غلط انٹری نہ ہو۔**")
             return "\n\n".join(lines)
-
-        # استاد جی - TEENO KI WAJAH - ALAG ALAG
         st.markdown("---")
         st.markdown(WAJAH_BANAO(r4h, "4H"))
         st.markdown("---")
@@ -406,8 +449,6 @@ if CHALAO:
         st.markdown("---")
         st.markdown(WAJAH_BANAO(r15, "15M"))
         st.markdown("---")
-
-        # استاد جی - BLACK GOLD WALI WAJAH - 1H WALI SE HI BANEGI
         bg_r = r1h
         st.markdown("### 🖤💛 BLACK GOLD WALI WAJAH - ALAG SE")
         if bg_r['side'] in ['BUY','SELL']:
@@ -417,11 +458,49 @@ if CHALAO:
         else:
             st.markdown("**BLACK GOLD والا WAIT میں اس لیے بول رہا ہے کہ 1H والا بھی WAIT بول رہا ہے۔**")
             st.markdown(WAJAH_BANAO(bg_r, "BLACK GOLD - 1H SE"))
-            st.markdown(f"**پرائس ابھی {abhi_s} پر ہے، زون {bg_r['d_bot']} - {bg_r['d_top']} / {bg_r['s_bot']} - {bg_r['s_top']} میں آنے دو، پھر سیٹ اپ دوں گا۔**")
-
-        # استاد جی - TELEGRAM KE LIYE BHI WAJAH WALA MSG - COPY KARNE KE LIYE
-        wajah_msg = f"WAJAH WALA - V5.1\nPRICE: {abhi_s} | {date_txt} | {time_txt}\n\n4H: {r4h['faisla']}\n1H: {r1h['faisla']}\n15M: {r15['faisla']}\nBLACK GOLD: {bg_r['faisla']}\n\nWajah PAGE 3 par poori likhi hai - App me ja kar dekho"
+        wajah_msg = f"WAJAH WALA - V5.2\nPRICE: {abhi_s} | {date_txt} | {time_txt}\n\n4H: {r4h['faisla']}\n1H: {r1h['faisla']}\n15M: {r15['faisla']}\nBLACK GOLD: {bg_r['faisla']}"
         st.session_state['m_wajah'] = wajah_msg
         st.write("---")
-        st.write("### 📋 WHATSAPP KE LIYE COPY - WAJAH WALA CHHOTA MSG")
+        st.write("### 📋 WHATSAPP KE LIYE COPY - WAJAH WALA")
         st.code(wajah_msg)
+
+    # استاد جی - TELEGRAM WALA - SIRF SETUP BHEJEGA
+    main = r1h
+    if main['side'] in ['BUY','SELL']:
+        bg_alert = f"🚨 {main['side']} SETUP BAN GAYA - PAHUNCHO 🚨\n\n{main['side']} ZONE: {main['entry_bot']} SE {main['entry_top']} TAK HAI\n\nPRICE ABHI: {abhi_s}\nDATE: {date_txt} | TIME: {time_txt}\n\nTP1: {main['tp1']}\nTP2: {main['tp2']}\nTP3: {main['tp3']} - OPEN\nSL: {main['sl_show']} - 6 DOLLAR\n\n{main['trail_txt']}\nCHANCE: {main['chance_txt']}\n\nROUND 2 - PRICE WAPAS ZONE PAR AAYE TO PHIR SE {main['side']} KARNA"
+    else:
+        bg_alert = ""
+    msg_status = f"STATUS - WASEEM TRADER V5.2\nPRICE: {abhi_s}\nATR: {atr_s} | DATE: {date_txt} | {time_txt}\nRSI: {rsi_s} | EMA 15: {ema15_s} | EMA 50: {ema50_s} | VWAP: {vwap_s}"
+    msg_buysell = f"BUY / SELL - 12 WALA\nBUY: {buy_c}/12\nSELL: {sell_c}/12"
+    msg_4h = f"4H: {r4h['faisla']}\n{r4h['entry']} | {r4h['sl_txt']} | {r4h['tp_txt']}\n{r4h['chance_txt']}"
+    msg_1h = f"1H: {r1h['faisla']}\n{r1h['entry']} | {r1h['sl_txt']} | {r1h['tp_txt']}\n{r1h['chance_txt']}"
+    msg_15m = f"15M: {r15['faisla']}\n{r15['entry']} | {r15['sl_txt']} | {r15['tp_txt']}\n{r15['chance_txt']}"
+    msg_alert = bg_alert
+    st.session_state['m1']=msg_status; st.session_state['m2']=msg_buysell; st.session_state['m3']=msg_4h; st.session_state['m4']=msg_1h; st.session_state['m5']=msg_15m; st.session_state['m6']=msg_alert
+    if bg_alert != "":
+        st.write("---")
+        st.write("### 📋 WHATSAPP KE LIYE COPY")
+        st.code(bg_alert)
+    if AUTO_ON:
+        last = st.session_state.get('last_bg_bheja', '')
+        abhi_key = f"{bg_alert}-{abhi_s}"
+        if bg_alert != "" and last != abhi_key:
+            ALAG_ALAG_BHEJO(msg_status, msg_buysell, msg_4h, msg_1h, msg_15m, msg_alert)
+            st.session_state['last_bg_bheja'] = abhi_key
+            st.success("AUTO - TELEGRAM PE KHUD CHALA GAYA - V5.2 WALA")
+        elif bg_alert != "":
+            st.write("YE WALA PEHLE HI BHEJ DIYA HAI")
+        else:
+            st.warning(f"AUTO CHECK HO RAHA HAI - BUY {buy_c}/12 | SELL {sell_c}/12 - ABHI SETUP NAHI BANA")
+        time.sleep(AUTO_MINUTE * 60)
+        st.rerun()
+    else:
+        if bg_alert != "":
+            st.success("SETUP BAN GAYA - NEECHE WALA BUTTON DABAO - TELEGRAM PE JAYEGA")
+else:
+    st.info("👆 PEHLE SIGNAL BANAO DABAO - PHIR NEXT DABAO - PAGE 2 / PAGE 3 KHOLEGA")
+
+if 'm1' in st.session_state and not AUTO_ON and st.session_state.get('has_data', False):
+    st.write("---")
+    if st.button("TELEGRAM PE BHEJO - ALAG ALAG MESSAGE", key="send_v52"):
+        ALAG_ALAG_BHEJO(st.session_state['m1'], st.session_state['m2'], st.session_state['m3'], st.session_state['m4'], st.session_state['m5'], st.session_state['m6'])
