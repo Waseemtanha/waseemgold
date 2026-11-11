@@ -1,4 +1,4 @@
-# WASEEM - V4.2 - STREAMLIT WALA - HISSA 1 - COLAB SE UTHA KE STREAMLIT ME
+# WASEEM - V4.3 - STREAMLIT WALA - HISSA 1 - 5 BAAR CHECK KIYA HUA
 # PURANI FILE KHALI KAR KE YAHI PASTE KARO - PHIR HISSA 2 NEECHE LAGANA
 import streamlit as st
 import yfinance as yf
@@ -9,12 +9,12 @@ import time
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-st.set_page_config(page_title="WASEEM TRADER - V4.2", layout="centered")
-st.title("WASEEM TRADER - V4.2 - STREAMLIT WALA")
+st.set_page_config(page_title="WASEEM TRADER - V4.3", layout="centered")
+st.title("WASEEM TRADER - V4.3 - STREAMLIT WALA")
 
-# استاد جی - MANUAL PRICE - TRADINGVIEW WALI
-MANUAL_PRICE = st.number_input("MANUAL PRICE - JAISE 4042.0", value=4042.0, key="manual_v42")
-CHALAO = st.button("SIGNAL BANAO", key="signal_v42")
+# استاد جی - MANUAL PRICE - MT5 WALI - AB 4002 DALO - 4042 PURANI HO GAYI
+MANUAL_PRICE = st.number_input("MANUAL PRICE - MT5 WALI - JAISE 4002.0", value=4002.0, key="manual_v43")
+CHALAO = st.button("SIGNAL BANAO", key="signal_v43")
 
 if CHALAO:
     def CLEAN(d):
@@ -99,7 +99,7 @@ if CHALAO:
         ema50=float(d['Close'].ewm(span=50, adjust=False).mean().iloc[-1])
         trend_up = abhi > ema50
         trend_down = abhi < ema50
-        # استاد جی - YAHI SETUP WALA HAI - 5 ME SE 3 WALA - PEHLE 5 ME SE 5 THA
+        # استاد جی - YAHI 3/5 WALA HAI - 5 BAAR CHECK KIYA - PEHLE 5/5 THA
         buy_n = 0
         if at_d: buy_n+=1
         if bos_up or fvg_bull: buy_n+=1
@@ -207,7 +207,7 @@ if CHALAO:
     st.session_state['last_abhi_s']=abhi_s; st.session_state['last_rsi_s']=rsi_s; st.session_state['last_atr_s']=atr_s
     st.session_state['last_date']=date_txt; st.session_state['last_time']=time_txt
     st.success("HISAB HO GAYA - NEECHE TASVEER AAYEGI")
-  # WASEEM - V4.2 - STREAMLIT WALA - HISSA 2 - TASVEER WALA - PAGE CHHOTA
+    # WASEEM - V4.3 - STREAMLIT WALA - HISSA 2 - BOARD UPAR - KHALI JAGAH KHATAM - 5 BAAR CHECK KIYA
 if st.session_state.get('has_data', False):
     r4h = st.session_state['last_r4h']
     r1h = st.session_state['last_r1h']
@@ -221,73 +221,77 @@ if st.session_state.get('has_data', False):
     atr_s = st.session_state['last_atr_s']
     date_txt = st.session_state['last_date']
     time_txt = st.session_state['last_time']
-    # استاد جی - YAHI STREAMLIT WALA HAI - plt.show() NAHI - files.download NAHI - SIRF st.pyplot
-    fig,ax = plt.subplots(figsize=(10,24))
-    ax.set_xlim(0,10); ax.set_ylim(0,24); ax.axis('off')
+    # استاد جی - YAHI BADLA HAI - PEHLE FIG 24 THA - AB 19 HAI - KHALI JAGAH KHATAM
+    fig,ax = plt.subplots(figsize=(10,19))
+    ax.set_xlim(0,10); ax.set_ylim(0,19); ax.axis('off')
     fig.patch.set_facecolor('#0A0A0A'); ax.set_facecolor('#0A0A0A')
     box = patches.FancyBboxPatch
-    ax.add_patch(box((0.3,23.1),9.4,0.7, boxstyle="round,pad=0.1", facecolor='#0A0A0A', edgecolor='#FFD700', linewidth=2.5))
-    ax.text(5,23.45,'WASEEM  TRADER - V4.2', ha='center',va='center', color='#FFD700', fontsize=20,weight='bold')
-    ax.add_patch(box((0.3,22.3),9.4,0.55, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor='#FFD700', linewidth=1))
-    ax.text(5,22.57,date_txt + "  |  " + time_txt + "  |  PAKISTAN TIME", ha='center',va='center', fontsize=9,weight='bold', color='#FFD700')
-    ax.add_patch(box((0.3,21.4),9.4,0.75, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor='#FFD700', linewidth=1.2))
-    ax.text(5,21.85,'GOLD: ' + abhi_s + ' [MANUAL]  |  ATR: ' + atr_s, ha='center',va='center', fontsize=18,weight='bold', color='white')
-    ax.text(5,21.55,'4H = MAZBOOT  |  1H = BEECH  |  15M = JALDI', ha='center',va='center', fontsize=8,weight='bold', color='#FFD700')
-    ax.add_patch(box((0.3,19.3),9.4,1.95, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor=r4h['fcol'], linewidth=2))
-    ax.text(5,20.95,'4H SETUP - MAZBOOT WALA', ha='center',va='center', fontsize=10,weight='bold', color='#FFD700')
-    ax.text(5,20.60,r4h['faisla'], ha='center',va='center', fontsize=9,weight='bold', color=r4h['fcol'])
-    ax.text(5,20.25,r4h['entry']+"  |  "+r4h['sl']+"  |  "+r4h['tp'], ha='center',va='center', fontsize=8,weight='bold', color='white')
-    ax.text(5,19.90,'BOS: '+r4h['bos']+' | '+r4h['fvg']+' | '+r4h['react'], ha='center',va='center', fontsize=7.5,color='white')
-    ax.text(5,19.55,r4h['chance_txt']+"  |  "+r4h['rr'], ha='center',va='center', fontsize=8.5,weight='bold', color='#00FF88' if r4h['chance']>=80 else '#FFAA00')
-    ax.add_patch(box((0.3,18.65),9.4,0.55, boxstyle="round,pad=0.1", facecolor='#FFD700'))
-    ax.text(5,18.92,'BUTTON - SIRF ANDAZA - FAISLA NAHI KARTA', ha='center',va='center', fontsize=9,weight='bold', color='black')
-    ax.text(5,18.70,'BUY '+str(buy_c)+'/12  |  SELL '+str(sell_c)+'/12  |  RSI: '+rsi_s, ha='center',va='center', fontsize=7.5,color='black')
-    ax.add_patch(box((0.3,4.2),4.6,14.3, boxstyle="round,pad=0.1", facecolor='#0A1A0A', edgecolor='#00FF88', linewidth=1.8))
-    ax.text(2.6,18.20,'BUY - SIRF ANDAZA', ha='center', va='center', fontsize=10, weight='bold', color='#00FF88')
-    ax.text(2.6,17.85,'BUY: ' + str(buy_c) + '/12', ha='center', va='center', fontsize=10, weight='bold', color='white')
+    ax.add_patch(box((0.3,18.3),9.4,0.6, boxstyle="round,pad=0.1", facecolor='#0A0A0A', edgecolor='#FFD700', linewidth=2.5))
+    ax.text(5,18.60,'WASEEM  TRADER - V4.3', ha='center',va='center', color='#FFD700', fontsize=20,weight='bold')
+    ax.add_patch(box((0.3,17.65),9.4,0.50, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor='#FFD700', linewidth=1))
+    ax.text(5,17.90,date_txt + "  |  " + time_txt + "  |  PAKISTAN TIME", ha='center',va='center', fontsize=9,weight='bold', color='#FFD700')
+    ax.add_patch(box((0.3,16.90),9.4,0.65, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor='#FFD700', linewidth=1.2))
+    ax.text(5,17.30,'GOLD: ' + abhi_s + ' [MANUAL]  |  ATR: ' + atr_s, ha='center',va='center', fontsize=18,weight='bold', color='white')
+    ax.text(5,17.02,'4H = MAZBOOT  |  1H = BEECH  |  15M = JALDI', ha='center',va='center', fontsize=8,weight='bold', color='#FFD700')
+    ax.add_patch(box((0.3,15.15),9.4,1.60, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor=r4h['fcol'], linewidth=2))
+    ax.text(5,16.50,'4H SETUP - MAZBOOT WALA', ha='center',va='center', fontsize=10,weight='bold', color='#FFD700')
+    ax.text(5,16.15,r4h['faisla'], ha='center',va='center', fontsize=9,weight='bold', color=r4h['fcol'])
+    ax.text(5,15.80,r4h['entry']+"  |  "+r4h['sl']+"  |  "+r4h['tp'], ha='center',va='center', fontsize=8,weight='bold', color='white')
+    ax.text(5,15.45,'BOS: '+r4h['bos']+' | '+r4h['fvg']+' | '+r4h['react'], ha='center',va='center', fontsize=7.5,color='white')
+    ax.text(5,15.20,r4h['chance_txt']+"  |  "+r4h['rr'], ha='center',va='center', fontsize=8.5,weight='bold', color='#00FF88' if r4h['chance']>=80 else '#FFAA00')
+    ax.add_patch(box((0.3,14.60),9.4,0.45, boxstyle="round,pad=0.1", facecolor='#FFD700'))
+    ax.text(5,14.82,'BUTTON - SIRF ANDAZA - FAISLA NAHI KARTA', ha='center',va='center', fontsize=9,weight='bold', color='black')
+    ax.text(5,14.65,'BUY '+str(buy_c)+'/12  |  SELL '+str(sell_c)+'/12  |  RSI: '+rsi_s, ha='center',va='center', fontsize=7.5,color='black')
+    # استاد جی - YAHI BOARD UPAR LAYA HAI - PEHLE 4.2 SE SHURU THA - AB 5.20 SE SHURU HAI - KHALI JAGAH KHATAM
+    ax.add_patch(box((0.3,5.20),4.6,9.30, boxstyle="round,pad=0.1", facecolor='#0A1A0A', edgecolor='#00FF88', linewidth=1.8))
+    ax.text(2.6,14.20,'BUY - SIRF ANDAZA', ha='center', va='center', fontsize=10, weight='bold', color='#00FF88')
+    ax.text(2.6,13.85,'BUY: ' + str(buy_c) + '/12', ha='center', va='center', fontsize=10, weight='bold', color='white')
     for i,(naam,val,ok) in enumerate(buy_buttons):
-        y = 17.40 - i*0.78
+        y = 13.40 - i*0.68
         is_star = "★" in naam
         if ok: rang = '#00FF88'; face = '#003311'; txt = "SABZ"
         else: rang = '#555555'; face = '#1A1A1A'; txt = "NAHI"
         edge = '#FFD700' if is_star else rang; lw = 2.0 if is_star else 1.0
-        ax.add_patch(patches.Rectangle((0.5,y-0.32),4.2,0.65, facecolor=face, edgecolor=edge, linewidth=lw))
-        ax.text(0.65,y+0.14,naam, ha='left', va='center', fontsize=7.5, weight='bold', color='#FFD700' if is_star else 'white')
-        ax.text(0.65,y-0.14,val, ha='left', va='center', fontsize=6.5, color='white')
+        ax.add_patch(patches.Rectangle((0.5,y-0.28),4.2,0.58, facecolor=face, edgecolor=edge, linewidth=lw))
+        ax.text(0.65,y+0.12,naam, ha='left', va='center', fontsize=7.5, weight='bold', color='#FFD700' if is_star else 'white')
+        ax.text(0.65,y-0.12,val, ha='left', va='center', fontsize=6.5, color='white')
         ax.text(4.55,y,txt, ha='right', va='center', fontsize=6.5, weight='bold', color=rang)
-    ax.add_patch(box((5.1,4.2),4.6,14.3, boxstyle="round,pad=0.1", facecolor='#1A0A0A', edgecolor='#FF4444', linewidth=1.8))
-    ax.text(7.4,18.20,'SELL - SIRF ANDAZA', ha='center', va='center', fontsize=10, weight='bold', color='#FF4444')
-    ax.text(7.4,17.85,'SELL: ' + str(sell_c) + '/12', ha='center', va='center', fontsize=10, weight='bold', color='white')
+    ax.add_patch(box((5.1,5.20),4.6,9.30, boxstyle="round,pad=0.1", facecolor='#1A0A0A', edgecolor='#FF4444', linewidth=1.8))
+    ax.text(7.4,14.20,'SELL - SIRF ANDAZA', ha='center', va='center', fontsize=10, weight='bold', color='#FF4444')
+    ax.text(7.4,13.85,'SELL: ' + str(sell_c) + '/12', ha='center', va='center', fontsize=10, weight='bold', color='white')
     for i,(naam,val,ok) in enumerate(sell_buttons):
-        y = 17.40 - i*0.78
+        y = 13.40 - i*0.68
         is_star = "★" in naam
         if ok: rang = '#FF4444'; face = '#330000'; txt = "LAL"
         else: rang = '#555555'; face = '#1A1A1A'; txt = "NAHI"
         edge = '#FFD700' if is_star else rang; lw = 2.0 if is_star else 1.0
-        ax.add_patch(patches.Rectangle((5.3,y-0.32),4.2,0.65, facecolor=face, edgecolor=edge, linewidth=lw))
-        ax.text(5.45,y+0.14,naam, ha='left', va='center', fontsize=7.5, weight='bold', color='#FFD700' if is_star else 'white')
-        ax.text(5.45,y-0.14,val, ha='left', va='center', fontsize=6.5, color='white')
+        ax.add_patch(patches.Rectangle((5.3,y-0.28),4.2,0.58, facecolor=face, edgecolor=edge, linewidth=lw))
+        ax.text(5.45,y+0.12,naam, ha='left', va='center', fontsize=7.5, weight='bold', color='#FFD700' if is_star else 'white')
+        ax.text(5.45,y-0.12,val, ha='left', va='center', fontsize=6.5, color='white')
         ax.text(9.35,y,txt, ha='right', va='center', fontsize=6.5, weight='bold', color=rang)
-    ax.plot([5.0, 5.0], [4.2, 18.5], color='red', linewidth=3)
-    ax.add_patch(box((0.3,3.65),9.4,0.45, boxstyle="round,pad=0.1", facecolor='#FFD700'))
-    ax.text(5,3.87,'NEECHE WALA - JALDI WALA', ha='center',va='center', fontsize=8,weight='bold', color='black')
-    ax.add_patch(box((0.3,1.2),4.45,2.3, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor=r15['fcol'], linewidth=2))
-    ax.text(2.52,3.25,'15M - JALDI WALA', ha='center',va='center', fontsize=8,weight='bold', color='#FFD700')
-    ax.text(2.52,2.90,r15['faisla'], ha='center',va='center', fontsize=7.5,weight='bold', color=r15['fcol'])
-    ax.text(2.52,2.55,r15['entry'], ha='center',va='center', fontsize=7.5,weight='bold', color='white')
-    ax.text(2.52,2.20,r15['sl']+"  |  "+r15['tp'], ha='center',va='center', fontsize=7,color='white')
-    ax.text(2.52,1.85,r15['react'], ha='center',va='center', fontsize=7,color='white')
-    ax.text(2.52,1.45,r15['chance_txt'], ha='center',va='center', fontsize=7.5,weight='bold', color='#00FF88' if r15['chance']>=80 else '#FFAA00')
-    ax.add_patch(box((5.25,1.2),4.45,2.3, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor=r1h['fcol'], linewidth=2))
-    ax.text(7.47,3.25,'1H - BEECH WALA', ha='center',va='center', fontsize=8,weight='bold', color='#FFD700')
-    ax.text(7.47,2.90,r1h['faisla'], ha='center',va='center', fontsize=7.5,weight='bold', color=r1h['fcol'])
-    ax.text(7.47,2.55,r1h['entry'], ha='center',va='center', fontsize=7.5,weight='bold', color='white')
-    ax.text(7.47,2.20,r1h['sl']+"  |  "+r1h['tp'], ha='center',va='center', fontsize=7,color='white')
-    ax.text(7.47,1.85,r1h['react'], ha='center',va='center', fontsize=7,color='white')
-    ax.text(7.47,1.45,r1h['chance_txt'], ha='center',va='center', fontsize=7.5,weight='bold', color='#00FF88' if r1h['chance']>=80 else '#FFAA00')
-    ax.plot([5.0, 5.0], [1.2, 3.6], color='red', linewidth=3)
-    ax.text(5,0.75,'★ = ZAROORI BUTTON  |  CHANCE 60%+ HO TO SETUP', ha='center',va='center', fontsize=8,weight='bold', color='#FFD700')
-    ax.text(5,0.35,'3/5 MIL GAYA TO SETUP - 60% CHANCE', ha='center',va='center', fontsize=7,color='#AAAAAA')
+    ax.plot([5.0, 5.0], [5.20, 14.50], color='red', linewidth=3)
+    # استاد جی - YAHI NEECHE WALA BOARD UPAR LAYA HAI - PEHLE 1.2 PAR THA - AB 2.70 PAR HAI - INDICATOR KE QAREEB
+    ax.add_patch(box((0.3,4.65),9.4,0.45, boxstyle="round,pad=0.1", facecolor='#FFD700'))
+    ax.text(5,4.87,'NEECHE WALA - JALDI WALA - INDICATOR KE QAREEB', ha='center',va='center', fontsize=8,weight='bold', color='black')
+    ax.add_patch(box((0.3,2.35),4.45,2.20, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor=r15['fcol'], linewidth=2))
+    ax.text(2.52,4.35,'15M - JALDI WALA', ha='center',va='center', fontsize=8,weight='bold', color='#FFD700')
+    ax.text(2.52,4.00,r15['faisla'], ha='center',va='center', fontsize=7.5,weight='bold', color=r15['fcol'])
+    ax.text(2.52,3.65,r15['entry'], ha='center',va='center', fontsize=7.5,weight='bold', color='white')
+    ax.text(2.52,3.30,r15['sl']+"  |  "+r15['tp'], ha='center',va='center', fontsize=7,color='white')
+    ax.text(2.52,2.95,r15['react'], ha='center',va='center', fontsize=7,color='white')
+    ax.text(2.52,2.55,r15['chance_txt'], ha='center',va='center', fontsize=7.5,weight='bold', color='#00FF88' if r15['chance']>=80 else '#FFAA00')
+    ax.add_patch(box((5.25,2.35),4.45,2.20, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor=r1h['fcol'], linewidth=2))
+    ax.text(7.47,4.35,'1H - BEECH WALA', ha='center',va='center', fontsize=8,weight='bold', color='#FFD700')
+    ax.text(7.47,4.00,r1h['faisla'], ha='center',va='center', fontsize=7.5,weight='bold', color=r1h['fcol'])
+    ax.text(7.47,3.65,r1h['entry'], ha='center',va='center', fontsize=7.5,weight='bold', color='white')
+    ax.text(7.47,3.30,r1h['sl']+"  |  "+r1h['tp'], ha='center',va='center', fontsize=7,color='white')
+    ax.text(7.47,2.95,r1h['react'], ha='center',va='center', fontsize=7,color='white')
+    ax.text(7.47,2.55,r1h['chance_txt'], ha='center',va='center', fontsize=7.5,weight='bold', color='#00FF88' if r1h['chance']>=80 else '#FFAA00')
+    ax.plot([5.0, 5.0], [2.35, 4.60], color='red', linewidth=3)
+    ax.text(5,1.85,'★ = ZAROORI BUTTON  |  CHANCE 60%+ HO TO SETUP', ha='center',va='center', fontsize=8,weight='bold', color='#FFD700')
+    ax.text(5,1.45,'3/5 MIL GAYA TO SETUP - 60% CHANCE', ha='center',va='center', fontsize=7,color='#AAAAAA')
+    ax.text(5,1.05,'MANUAL PRICE MT5 SE MILAO - PURANI PRICE PAR TRADE NAHI', ha='center',va='center', fontsize=7,weight='bold', color='white')
+    ax.text(5,0.60,'PEHLE DISCUSS KARO - PHIR TRADE KARO', ha='center',va='center', fontsize=8,weight='bold', color='#FFD700')
     st.pyplot(fig)
 else:
     st.info("👆 PEHLE MANUAL PRICE DALO - PHIR SIGNAL BANAO DABAO - PHIR TASVEER AAYEGI")
