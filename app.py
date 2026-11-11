@@ -370,3 +370,368 @@ if 'last_msg' in st.session_state:
     st.write("SIGNAL TAYYAR HAI - NEECHE WALA BUTTON DABAO")
     if st.button("TELEGRAM PE BHEJO - SIRF MESSAGE"):
         TELEGRAM_BHEJO(st.session_state['last_msg'])
+        # WASEEM - V4.5 - FULL SCRIPT - PAGE 1 WASEEM + PAGE 2 BLACK GOLD + AUTO TELEGRAM
+# IS KO PURANI FILE KE NEECHE PASTE KARO
+import streamlit as st
+import yfinance as yf
+import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta
+import time
+import requests
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+
+st.set_page_config(page_title="WASEEM TRADER - V4.5", layout="centered")
+
+# استاد جی - PAGE WALA - NEXT / BACK
+if 'page' not in st.session_state:
+    st.session_state['page'] = 1
+
+col1, col2, col3 = st.columns([1, 2, 1])
+with col1:
+    if st.button("⬅ BACK"):
+        if st.session_state['page'] > 1:
+            st.session_state['page'] -= 1
+            st.rerun()
+with col3:
+    if st.button("NEXT ➡"):
+        if st.session_state['page'] < 2:
+            st.session_state['page'] += 1
+            st.rerun()
+st.write(f"PAGE: {st.session_state['page']} / 2 - 1 = WASEEM WALA | 2 = BLACK GOLD WALA")
+st.title("WASEEM TRADER - V4.5")
+
+# استاد جی - PRICE WALA - TRADINGVIEW WALI PRICE YAHAN DALO
+# استاد جی - YAHAN 15 NAHI JODNA - JO TRADINGVIEW PAR HAI WAHI DALO - JAISE 4060.33
+MANUAL_PRICE_INPUT = st.number_input("TRADINGVIEW WALI PRICE YAHAN DALO - JAISE 4060.33", value=4060.33)
+AUTO_ON = st.checkbox("AUTO ON KARO - SETUP BANTE HI TELEGRAM KHUD JAYEGA", value=False)
+AUTO_MINUTE = st.selectbox("KITNI DEER BAAD CHECK KARE?", [1, 5, 15], index=1)
+
+BOT_TOKEN = st.secrets["BOT_TOKEN"]
+CHAT_ID = st.secrets["CHAT_ID"]
+
+def TELEGRAM_BHEJO(message):
+    try:
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+        r = requests.post(url, data={"chat_id": CHAT_ID, "text": message})
+        return r
+    except Exception as e:
+        st.error(f"TELEGRAM ME GALTI: {e}")
+        return None
+
+def ALAG_ALAG_BHEJO(m1, m2, m3, m4, m5, m6):
+    for m in [m1, m2, m3, m4, m5, m6]:
+        if m and m.strip() != "":
+            TELEGRAM_BHEJO(m)
+            time.sleep(1)
+
+if st.button("TEST TELEGRAM"):
+    TELEGRAM_BHEJO("TEST - WASEEM TRADER BOT CHAL RAHA HAI")
+
+FINAL_PRICE = float(MANUAL_PRICE_INPUT)
+st.success(f"PRICE CHAL RAHI HAI - TRADINGVIEW WALI: {FINAL_PRICE}")
+
+CHALAO = st.button("SIGNAL BANAO") or AUTO_ON
+
+if CHALAO:
+    def CLEAN(d):
+        d = d.copy()
+        if isinstance(d.columns, pd.MultiIndex):
+            d.columns = d.columns.get_level_values(0)
+        for c in list(d.columns):
+            if isinstance(d[c], pd.DataFrame):
+                d[c] = d[c].iloc[:,0]
+        d.columns = [str(c) for c in d.columns]
+        return d
+
+    def GET_DATA(period, interval, n):
+        for k in [1,2,3]:
+            try:
+                d = yf.download("GC=F", period=period, interval=interval, progress=False)
+                if d is not None and len(d)>20:
+                    d = CLEAN(d)
+                    return d.dropna().tail(n).copy()
+            except:
+                time.sleep(2)
+        return None
+
+    df4h = GET_DATA("1mo","4h",60)
+    df = GET_DATA("5d","1h",120)
+    df15 = GET_DATA("2d","15m",120)
+
+    if df is None or df15 is None or df4h is None:
+        st.error("DATA NAHI AAYA - WAIT KARO")
+        st.stop()
+
+    abhi = float(FINAL_PRICE)
+    for d in [df, df15, df4h]:
+        d.loc[d.index[-1], 'Close'] = abhi
+        if abhi > float(d.loc[d.index[-1], 'High']):
+            d.loc[d.index[-1], 'High'] = abhi
+        if abhi < float(d.loc[d.index[-1], 'Low']):
+            d.loc[d.index[-1], 'Low'] = abhi
+
+    pak_time = datetime.now() + timedelta(hours=5)
+    date_txt = pak_time.strftime("%d %B %Y")
+    time_txt = pak_time.strftime("%I:%M %p")
+    abhi_s = str(abhi)
+
+    df['TR'] = np.maximum(df['High']-df['Low'], np.maximum(abs(df['High']-df['Close'].shift(1)), abs(df['Low']-df['Close'].shift(1))))
+    atr_v = float(df['TR'].rolling(14).mean().iloc[-1])
+    if atr_v < 3: atr_v = 3.0
+    if atr_v > 15: atr_v = 15.0
+    atr_s = str(round(atr_v,1))
+
+    sl_dist = 6
+    tp1_dist = 11
+    tp2_dist = 22
+    tp3_dist = 33
+
+    def SETUP_CALC(d, tf_name, demand_size):
+        last_high = float(d['High'].iloc[-10:-1].max())
+        last_low = float(d['Low'].iloc[-10:-1].min())
+        curr_close = float(d['Close'].iloc[-1])
+        bos_up = curr_close > last_high
+        bos_down = curr_close < last_low
+        fvg_bull = False; fvg_bear = False; fvg_bot = 0; fvg_top = 0
+        for i in range(len(d)-15, len(d)):
+            if i < 2: continue
+            h2 = float(d['High'].iloc[i-2]); l0 = float(d['Low'].iloc[i]); h0 = float(d['High'].iloc[i]); l2 = float(d['Low'].iloc[i-2])
+            if l0 - h2 > 1 and l0 - h2 < 8:
+                fvg_bull = True; fvg_bot = h2; fvg_top = l0
+            if l2 - h0 > 1 and l2 - h0 < 8:
+                fvg_bear = True; fvg_bot = h0; fvg_top = l2
+        highs=[]; lows=[]
+        for i in range(2, len(d)-2):
+            h=float(d['High'].iloc[i]); l2=float(d['Low'].iloc[i])
+            mx=float(d['High'].iloc[i-2:i+3].max()); mn=float(d['Low'].iloc[i-2:i+3].min())
+            if h>=mx: highs.append(round(h))
+            if l2<=mn: lows.append(round(l2))
+        upar=[x for x in highs if x>abhi+3]
+        RES=min(upar) if upar else abhi+15
+        neeche=[x for x in lows if x<abhi-3]
+        SUP=max(neeche) if neeche else abhi-15
+        RES=round(RES/5)*5; SUP=round(SUP/5)*5
+        d_bot=SUP; d_top=SUP+demand_size
+        s_bot=RES-demand_size; s_top=RES
+        at_d = d_bot <= abhi <= d_top
+        at_s = s_bot <= abhi <= s_top
+        o=float(d['Open'].iloc[-1]); c=float(d['Close'].iloc[-1]); h=float(d['High'].iloc[-1]); l=float(d['Low'].iloc[-1])
+        body=abs(c-o); up_w= h-max(c,o); low_w= min(c,o)-l
+        react_buy = at_d and low_w > body and c>o
+        react_sell = at_s and up_w > body and c<o
+        vol_avg=float(d['Volume'].iloc[-20:].mean()); vol_last=float(d['Volume'].iloc[-3:].mean())
+        vol_ok = vol_last > vol_avg
+        ema50=float(d['Close'].ewm(span=50, adjust=False).mean().iloc[-1])
+        trend_up = abhi > ema50
+        trend_down = abhi < ema50
+        buy_score=0
+        if at_d: buy_score+=20
+        if bos_up or fvg_bull: buy_score+=20
+        if react_buy: buy_score+=20
+        if vol_ok: buy_score+=20
+        if trend_up: buy_score+=20
+        sell_score=0
+        if at_s: sell_score+=20
+        if bos_down or fvg_bear: sell_score+=20
+        if react_sell: sell_score+=20
+        if vol_ok: sell_score+=20
+        if trend_down: sell_score+=20
+        bos_txt = "BOS UP" if bos_up else "BOS DOWN" if bos_down else "BOS Nahi"
+        fvg_txt = "FVG Bullish" if fvg_bull else "FVG Bearish" if fvg_bear else "FVG Nahi"
+        if at_d and (bos_up or fvg_bull) and react_buy and vol_ok:
+            faisla = tf_name+" BUY SETUP - SAB MIL GAYA"; fcol="#00FF88"
+            entry=f"Buy {int(d_bot)} - {int(d_top)}"; sl=f"SL: {int(d_bot-sl_dist)} - 6 DOLLAR"; tp=f"TP1: {int(d_top+tp1_dist)} | TP2: {int(d_top+tp2_dist)} | TP3: {int(d_top+tp3_dist)}"
+            chance=buy_score; chance_txt=f"CHANCE: {chance}% - MAZBOOT" if chance>=80 else f"CHANCE: {chance}% - THEEK HAI"
+            zone_txt=f"BUY ZONE: {int(d_bot)} SE {int(d_top)} TAK HAI - ISI ME KHARIDO"
+            tp1_p=int(d_top+tp1_dist); tp2_p=int(d_top+tp2_dist); tp3_p=int(d_top+tp3_dist); sl_p=int(d_bot-sl_dist); side="BUY"
+        elif at_s and (bos_down or fvg_bear) and react_sell and vol_ok:
+            faisla = tf_name+" SELL SETUP - SAB MIL GAYA"; fcol="#FF4444"
+            entry=f"Sell {int(s_bot)} - {int(s_top)}"; sl=f"SL: {int(s_top+sl_dist)} - 6 DOLLAR"; tp=f"TP1: {int(s_bot-tp1_dist)} | TP2: {int(s_bot-tp2_dist)} | TP3: {int(s_bot-tp3_dist)}"
+            chance=sell_score; chance_txt=f"CHANCE: {chance}% - MAZBOOT" if chance>=80 else f"CHANCE: {chance}% - THEEK HAI"
+            zone_txt=f"SELL ZONE: {int(s_bot)} SE {int(s_top)} TAK HAI - ISI ME BECHO"
+            tp1_p=int(s_bot-tp1_dist); tp2_p=int(s_bot-tp2_dist); tp3_p=int(s_bot-tp3_dist); sl_p=int(s_top+sl_dist); side="SELL"
+        elif at_d:
+            faisla = tf_name+" WAIT - DEMAND PAR HAI"; fcol="#FFAA00"
+            entry=f"Wait - Demand {int(d_bot)}-{int(d_top)}"; sl="SL: Abhi Entry Nahi"; tp="TP: Wait Karo"
+            chance=buy_score; chance_txt=f"CHANCE: {chance}% - ABHI KAM HAI"; zone_txt=f"BUY ZONE: {int(d_bot)} SE {int(d_top)} TAK - ABHI WAIT"; tp1_p=0; tp2_p=0; tp3_p=0; sl_p=0; side="WAIT"
+        elif at_s:
+            faisla = tf_name+" WAIT - SUPPLY PAR HAI"; fcol="#FFAA00"
+            entry=f"Wait - Supply {int(s_bot)}-{int(s_top)}"; sl="SL: Abhi Entry Nahi"; tp="TP: Wait Karo"
+            chance=sell_score; chance_txt=f"CHANCE: {chance}% - ABHI KAM HAI"; zone_txt=f"SELL ZONE: {int(s_bot)} SE {int(s_top)} TAK - ABHI WAIT"; tp1_p=0; tp2_p=0; tp3_p=0; sl_p=0; side="WAIT"
+        else:
+            faisla = tf_name+" WAIT - PRICE BEECH ME HAI"; fcol="#FFAA00"
+            entry="Wait - Abhi Entry Nahi"; sl="SL: Abhi Entry Nahi"; tp="TP: Wait Karo"
+            chance=max(buy_score,sell_score); chance_txt=f"CHANCE: {chance}% - ABHI KAM HAI"; zone_txt=f"BUY ZONE: {int(d_bot)} SE {int(d_top)} | SELL ZONE: {int(s_bot)} SE {int(s_top)}"; tp1_p=0; tp2_p=0; tp3_p=0; sl_p=0; side="WAIT"
+        if react_buy: react_txt="REACTION: MAZBOOT - UPAR UTHA"; react_ok=True
+        elif react_sell: react_txt="REACTION: MAZBOOT - NEECHE GIRA"; react_ok=True
+        elif at_d: react_txt="REACTION: KAMZOR"; react_ok=False
+        elif at_s: react_txt="REACTION: KAMZOR"; react_ok=False
+        else: react_txt="REACTION: ABHI OB PAR NAHI"; react_ok=False
+        return {'faisla':faisla,'fcol':fcol,'entry':entry,'sl':sl,'tp':tp,'chance':chance,'chance_txt':chance_txt,'bos':bos_txt,'fvg':fvg_txt,'react':react_txt,'react_ok':react_ok,'vol_ok':vol_ok,'d_bot':int(d_bot),'d_top':int(d_top),'s_bot':int(s_bot),'s_top':int(s_top),'res':int(RES),'sup':int(SUP),'zone_txt':zone_txt,'tp1_p':tp1_p,'tp2_p':tp2_p,'tp3_p':tp3_p,'sl_p':sl_p,'side':side}
+
+    r4h = SETUP_CALC(df4h, "4H", 12)
+    r1h = SETUP_CALC(df, "1H", 10)
+    r15 = SETUP_CALC(df15, "15M", 6)
+
+    ema50_v=float(df['Close'].ewm(span=50, adjust=False).mean().iloc[-1]); ema50_s=str(int(ema50_v))
+    ema15_v=float(df['Close'].ewm(span=15, adjust=False).mean().iloc[-1]); ema15_s=str(int(ema15_v))
+    delta=df['Close'].diff(); gain=delta.where(delta>0,0).rolling(14).mean(); loss=-delta.where(delta<0,0).rolling(14).mean()
+    rs=gain/(loss+0.00001); rsi_v=float(100-(100/(1+rs.iloc[-1]))); rsi_s=str(round(rsi_v,1))
+    vwap_v=float((df['Close']*df['Volume']).cumsum().iloc[-1]/(df['Volume'].cumsum().iloc[-1]+1)); vwap_s=str(int(vwap_v))
+    macd_line=float(df['Close'].ewm(span=12, adjust=False).mean().iloc[-1]-df['Close'].ewm(span=26, adjust=False).mean().iloc[-1])
+    macd_series=df['Close'].ewm(span=12, adjust=False).mean()-df['Close'].ewm(span=26, adjust=False).mean()
+    macd_sig_v=float(macd_series.ewm(span=9, adjust=False).mean().iloc[-1])
+    sma20=float(df['Close'].rolling(20).mean().iloc[-1]); std20=float(df['Close'].rolling(20).std().iloc[-1])
+    bb_up=sma20+2*std20; bb_low=sma20-2*std20
+    o1=float(df['Open'].iloc[-1]); c1=float(df['Close'].iloc[-1]); h1=float(df['High'].iloc[-1]); l1=float(df['Low'].iloc[-1])
+    body1=abs(c1-o1); up_w1=h1-max(c1,o1); low_w1=min(c1,o1)-l1
+    pin_buy=low_w1>body1*2 and low_w1>up_w1; pin_sell=up_w1>body1*2 and up_w1>low_w1
+    htf_up=c1>ema50_v; prev_low=float(df['Low'].iloc[-2]); prev_high=float(df['High'].iloc[-2])
+    sweep_buy=l1<prev_low and c1>prev_low; sweep_sell=h1>prev_high and c1<prev_high
+    hour_utc=datetime.now().hour; session_on=7<=hour_utc<=17
+    vol_avg=float(df['Volume'].iloc[-20:].mean()); vol_aakhri_3=float(df['Volume'].iloc[-3:].mean())
+    volume_strong=vol_aakhri_3>vol_avg
+    fvg_touch = r1h['fvg_bot']-5 <= abhi <= r1h['fvg_top']+5
+    if session_on and abhi>ema15_v: sess_buy_ok=True
+    else: sess_buy_ok=False
+    if session_on and abhi<ema15_v: sess_sell_ok=True
+    else: sess_sell_ok=False
+    buy_buttons=[]
+    buy_buttons.append(("1 FVG BUY", fvg_touch)); buy_buttons.append(("2 VWAP BUY", abhi>vwap_v)); buy_buttons.append(("3 EMA 15 BUY", abhi>ema15_v))
+    buy_buttons.append(("4 RSI BUY", rsi_v>50)); buy_buttons.append(("5 Bollinger BUY", abhi <= bb_low+5)); buy_buttons.append(("6 MACD BUY", macd_line>macd_sig_v))
+    buy_buttons.append(("7 Pin Bar BUY", pin_buy)); buy_buttons.append(("8 HTF Trend BUY", htf_up)); buy_buttons.append(("9 Sweep BUY", sweep_buy))
+    buy_buttons.append(("10 FVG Touch BUY", fvg_touch and abhi>ema15_v)); buy_buttons.append(("11 Session BUY", sess_buy_ok)); buy_buttons.append(("12 Volume BUY", volume_strong and abhi>ema15_v))
+    sell_buttons=[]
+    sell_buttons.append(("1 FVG SELL", abhi<r1h['fvg_bot']-5)); sell_buttons.append(("2 VWAP SELL", abhi<vwap_v)); sell_buttons.append(("3 EMA 15 SELL", abhi<ema15_v))
+    sell_buttons.append(("4 RSI SELL", rsi_v<50)); sell_buttons.append(("5 Bollinger SELL", abhi >= bb_up-5)); sell_buttons.append(("6 MACD SELL", macd_line<macd_sig_v))
+    sell_buttons.append(("7 Pin Bar SELL", pin_sell)); sell_buttons.append(("8 HTF Trend SELL", not htf_up)); sell_buttons.append(("9 Sweep SELL", sweep_sell))
+    sell_buttons.append(("10 FVG Touch SELL", fvg_touch and abhi<ema15_v)); sell_buttons.append(("11 Session SELL", sess_sell_ok)); sell_buttons.append(("12 Volume SELL", (not volume_strong) and abhi<ema15_v))
+    buy_c=sum(1 for _,v in buy_buttons if v); sell_c=sum(1 for _,v in sell_buttons if v)
+
+    # استاد جی - PAGE 1 - WASEEM WALA
+    if st.session_state['page'] == 1:
+        st.write(f"### PAGE 1 - WASEEM WALA - PRICE: {abhi_s}")
+        st.write(f"BUY: {buy_c}/12 | SELL: {sell_c}/12")
+        st.write(f"4H: {r4h['faisla']} | {r4h['entry']} | {r4h['sl']} | {r4h['tp']}")
+        st.write(f"1H: {r1h['faisla']} | {r1h['entry']} | {r1h['sl']} | {r1h['tp']}")
+        st.write(f"15M: {r15['faisla']} | {r15['entry']} | {r15['sl']} | {r15['tp']}")
+        fig2, ax2 = plt.subplots(figsize=(10,4))
+        fig2.patch.set_facecolor('white'); ax2.set_facecolor('white')
+        dchart = df15.tail(50).copy()
+        ax2.axhspan(r15['d_bot'], r15['d_top'], color='#00FF88', alpha=0.15)
+        ax2.text(len(dchart)-1, r15['d_top']+1, f"DEMAND {r15['d_bot']}-{r15['d_top']}", fontsize=8, color='#00AA55', weight='bold', ha='right')
+        ax2.axhspan(r15['s_bot'], r15['s_top'], color='#FF4444', alpha=0.12)
+        ax2.text(len(dchart)-1, r15['s_top']+1, f"SUPPLY {r15['s_bot']}-{r15['s_top']}", fontsize=8, color='#CC0000', weight='bold', ha='right')
+        for i in range(len(dchart)):
+            o=float(dchart['Open'].iloc[i]); c=float(dchart['Close'].iloc[i]); h=float(dchart['High'].iloc[i]); l=float(dchart['Low'].iloc[i])
+            col = '#00C853' if c>=o else '#FF1744'
+            ax2.plot([i,i],[l,h], color=col, linewidth=1)
+            ax2.add_patch(patches.Rectangle((i-0.35, min(o,c)), 0.7, max(abs(c-o),0.5), facecolor=col, edgecolor=col))
+        ax2.axhline(abhi, color='black', linestyle='--', linewidth=1, alpha=0.6)
+        ax2.text(len(dchart)-1, abhi, f" {abhi_s}", fontsize=9, weight='bold', color='black', va='center')
+        ax2.set_xlim(-1, len(dchart)); ax2.grid(False); ax2.set_xticks([])
+        for spine in ax2.spines.values():
+            spine.set_visible(False)
+        st.pyplot(fig2)
+
+    # استاد جی - PAGE 2 - BLACK GOLD WALA - BILKUL WAHI JAISE USNE DIYA
+    # BUY 4053 - 4056 | SL 4048 | TP 4061 - 4066 - 4071
+    if st.session_state['page'] == 2:
+        BG_BUY_BOT = 4053; BG_BUY_TOP = 4056; BG_SL = 4048; BG_TP1 = 4061; BG_TP2 = 4066; BG_TP3 = 4071
+        st.write(f"### PAGE 2 - BLACK GOLD WALA - PRICE: {abhi_s}")
+        st.write(f"BUY ZONE: {BG_BUY_BOT} - {BG_BUY_TOP} | SL: {BG_SL} | TP: {BG_TP1} - {BG_TP2} - {BG_TP3} - OPEN")
+        st.write("KULIYA: Breakout hua, ab Pullback ka wait hai - Zone me aaye to BUY")
+        if BG_BUY_BOT <= abhi <= BG_BUY_TOP:
+            st.success("🚨 BLACK GOLD - PULLBACK AA GAYA - BUY ZONE ME HAI - PAHUNCHO 🚨")
+        elif abhi > BG_BUY_TOP:
+            st.warning(f"PRICE UPAR HAI {abhi_s} - PULLBACK KA WAIT HAI - ZONE {BG_BUY_BOT}-{BG_BUY_TOP} ME AAYE TO BUY HOGA")
+            if abhi >= BG_TP1:
+                st.success(f"TP1 {BG_TP1} LAG GAYA")
+            if abhi >= BG_TP3:
+                st.success(f"TP3 {BG_TP3} LAG GAYA - AB OPEN CHHODO")
+        elif abhi < BG_SL:
+            st.error(f"SL LAG GAYA - PRICE {abhi_s} < SL {BG_SL} - SETUP FAIL")
+        else:
+            st.warning(f"PRICE BEECH ME HAI {abhi_s} - WAIT KARO")
+        fig_bg, ax_bg = plt.subplots(figsize=(10,4))
+        fig_bg.patch.set_facecolor('white'); ax_bg.set_facecolor('white')
+        d_bg = df15.tail(50).copy()
+        ax_bg.axhspan(BG_BUY_BOT, BG_BUY_TOP, color='#00FF88', alpha=0.25)
+        ax_bg.text(len(d_bg)-1, BG_BUY_TOP+1, f"PULLBACK BUY {BG_BUY_BOT}-{BG_BUY_TOP}", fontsize=8, color='#00AA55', weight='bold', ha='right')
+        ax_bg.axhline(BG_SL, color='red', linestyle='--', linewidth=1)
+        ax_bg.text(len(d_bg)-1, BG_SL, f" SL {BG_SL}", fontsize=8, color='red', weight='bold', va='bottom')
+        ax_bg.axhline(BG_TP1, color='green', linestyle='--', linewidth=1)
+        ax_bg.text(len(d_bg)-1, BG_TP1, f" TP1 {BG_TP1}", fontsize=8, color='green', weight='bold', va='bottom')
+        ax_bg.axhline(BG_TP3, color='green', linestyle='--', linewidth=1)
+        ax_bg.text(len(d_bg)-1, BG_TP3, f" TP3 {BG_TP3}", fontsize=8, color='green', weight='bold', va='bottom')
+        for i in range(len(d_bg)):
+            o=float(d_bg['Open'].iloc[i]); c=float(d_bg['Close'].iloc[i]); h=float(d_bg['High'].iloc[i]); l=float(d_bg['Low'].iloc[i])
+            col = '#00C853' if c>=o else '#FF1744'
+            ax_bg.plot([i,i],[l,h], color=col, linewidth=1)
+            ax_bg.add_patch(patches.Rectangle((i-0.35, min(o,c)), 0.7, max(abs(c-o),0.5), facecolor=col, edgecolor=col))
+        ax_bg.axhline(abhi, color='black', linestyle='--', linewidth=1, alpha=0.6)
+        ax_bg.text(len(d_bg)-1, abhi, f" {abhi_s}", fontsize=9, weight='bold', color='black', va='center')
+        ax_bg.set_xlim(-1, len(d_bg)); ax_bg.grid(False); ax_bg.set_xticks([])
+        for spine in ax_bg.spines.values():
+            spine.set_visible(False)
+        st.pyplot(fig_bg)
+
+    # استاد جی - TELEGRAM WALA - JAB SETUP BANE TO MESSAGE JAYE
+    msg_status = f"STATUS - WASEEM TRADER\nPRICE: {abhi_s}\nATR: {atr_s} | DATE: {date_txt} | {time_txt}\nRSI: {rsi_s} | EMA 15: {ema15_s} | EMA 50: {ema50_s} | VWAP: {vwap_s}\nRES 1H: {r1h['res']} | SUP 1H: {r1h['sup']}"
+    msg_buysell = f"BUY / SELL - 12 WALA\nBUY: {buy_c}/12\nSELL: {sell_c}/12"
+    msg_4h = f"4H SIGNAL\nPRICE: {abhi_s}\n4H: {r4h['faisla']}\n{r4h['entry']} | {r4h['sl']} | {r4h['tp']}\n{r4h['zone_txt']}\n{r4h['chance_txt']}"
+    msg_1h = f"1H SIGNAL\nPRICE: {abhi_s}\n1H: {r1h['faisla']}\n{r1h['entry']} | {r1h['sl']} | {r1h['tp']}\n{r1h['zone_txt']}\n{r1h['chance_txt']}"
+    msg_15m = f"15M SIGNAL\nPRICE: {abhi_s}\n15M: {r15['faisla']}\n{r15['entry']} | {r15['sl']} | {r15['tp']}\n{r15['zone_txt']}\n{r15['chance_txt']}"
+
+    breakout_hua=False; breakout_wajah=""; best=None
+    if "SAB MIL GAYA" in r4h['faisla']: breakout_hua=True; breakout_wajah="4H SETUP MIL GAYA"; best=r4h
+    elif "SAB MIL GAYA" in r1h['faisla']: breakout_hua=True; breakout_wajah="1H SETUP MIL GAYA"; best=r1h
+    elif "SAB MIL GAYA" in r15['faisla']: breakout_hua=True; breakout_wajah="15M SETUP MIL GAYA"; best=r15
+    elif buy_c>=6: breakout_hua=True; breakout_wajah=f"BUY MAZBOOT - BUY {buy_c}/12"; best=r1h if r1h['side']=="BUY" else r15 if r15['side']=="BUY" else r4h
+    elif sell_c>=5: breakout_hua=True; breakout_wajah=f"SELL MAZBOOT - SELL {sell_c}/12"; best=r1h if r1h['side']=="SELL" else r15 if r15['side']=="SELL" else r4h
+
+    if breakout_hua and best is not None and best['side'] in ["BUY","SELL"]:
+        msg_alert = f"🚨 SETUP BAN GAYA - PAHUNCHO 🚨\n{best['side']} KARO - TIME HO GAYA HAI\n\n{best['zone_txt']}\nISI ME {best['side']} KARO\n\nPRICE ABHI: {abhi_s}\n\nTP1: {best['tp1_p']} - 11 DOLLAR\nTP2: {best['tp2_p']} - 22 DOLLAR\nTP3: {best['tp3_p']} - 33 DOLLAR\nSL: {best['sl_p']} - 6 DOLLAR\n\n{breakout_wajah}\nBUY: {buy_c}/12 | SELL: {sell_c}/12"
+    elif breakout_hua:
+        msg_alert = f"🚨 BREAKOUT HO GAYA 🚨\n{breakout_wajah}\nPRICE: {abhi_s} | BUY: {buy_c}/12 | SELL: {sell_c}/12"
+    else:
+        msg_alert = ""
+
+    BG_BUY_BOT = 4053; BG_BUY_TOP = 4056; BG_SL = 4048; BG_TP1 = 4061; BG_TP2 = 4066; BG_TP3 = 4071
+    bg_alert = ""
+    if BG_BUY_BOT <= abhi <= BG_BUY_TOP:
+        bg_alert = f"🚨 BLACK GOLD - BUY SETUP BAN GAYA - PAHUNCHO 🚨\nBUY KARO - TIME HO GAYA HAI\n\nBUY ZONE: {BG_BUY_BOT} SE {BG_BUY_TOP} TAK HAI\n\nPRICE ABHI: {abhi_s}\n\nTP1: {BG_TP1}\nTP2: {BG_TP2}\nTP3: {BG_TP3} - OPEN\nSL: {BG_SL}"
+
+    st.session_state['m1']=msg_status; st.session_state['m2']=msg_buysell; st.session_state['m3']=msg_4h; st.session_state['m4']=msg_1h; st.session_state['m5']=msg_15m; st.session_state['m6']=msg_alert; st.session_state['bg_msg']=bg_alert
+
+    if AUTO_ON:
+        last = st.session_state.get('last_breakout_bheja', '')
+        abhi_key = f"{breakout_wajah}-{abhi_s}-{buy_c}-{sell_c}-{best['side'] if best else ''}-{bg_alert}"
+        if (breakout_hua or bg_alert != "") and last != abhi_key:
+            ALAG_ALAG_BHEJO(msg_status, msg_buysell, msg_4h, msg_1h, msg_15m, msg_alert)
+            if bg_alert != "":
+                time.sleep(1)
+                TELEGRAM_BHEJO(bg_alert)
+            st.session_state['last_breakout_bheja'] = abhi_key
+            st.success("AUTO - TELEGRAM PE KHUD CHALA GAYA - WASEEM WALA + BLACK GOLD WALA")
+        elif breakout_hua or bg_alert != "":
+            st.write("YE WALA PEHLE HI BHEJ DIYA HAI - DOBARA NAHI BHEJUNGA")
+        else:
+            st.warning(f"AUTO CHECK HO RAHA HAI - BUY {buy_c}/12 | SELL {sell_c}/12 - BREAKOUT NAHI HAI - IS LIYE NAHI BHEJA")
+        time.sleep(AUTO_MINUTE * 60)
+        st.rerun()
+    else:
+        if breakout_hua or bg_alert != "":
+            st.success(f"BREAKOUT HUA - {breakout_wajah} - NEECHE WALA BUTTON DABAO")
+        else:
+            st.warning(f"ABHI BREAKOUT NAHI - BUY {buy_c}/12 | SELL {sell_c}/12 - WAIT KARO")
+
+if 'm1' in st.session_state and not AUTO_ON:
+    st.write("---")
+    if st.button("TELEGRAM PE BHEJO - ALAG ALAG MESSAGE"):
+        ALAG_ALAG_BHEJO(st.session_state['m1'], st.session_state['m2'], st.session_state['m3'], st.session_state['m4'], st.session_state['m5'], st.session_state['m6'])
+        if st.session_state.get('bg_msg','') != "":
+            time.sleep(1)
+            TELEGRAM_BHEJO(st.session_state['bg_msg'])
