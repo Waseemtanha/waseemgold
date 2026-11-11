@@ -12,29 +12,29 @@ import matplotlib.patches as patches
 st.set_page_config(page_title="WASEEM TRADER - V4.1", layout="centered")
 st.title("WASEEM TRADER - V4.1")
 
-MANUAL_PRICE = st.number_input("MANUAL PRICE DALO", value=4045.0)
+# استاد جی - پرائس مینوئل ہے - MT5 والی پرائس ڈالنی ہے
+MANUAL_PRICE = st.number_input("MANUAL PRICE DALO - MT5 WALI PRICE", value=4045.0)
 
 # TELEGRAM - YE 2 CHEEZEIN STREAMLIT KE SECRET ME DALNI HAIN
 BOT_TOKEN = st.secrets["BOT_TOKEN"]
 CHAT_ID = st.secrets["CHAT_ID"]
-# 👇 استاد جی، دوسری والی اسکرپٹ یہاں ڈالیں، نیچے 👇
 
-if st.button("TEST TELEGRAM - SIRF MESSAGE"):
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    r = requests.post(url, data={"chat_id": CHAT_ID, "text": "TEST - WASEEM TRADER BOT CHAL RAHA HAI"})
-    st.write(str(r.text))
-
-
-
-
-def TELEGRAM_BHEJO(photo_path, message):
+# استاد جی - صرف میسج جائے گا، تصویر نہیں جائے گی
+def TELEGRAM_BHEJO(message):
     try:
-        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
-        with open(photo_path, "rb") as f:
-            requests.post(url, data={"chat_id": CHAT_ID, "caption": message}, files={"photo": f})
-        st.success("TELEGRAM PE BHEJ DIYA - CHECK KARO")
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+        r = requests.post(url, data={"chat_id": CHAT_ID, "text": message})
+        if r.status_code == 200:
+            st.success("TELEGRAM PE BHEJ DIYA - CHECK KARO")
+        else:
+            st.error("TELEGRAM NAHI GAYA: " + str(r.text))
+        return r
     except Exception as e:
         st.error(f"TELEGRAM ME GALTI: {e}")
+        return None
+
+if st.button("TEST TELEGRAM - SIRF MESSAGE"):
+    TELEGRAM_BHEJO("TEST - WASEEM TRADER BOT CHAL RAHA HAI")
 
 if st.button("SIGNAL BANAO"):
     def CLEAN(d):
@@ -93,9 +93,11 @@ if st.button("SIGNAL BANAO"):
     if atr_v < 3: atr_v = 3.0
     if atr_v > 15: atr_v = 15.0
     atr_s = str(round(atr_v,1))
-    sl_dist = int(atr_v*1.0)
-    if sl_dist < 4: sl_dist = 4
-    if sl_dist > 15: sl_dist = 15
+
+    # استاد جی - آپ والا فکس حساب - ATR سے نہیں بنے گا
+    sl_dist = 6
+    tp1_dist = 11
+    tp2_dist = 22
 
     def SETUP_CALC(d, tf_name, demand_size):
         last_high = float(d['High'].iloc[-10:-1].max())
@@ -151,14 +153,14 @@ if st.button("SIGNAL BANAO"):
         fvg_txt = "FVG Bullish" if fvg_bull else "FVG Bearish" if fvg_bear else "FVG Nahi"
         if at_d and (bos_up or fvg_bull) and react_buy and vol_ok:
             faisla = tf_name+" BUY SETUP - SAB MIL GAYA"; fcol="#00FF88"
-            entry="Buy "+str(int(d_bot))+" - "+str(int(d_top)); sl="SL: "+str(int(d_bot-sl_dist)); tp="TP: "+str(int(d_top+sl_dist*2))
+            entry="Buy "+str(int(d_bot))+" - "+str(int(d_top)); sl="SL: "+str(int(d_bot-sl_dist))+" - 6 DOLLAR"; tp="TP1: "+str(int(d_top+tp1_dist))+" - 11 DOLLAR | TP2: "+str(int(d_top+tp2_dist))+" - 22 DOLLAR"
             chance=buy_score; chance_txt="CHANCE: "+str(chance)+"% - MAZBOOT" if chance>=80 else "CHANCE: "+str(chance)+"% - THEEK HAI"
-            rr_txt="RR: 1:2 - TRADE LENE LAYAQ"
+            rr_txt="SL 6 | TP1 11 | TP2 22"
         elif at_s and (bos_down or fvg_bear) and react_sell and vol_ok:
             faisla = tf_name+" SELL SETUP - SAB MIL GAYA"; fcol="#FF4444"
-            entry="Sell "+str(int(s_bot))+" - "+str(int(s_top)); sl="SL: "+str(int(s_top+sl_dist)); tp="TP: "+str(int(s_bot-sl_dist*2))
+            entry="Sell "+str(int(s_bot))+" - "+str(int(s_top)); sl="SL: "+str(int(s_top+sl_dist))+" - 6 DOLLAR"; tp="TP1: "+str(int(s_bot-tp1_dist))+" - 11 DOLLAR | TP2: "+str(int(s_bot-tp2_dist))+" - 22 DOLLAR"
             chance=sell_score; chance_txt="CHANCE: "+str(chance)+"% - MAZBOOT" if chance>=80 else "CHANCE: "+str(chance)+"% - THEEK HAI"
-            rr_txt="RR: 1:2 - TRADE LENE LAYAQ"
+            rr_txt="SL 6 | TP1 11 | TP2 22"
         elif at_d:
             faisla = tf_name+" WAIT - DEMAND PAR HAI"; fcol="#FFAA00"
             entry="Wait - Demand "+str(int(d_bot))+"-"+str(int(d_top))+" par hai"; sl="SL: Abhi Entry Nahi - ATR "+atr_s; tp="TP: Wait Karo"
@@ -236,7 +238,7 @@ if st.button("SIGNAL BANAO"):
     sell_buttons.append(("12 Volume SELL ★", "VOL STRONG" if volume_strong else "VOL KAM", (not volume_strong) and abhi<ema15_v))
     buy_c=sum(1 for _,_,v in buy_buttons if v); sell_c=sum(1 for _,_,v in sell_buttons if v)
 
-    # PART 2 - TASVEER - AAP KA WAHI DESIGN
+    # PART 2 - TASVEER - AAP KA WAHI DESIGN - SAME HAI
     fig,ax = plt.subplots(figsize=(10,30))
     ax.set_xlim(0,10); ax.set_ylim(0,30); ax.axis('off')
     fig.patch.set_facecolor('#0A0A0A'); ax.set_facecolor('#0A0A0A')
@@ -247,7 +249,7 @@ if st.button("SIGNAL BANAO"):
     ax.add_patch(box((0.3,28.3),9.4,0.55, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor='#FFD700', linewidth=1))
     ax.text(5,28.57,date_txt + "  |  " + time_txt + "  |  PAKISTAN TIME", ha='center',va='center', fontsize=11,weight='bold', color='#FFD700')
     ax.add_patch(box((0.3,27.3),9.4,0.85, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor='#FFD700', linewidth=1.5))
-    ax.text(5,27.8,'GOLD: ' + abhi_s + ' [MANUAL]  |  ATR: ' + atr_s, ha='center',va='center', fontsize=22,weight='bold', color='white')
+    ax.text(5,27.8,'GOLD: ' + abhi_s + ' [MANUAL MT5]  |  ATR: ' + atr_s, ha='center',va='center', fontsize=22,weight='bold', color='white')
     ax.text(5,27.45,'4H = MAZBOOT LATE  |  1H = BEECH  |  15M = JALDI - TEENO ALAG ALAG', ha='center',va='center', fontsize=9,weight='bold', color='#FFD700')
     ax.add_patch(box((0.3,24.0),9.4,3.0, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor=r4h['fcol'], linewidth=2.5))
     ax.text(5,26.65,'4H SETUP - MAZBOOT WALA - LATE - DIN ME 1 BAAR', ha='center',va='center', fontsize=11,weight='bold', color='#FFD700')
@@ -314,27 +316,50 @@ if st.button("SIGNAL BANAO"):
     plt.savefig("Waseem_Buy_Sell_V4_1.jpg",dpi=200)
     st.pyplot(fig)
 
-    # TELEGRAM WALA MESSAGE - SARA SETUP, PRICE, INDICATOR
+    # استاد جی - ٹیلیگرام والا میسج - صرف یہی جائے گا
     msg = f"""WASEEM TRADER - V4.1
-GOLD: {abhi_s} [MANUAL] | ATR: {atr_s}
+GOLD PRICE: {abhi_s} [MT5 MANUAL] | ATR: {atr_s}
 DATE: {date_txt} | {time_txt}
 
-UPAR 4H: {r4h['faisla']}
+4H: {r4h['faisla']}
 {r4h['entry']} | {r4h['sl']} | {r4h['tp']}
-{r4h['chance_txt']} | {r4h['rr']}
+{r4h['chance_txt']}
 
-NEECHE 15M: {r15['faisla']}
-{r15['entry']} | {r15['sl']} | {r15['tp']}
-{r15['chance_txt']}
-
-NEECHE 1H: {r1h['faisla']}
+1H: {r1h['faisla']}
 {r1h['entry']} | {r1h['sl']} | {r1h['tp']}
 {r1h['chance_txt']}
 
-INDICATOR:
+15M: {r15['faisla']}
+{r15['entry']} | {r15['sl']} | {r15['tp']}
+{r15['chance_txt']}
+
+SETUP 12 WALA:
+BUY: {buy_c}/12 | SELL: {sell_c}/12
 RSI: {rsi_s} | EMA 15: {ema15_s} | EMA 50: {ema50_s}
-VWAP: {vwap_s} | BUY: {buy_c}/12 | SELL: {sell_c}/12
+VWAP: {vwap_s}
 RES 1H: {r1h['res']} | SUP 1H: {r1h['sup']}
+SL: 6 DOLLAR | TP1: 11 DOLLAR | TP2: 22 DOLLAR
 """
-    if st.button("TELEGRAM PE BHEJO"):
-        TELEGRAM_BHEJO("Waseem_Buy_Sell_V4_1.jpg", msg)
+
+    # استاد جی - آپ والا بریک آؤٹ - 12 والا حساب - صرف ایک جگہ
+    breakout_hua = False
+    breakout_wajah = ""
+    if "SAB MIL GAYA" in r4h['faisla'] or "SAB MIL GAYA" in r1h['faisla'] or "SAB MIL GAYA" in r15['faisla']:
+        breakout_hua = True
+        breakout_wajah = "SETUP MIL GAYA - BREAKOUT"
+    elif buy_c >= 6:
+        breakout_hua = True
+        breakout_wajah = f"BUY MAZBOOT - BUY {buy_c}/12 HO GAYA - 6 YA 7"
+    elif sell_c >= 5:
+        breakout_hua = True
+        breakout_wajah = f"SELL MAZBOOT - SELL {sell_c}/12 HO GAYA - 5 SE ZYADA"
+
+    if breakout_hua:
+        msg = f"🚨 BREAKOUT HO GAYA 🚨\n{breakout_wajah}\n\n" + msg
+        TELEGRAM_BHEJO(msg)
+        st.success("BREAKOUT HUA - MESSAGE KHUD CHALA GAYA")
+    else:
+        st.warning(f"ABHI BREAKOUT NAHI - BUY {buy_c}/12 | SELL {sell_c}/12 - WAIT KARO")
+
+    if st.button("TELEGRAM PE BHEJO - SIRF MESSAGE"):
+        TELEGRAM_BHEJO(msg)
