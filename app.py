@@ -1,4 +1,4 @@
-# WASEEM - V5.2 - HISSA 1 - UPAR WALA + HISAB WALA
+# WASEEM - V5.3 - HISSA 1 - EK HI PAGE WALA - UPAR + HISAB
 # PURANI FILE KHALI KAR KE YAHI PASTE KARO - PHIR HISSA 2 NEECHE LAGANA
 import streamlit as st
 import yfinance as yf
@@ -10,28 +10,12 @@ import requests
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-st.set_page_config(page_title="WASEEM TRADER - V5.2", layout="centered")
-
-# استاد جی - PAGE WALA - SAB SE UPAR - SIGNAL SE PEHLE - IS LIYE NEXT KABHI NAHI RUKEGA
-if 'page' not in st.session_state:
-    st.session_state['page'] = 1
-b1, b2 = st.columns(2)
-with b1:
-    if st.button("⬅ BACK", key="back_v52", use_container_width=True):
-        if st.session_state['page'] > 1:
-            st.session_state['page'] -= 1
-            st.rerun()
-with b2:
-    if st.button("NEXT ➡", key="next_v52", use_container_width=True):
-        if st.session_state['page'] < 3:
-            st.session_state['page'] += 1
-            st.rerun()
-st.write(f"PAGE: {st.session_state['page']} / 3 - 1 = WASEEM | 2 = BLACK GOLD | 3 = WAJAH")
-st.title("WASEEM TRADER - V5.2")
+st.set_page_config(page_title="WASEEM TRADER - V5.3 - EK PAGE", layout="centered")
+st.title("WASEEM TRADER - V5.3 - EK HI PAGE")
 
 # استاد جی - PRICE WALA - AUTO + MANUAL DONO
-price_mode = st.radio("PRICE KAHA SE LEIN?", ["AUTO - YAHOO WALI", "MANUAL - KHUD DALO - TRADINGVIEW WALI"], key="price_mode_v52", horizontal=True)
-manual_price = st.number_input("MANUAL PRICE - JAISE 4060.33", value=4060.33, key="manual_v52")
+price_mode = st.radio("PRICE KAHA SE LEIN?", ["AUTO - YAHOO WALI", "MANUAL - KHUD DALO - TRADINGVIEW WALI"], key="price_mode_v53", horizontal=True)
+manual_price = st.number_input("MANUAL PRICE - JAISE 4060.33", value=4060.33, key="manual_v53")
 try:
     yf_data = yf.download("GC=F", period="1d", interval="1m", progress=False)
     if isinstance(yf_data.columns, pd.MultiIndex):
@@ -46,9 +30,9 @@ else:
     FINAL_PRICE = float(manual_price)
     st.success(f"MANUAL PRICE: {FINAL_PRICE} | YAHOO THI: {yahoo_price}")
 
-AUTO_ON = st.checkbox("AUTO ON - SETUP BANTE HI TELEGRAM KHUD JAYEGA", value=False, key="auto_v52")
-AUTO_MINUTE = st.selectbox("KITNI DEER BAAD CHECK KARE?", [1, 5, 15], index=1, key="auto_min_v52")
-TRAILING_ON = st.checkbox("TRAILING ON - TP1 PAR SL B/E PAR", value=True, key="trail_v52")
+AUTO_ON = st.checkbox("AUTO ON - SETUP BANTE HI TELEGRAM KHUD JAYEGA", value=False, key="auto_v53")
+AUTO_MINUTE = st.selectbox("KITNI DEER BAAD CHECK KARE?", [1, 5, 15], index=1, key="auto_min_v53")
+TRAILING_ON = st.checkbox("TRAILING ON - TP1 PAR SL B/E PAR", value=True, key="trail_v53")
 BOT_TOKEN = st.secrets["BOT_TOKEN"]
 CHAT_ID = st.secrets["CHAT_ID"]
 
@@ -64,12 +48,13 @@ def ALAG_ALAG_BHEJO(m1, m2, m3, m4, m5, m6):
         if m and m.strip() != "":
             TELEGRAM_BHEJO(m)
             time.sleep(1)
-if st.button("TEST TELEGRAM", key="test_v52"):
-    TELEGRAM_BHEJO("TEST - WASEEM TRADER V5.2 CHAL RAHA HAI")
+if st.button("TEST TELEGRAM", key="test_v53"):
+    TELEGRAM_BHEJO("TEST - WASEEM TRADER V5.3 CHAL RAHA HAI")
 
-abhi = float(FINAL_PRICE)
+# استاد جی - PRICE FIX - LAMBI WALI KHATAM - SIRF 2 POINT TAK
+abhi = round(float(FINAL_PRICE), 2)
 abhi_s = str(abhi)
-CHALAO = st.button("SIGNAL BANAO", key="signal_v52") or AUTO_ON
+CHALAO = st.button("SIGNAL BANAO", key="signal_v53") or AUTO_ON
 
 if CHALAO:
     def CLEAN(d):
@@ -111,7 +96,6 @@ if CHALAO:
     if atr_v < 3: atr_v = 3.0
     if atr_v > 15: atr_v = 15.0
     atr_s = str(round(atr_v,1))
-
     def NAYA_SETUP(d, tf_name, demand_size):
         last_high = float(d['High'].iloc[-10:-1].max())
         last_low = float(d['Low'].iloc[-10:-1].min())
@@ -162,7 +146,6 @@ if CHALAO:
             tp1=int(entry_top+tp1_dist); tp2=int(entry_top+tp2_dist); tp3=int(entry_top+tp3_dist)
             tp1_gol=round(tp1/10)*10
             if abs(tp1_gol-tp1)<=5: tp1=tp1_gol
-            # استاد جی - TRAILING FIX - TP1 LAGNE SE PEHLE SL NAHI HILEGA
             sl_show=sl; trail_txt="SL FIX HAI - 6 DOLLAR"
             if TRAILING_ON:
                 if abhi>=tp1:
@@ -233,7 +216,6 @@ if CHALAO:
     sell_buttons.append(("11 Session SELL", "London/NY ON + Neeche" if session_on and abhi<ema15_v else "Session Off / Upar", session_on and abhi<ema15_v))
     sell_buttons.append(("12 Volume SELL ★", "VOL STRONG" if volume_strong else "VOL KAM", (not volume_strong) and abhi<ema15_v))
     buy_c=sum(1 for _,_,v in buy_buttons if v); sell_c=sum(1 for _,_,v in sell_buttons if v)
-    # استاد جی - FIX - SIGNAL KO YAAD RAKHO - NEXT DABANE PAR BHI NA BHULE
     st.session_state['has_data'] = True
     st.session_state['last_r4h'] = r4h
     st.session_state['last_r1h'] = r1h
@@ -252,8 +234,8 @@ if CHALAO:
     st.session_state['last_date'] = date_txt
     st.session_state['last_time'] = time_txt
     st.session_state['last_df15'] = df15.tail(50).copy()
-    # WASEEM - V5.2 - HISSA 2 - PAGE 1 + PAGE 2 + PAGE 3 + TELEGRAM
-# IS KO HISSA 1 KE BILKUL NEECHE LAGAO - YE if CHALAO KE BAHAR HAI - IS LIYE NEXT KAM KAREGA
+    # WASEEM - V5.3 - HISSA 2 - EK HI PAGE - WASEEM + 12 WALA + BLACK GOLD + WAJAH
+# IS KO HISSA 1 KE BILKUL NEECHE LAGAO - NEXT WALA NAHI HAI - SAB EK HI PAGE PAR
 if st.session_state.get('has_data', False):
     r4h = st.session_state['last_r4h']
     r1h = st.session_state['last_r1h']
@@ -273,204 +255,216 @@ if st.session_state.get('has_data', False):
     time_txt = st.session_state['last_time']
     df15_show = st.session_state['last_df15']
 
-    # استاد جی - PAGE 1 - WASEEM WALA - TASVEER - SHAPE WAHI WALI
-    if st.session_state['page'] == 1:
-        fig,ax = plt.subplots(figsize=(10,30))
-        ax.set_xlim(0,10); ax.set_ylim(0,30); ax.axis('off')
-        fig.patch.set_facecolor('#0A0A0A'); ax.set_facecolor('#0A0A0A')
-        box = patches.FancyBboxPatch
-        ax.add_patch(box((0.3,29.0),9.4,0.9, boxstyle="round,pad=0.1", facecolor='#0A0A0A', edgecolor='#FFD700', linewidth=3))
-        ax.text(5,29.45,'WASEEM  TRADER - V5.2', ha='center',va='center', color='#FFD700', fontsize=26,weight='bold')
-        ax.text(5,29.15,'ALLIANCE WALA - CHoCH + RETEST + ROUND 2 + TRAILING', ha='center',va='center', color='white',fontsize=9)
-        ax.add_patch(box((0.3,28.3),9.4,0.55, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor='#FFD700', linewidth=1))
-        ax.text(5,28.57,date_txt + "  |  " + time_txt + "  |  PAKISTAN TIME", ha='center',va='center', fontsize=11,weight='bold', color='#FFD700')
-        ax.add_patch(box((0.3,27.3),9.4,0.85, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor='#FFD700', linewidth=1.5))
-        ax.text(5,27.8,'GOLD: ' + abhi_s + '  |  ATR: ' + atr_s, ha='center',va='center', fontsize=22,weight='bold', color='white')
-        ax.text(5,27.45,'4H = MAZBOOT  |  1H = BEECH  |  15M = JALDI', ha='center',va='center', fontsize=9,weight='bold', color='#FFD700')
-        ax.add_patch(box((0.3,24.0),9.4,3.0, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor=r4h['fcol'], linewidth=2.5))
-        ax.text(5,26.65,'4H SETUP - ALLIANCE WALA', ha='center',va='center', fontsize=11,weight='bold', color='#FFD700')
-        ax.text(5,26.25,r4h['faisla'], ha='center',va='center', fontsize=11,weight='bold', color=r4h['fcol'])
-        ax.text(5,25.85,r4h['entry']+"  |  "+r4h['sl_txt']+"  |  "+r4h['tp_txt'], ha='center',va='center', fontsize=9,weight='bold', color='white')
-        ax.text(5,25.45,'BOS: '+r4h['bos']+' | '+r4h['fvg'], ha='center',va='center', fontsize=8,color='white')
-        ax.text(5,25.05,'4H D: '+str(r4h['d_bot'])+"-"+str(r4h['d_top'])+'  |  4H S: '+str(r4h['s_bot'])+"-"+str(r4h['s_top']), ha='center',va='center', fontsize=8,color='white')
-        ax.text(5,24.45,r4h['chance_txt']+"  |  "+r4h['rr'], ha='center',va='center', fontsize=10,weight='bold', color='#00FF88' if r4h['chance']>=60 else '#FFAA00')
-        ax.text(5,24.15,r4h['trail_txt'], ha='center',va='center', fontsize=8,color='#AAAAAA')
-        ax.add_patch(box((0.3,23.25),9.4,0.65, boxstyle="round,pad=0.1", facecolor='#FFD700'))
-        ax.text(5,23.65,'BUTTON - SIRF ANDAZA - FAISLA NAHI KARTA', ha='center',va='center', fontsize=10,weight='bold', color='black')
-        ax.text(5,23.35,'BUY '+str(buy_c)+'/12  |  SELL '+str(sell_c)+'/12  |  Resistance 1H: '+str(r1h['res'])+' | Support 1H: '+str(r1h['sup'])+' | RSI: '+rsi_s, ha='center',va='center', fontsize=8,color='black')
-        ax.add_patch(box((0.3,7.2),4.6,15.9, boxstyle="round,pad=0.1", facecolor='#0A1A0A', edgecolor='#00FF88', linewidth=2))
-        ax.text(2.6,22.70,'BUY - SIRF ANDAZA', ha='center', va='center', fontsize=11, weight='bold', color='#00FF88')
-        ax.text(2.6,22.30,'BUY: ' + str(buy_c) + '/12', ha='center', va='center', fontsize=12, weight='bold', color='white')
-        for i,(naam,val,ok) in enumerate(buy_buttons):
-            y = 21.75 - i*0.95
-            is_star = "★" in naam
-            if ok: rang = '#00FF88'; face = '#003311'; txt = "SABZ"
-            else: rang = '#555555'; face = '#1A1A1A'; txt = "NAHI"
-            edge = '#FFD700' if is_star else rang; lw = 2.2 if is_star else 1.2
-            ax.add_patch(patches.Rectangle((0.5,y-0.40),4.2,0.80, facecolor=face, edgecolor=edge, linewidth=lw))
-            ax.text(0.65,y+0.18,naam, ha='left', va='center', fontsize=8, weight='bold', color='#FFD700' if is_star else 'white')
-            ax.text(0.65,y-0.18,val, ha='left', va='center', fontsize=7, color='white')
-            ax.text(4.55,y,txt, ha='right', va='center', fontsize=7, weight='bold', color=rang)
-        ax.add_patch(box((5.1,7.2),4.6,15.9, boxstyle="round,pad=0.1", facecolor='#1A0A0A', edgecolor='#FF4444', linewidth=2))
-        ax.text(7.4,22.70,'SELL - SIRF ANDAZA', ha='center', va='center', fontsize=11, weight='bold', color='#FF4444')
-        ax.text(7.4,22.30,'SELL: ' + str(sell_c) + '/12', ha='center', va='center', fontsize=12, weight='bold', color='white')
-        for i,(naam,val,ok) in enumerate(sell_buttons):
-            y = 21.75 - i*0.95
-            is_star = "★" in naam
-            if ok: rang = '#FF4444'; face = '#330000'; txt = "LAL"
-            else: rang = '#555555'; face = '#1A1A1A'; txt = "NAHI"
-            edge = '#FFD700' if is_star else rang; lw = 2.2 if is_star else 1.2
-            ax.add_patch(patches.Rectangle((5.3,y-0.40),4.2,0.80, facecolor=face, edgecolor=edge, linewidth=lw))
-            ax.text(5.45,y+0.18,naam, ha='left', va='center', fontsize=8, weight='bold', color='#FFD700' if is_star else 'white')
-            ax.text(5.45,y-0.18,val, ha='left', va='center', fontsize=7, color='white')
-            ax.text(9.35,y,txt, ha='right', va='center', fontsize=7, weight='bold', color=rang)
-        ax.plot([5.0, 5.0], [7.2, 23.1], color='red', linewidth=4)
-        ax.add_patch(box((0.3,6.5),9.4,0.55, boxstyle="round,pad=0.1", facecolor='#FFD700'))
-        ax.text(5,6.77,'NEECHE WALA - JALDI WALA - DONO MAZBOOT', ha='center',va='center', fontsize=9,weight='bold', color='black')
-        ax.add_patch(box((0.3,3.0),4.45,3.3, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor=r15['fcol'], linewidth=2.5))
-        ax.text(2.52,6.05,'15M - JALDI WALA', ha='center',va='center', fontsize=9,weight='bold', color='#FFD700')
-        ax.text(2.52,5.65,r15['faisla'], ha='center',va='center', fontsize=8.5,weight='bold', color=r15['fcol'])
-        ax.text(2.52,5.25,r15['entry'], ha='center',va='center', fontsize=8,weight='bold', color='white')
-        ax.text(2.52,4.85,r15['sl_txt']+"  |  "+r15['tp_txt'], ha='center',va='center', fontsize=7,color='white')
-        ax.text(2.52,4.45,'BOS: '+r15['bos']+' | '+r15['fvg'], ha='center',va='center', fontsize=7.5,color='white')
-        ax.text(2.52,4.05,r15['trail_txt'], ha='center',va='center', fontsize=7.5,color='white')
-        ax.text(2.52,3.65,'15M D: '+str(r15['d_bot'])+"-"+str(r15['d_top'])+' | S: '+str(r15['s_bot'])+"-"+str(r15['s_top']), ha='center',va='center', fontsize=7.5,color='white')
-        ax.text(2.52,3.20,r15['chance_txt']+"  |  "+r15['rr'], ha='center',va='center', fontsize=8.5,weight='bold', color='#00FF88' if r15['chance']>=60 else '#FFAA00')
-        ax.add_patch(box((5.25,3.0),4.45,3.3, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor=r1h['fcol'], linewidth=2.5))
-        ax.text(7.47,6.05,'1H - BEECH WALA', ha='center',va='center', fontsize=9,weight='bold', color='#FFD700')
-        ax.text(7.47,5.65,r1h['faisla'], ha='center',va='center', fontsize=8.5,weight='bold', color=r1h['fcol'])
-        ax.text(7.47,5.25,r1h['entry'], ha='center',va='center', fontsize=8,weight='bold', color='white')
-        ax.text(7.47,4.85,r1h['sl_txt']+"  |  "+r1h['tp_txt'], ha='center',va='center', fontsize=7,color='white')
-        ax.text(7.47,4.45,'BOS: '+r1h['bos']+' | '+r1h['fvg'], ha='center',va='center', fontsize=7.5,color='white')
-        ax.text(7.47,4.05,r1h['trail_txt'], ha='center',va='center', fontsize=7.5,color='white')
-        ax.text(7.47,3.65,'1H D: '+str(r1h['d_bot'])+"-"+str(r1h['d_top'])+' | S: '+str(r1h['s_bot'])+"-"+str(r1h['s_top']), ha='center',va='center', fontsize=7.5,color='white')
-        ax.text(7.47,3.20,r1h['chance_txt']+"  |  "+r1h['rr'], ha='center',va='center', fontsize=8.5,weight='bold', color='#00FF88' if r1h['chance']>=60 else '#FFAA00')
-        ax.plot([5.0, 5.0], [3.0, 6.3], color='red', linewidth=4)
-        ax.text(5,2.55,'★ = ZAROORI BUTTON', ha='center',va='center', fontsize=9,weight='bold', color='#FFD700')
-        ax.text(5,2.15,'CHANCE 60%+ HO TO SETUP - 60% SE KAM HO TO WAIT', ha='center',va='center', fontsize=9,weight='bold', color='white')
-        ax.text(5,1.75,'TRAILING ON HAI TO TP1 PAR SL B/E PAR AA JAYEGA', ha='center',va='center', fontsize=8,color='#AAAAAA')
-        plt.savefig("Waseem_Buy_Sell_V5_2.jpg",dpi=200)
-        st.pyplot(fig)
+    # استاد جی - 1 - WASEEM WALA - TASVEER - 3 SETUP + 12 WALA
+    fig,ax = plt.subplots(figsize=(10,30))
+    ax.set_xlim(0,10); ax.set_ylim(0,30); ax.axis('off')
+    fig.patch.set_facecolor('#0A0A0A'); ax.set_facecolor('#0A0A0A')
+    box = patches.FancyBboxPatch
+    ax.add_patch(box((0.3,29.0),9.4,0.9, boxstyle="round,pad=0.1", facecolor='#0A0A0A', edgecolor='#FFD700', linewidth=3))
+    ax.text(5,29.45,'WASEEM  TRADER - V5.3', ha='center',va='center', color='#FFD700', fontsize=26,weight='bold')
+    ax.text(5,29.15,'ALLIANCE WALA - CHoCH + RETEST + ROUND 2 + TRAILING', ha='center',va='center', color='white',fontsize=9)
+    ax.add_patch(box((0.3,28.3),9.4,0.55, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor='#FFD700', linewidth=1))
+    ax.text(5,28.57,date_txt + "  |  " + time_txt + "  |  PAKISTAN TIME", ha='center',va='center', fontsize=11,weight='bold', color='#FFD700')
+    ax.add_patch(box((0.3,27.3),9.4,0.85, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor='#FFD700', linewidth=1.5))
+    ax.text(5,27.8,'GOLD: ' + abhi_s + '  |  ATR: ' + atr_s, ha='center',va='center', fontsize=22,weight='bold', color='white')
+    ax.text(5,27.45,'4H = MAZBOOT  |  1H = BEECH  |  15M = JALDI', ha='center',va='center', fontsize=9,weight='bold', color='#FFD700')
+    ax.add_patch(box((0.3,24.0),9.4,3.0, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor=r4h['fcol'], linewidth=2.5))
+    ax.text(5,26.65,'4H SETUP - ALLIANCE WALA', ha='center',va='center', fontsize=11,weight='bold', color='#FFD700')
+    ax.text(5,26.25,r4h['faisla'], ha='center',va='center', fontsize=11,weight='bold', color=r4h['fcol'])
+    ax.text(5,25.85,r4h['entry']+"  |  "+r4h['sl_txt']+"  |  "+r4h['tp_txt'], ha='center',va='center', fontsize=9,weight='bold', color='white')
+    ax.text(5,25.45,'BOS: '+r4h['bos']+' | '+r4h['fvg'], ha='center',va='center', fontsize=8,color='white')
+    ax.text(5,25.05,'4H D: '+str(r4h['d_bot'])+"-"+str(r4h['d_top'])+'  |  4H S: '+str(r4h['s_bot'])+"-"+str(r4h['s_top']), ha='center',va='center', fontsize=8,color='white')
+    ax.text(5,24.45,r4h['chance_txt']+"  |  "+r4h['rr'], ha='center',va='center', fontsize=10,weight='bold', color='#00FF88' if r4h['chance']>=60 else '#FFAA00')
+    ax.text(5,24.15,r4h['trail_txt'], ha='center',va='center', fontsize=8,color='#AAAAAA')
+    ax.add_patch(box((0.3,23.25),9.4,0.65, boxstyle="round,pad=0.1", facecolor='#FFD700'))
+    ax.text(5,23.65,'BUTTON - SIRF ANDAZA - FAISLA NAHI KARTA', ha='center',va='center', fontsize=10,weight='bold', color='black')
+    ax.text(5,23.35,'BUY '+str(buy_c)+'/12  |  SELL '+str(sell_c)+'/12  |  Resistance 1H: '+str(r1h['res'])+' | Support 1H: '+str(r1h['sup'])+' | RSI: '+rsi_s, ha='center',va='center', fontsize=8,color='black')
+    ax.add_patch(box((0.3,7.2),4.6,15.9, boxstyle="round,pad=0.1", facecolor='#0A1A0A', edgecolor='#00FF88', linewidth=2))
+    ax.text(2.6,22.70,'BUY - SIRF ANDAZA', ha='center', va='center', fontsize=11, weight='bold', color='#00FF88')
+    ax.text(2.6,22.30,'BUY: ' + str(buy_c) + '/12', ha='center', va='center', fontsize=12, weight='bold', color='white')
+    for i,(naam,val,ok) in enumerate(buy_buttons):
+        y = 21.75 - i*0.95
+        is_star = "★" in naam
+        if ok: rang = '#00FF88'; face = '#003311'; txt = "SABZ"
+        else: rang = '#555555'; face = '#1A1A1A'; txt = "NAHI"
+        edge = '#FFD700' if is_star else rang; lw = 2.2 if is_star else 1.2
+        ax.add_patch(patches.Rectangle((0.5,y-0.40),4.2,0.80, facecolor=face, edgecolor=edge, linewidth=lw))
+        ax.text(0.65,y+0.18,naam, ha='left', va='center', fontsize=8, weight='bold', color='#FFD700' if is_star else 'white')
+        ax.text(0.65,y-0.18,val, ha='left', va='center', fontsize=7, color='white')
+        ax.text(4.55,y,txt, ha='right', va='center', fontsize=7, weight='bold', color=rang)
+    ax.add_patch(box((5.1,7.2),4.6,15.9, boxstyle="round,pad=0.1", facecolor='#1A0A0A', edgecolor='#FF4444', linewidth=2))
+    ax.text(7.4,22.70,'SELL - SIRF ANDAZA', ha='center', va='center', fontsize=11, weight='bold', color='#FF4444')
+    ax.text(7.4,22.30,'SELL: ' + str(sell_c) + '/12', ha='center', va='center', fontsize=12, weight='bold', color='white')
+    for i,(naam,val,ok) in enumerate(sell_buttons):
+        y = 21.75 - i*0.95
+        is_star = "★" in naam
+        if ok: rang = '#FF4444'; face = '#330000'; txt = "LAL"
+        else: rang = '#555555'; face = '#1A1A1A'; txt = "NAHI"
+        edge = '#FFD700' if is_star else rang; lw = 2.2 if is_star else 1.2
+        ax.add_patch(patches.Rectangle((5.3,y-0.40),4.2,0.80, facecolor=face, edgecolor=edge, linewidth=lw))
+        ax.text(5.45,y+0.18,naam, ha='left', va='center', fontsize=8, weight='bold', color='#FFD700' if is_star else 'white')
+        ax.text(5.45,y-0.18,val, ha='left', va='center', fontsize=7, color='white')
+        ax.text(9.35,y,txt, ha='right', va='center', fontsize=7, weight='bold', color=rang)
+    ax.plot([5.0, 5.0], [7.2, 23.1], color='red', linewidth=4)
+    ax.add_patch(box((0.3,6.5),9.4,0.55, boxstyle="round,pad=0.1", facecolor='#FFD700'))
+    ax.text(5,6.77,'NEECHE WALA - JALDI WALA - DONO MAZBOOT', ha='center',va='center', fontsize=9,weight='bold', color='black')
+    ax.add_patch(box((0.3,3.0),4.45,3.3, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor=r15['fcol'], linewidth=2.5))
+    ax.text(2.52,6.05,'15M - JALDI WALA', ha='center',va='center', fontsize=9,weight='bold', color='#FFD700')
+    ax.text(2.52,5.65,r15['faisla'], ha='center',va='center', fontsize=8.5,weight='bold', color=r15['fcol'])
+    ax.text(2.52,5.25,r15['entry'], ha='center',va='center', fontsize=8,weight='bold', color='white')
+    ax.text(2.52,4.85,r15['sl_txt']+"  |  "+r15['tp_txt'], ha='center',va='center', fontsize=7,color='white')
+    ax.text(2.52,4.45,'BOS: '+r15['bos']+' | '+r15['fvg'], ha='center',va='center', fontsize=7.5,color='white')
+    ax.text(2.52,4.05,r15['trail_txt'], ha='center',va='center', fontsize=7.5,color='white')
+    ax.text(2.52,3.65,'15M D: '+str(r15['d_bot'])+"-"+str(r15['d_top'])+' | S: '+str(r15['s_bot'])+"-"+str(r15['s_top']), ha='center',va='center', fontsize=7.5,color='white')
+    ax.text(2.52,3.20,r15['chance_txt']+"  |  "+r15['rr'], ha='center',va='center', fontsize=8.5,weight='bold', color='#00FF88' if r15['chance']>=60 else '#FFAA00')
+    ax.add_patch(box((5.25,3.0),4.45,3.3, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor=r1h['fcol'], linewidth=2.5))
+    ax.text(7.47,6.05,'1H - BEECH WALA', ha='center',va='center', fontsize=9,weight='bold', color='#FFD700')
+    ax.text(7.47,5.65,r1h['faisla'], ha='center',va='center', fontsize=8.5,weight='bold', color=r1h['fcol'])
+    ax.text(7.47,5.25,r1h['entry'], ha='center',va='center', fontsize=8,weight='bold', color='white')
+    ax.text(7.47,4.85,r1h['sl_txt']+"  |  "+r1h['tp_txt'], ha='center',va='center', fontsize=7,color='white')
+    ax.text(7.47,4.45,'BOS: '+r1h['bos']+' | '+r1h['fvg'], ha='center',va='center', fontsize=7.5,color='white')
+    ax.text(7.47,4.05,r1h['trail_txt'], ha='center',va='center', fontsize=7.5,color='white')
+    ax.text(7.47,3.65,'1H D: '+str(r1h['d_bot'])+"-"+str(r1h['d_top'])+' | S: '+str(r1h['s_bot'])+"-"+str(r1h['s_top']), ha='center',va='center', fontsize=7.5,color='white')
+    ax.text(7.47,3.20,r1h['chance_txt']+"  |  "+r1h['rr'], ha='center',va='center', fontsize=8.5,weight='bold', color='#00FF88' if r1h['chance']>=60 else '#FFAA00')
+    ax.plot([5.0, 5.0], [3.0, 6.3], color='red', linewidth=4)
+    ax.text(5,2.55,'★ = ZAROORI BUTTON', ha='center',va='center', fontsize=9,weight='bold', color='#FFD700')
+    ax.text(5,2.15,'CHANCE 60%+ HO TO SETUP - 60% SE KAM HO TO WAIT', ha='center',va='center', fontsize=9,weight='bold', color='white')
+    ax.text(5,1.75,'TRAILING ON HAI TO TP1 PAR SL B/E PAR AA JAYEGA', ha='center',va='center', fontsize=8,color='#AAAAAA')
+    plt.savefig("Waseem_Buy_Sell_V5_3.jpg",dpi=200)
+    st.pyplot(fig)
 
-    # استاد جی - PAGE 2 - BLACK GOLD WALA - AB FIX NAHI - 1H SE BANEGA - INDICATOR DEKH KAR
-    if st.session_state['page'] == 2:
-        bg = r1h
-        if bg['side'] == 'BUY':
-            BG_BOT=bg['entry_bot']; BG_TOP=bg['entry_top']; BG_SL=bg['sl']; BG_TP1=bg['tp1']; BG_TP2=bg['tp2']; BG_TP3=bg['tp3']; BG_TXT="BUY"
-        elif bg['side'] == 'SELL':
-            BG_BOT=bg['entry_bot']; BG_TOP=bg['entry_top']; BG_SL=bg['sl']; BG_TP1=bg['tp1']; BG_TP2=bg['tp2']; BG_TP3=bg['tp3']; BG_TXT="SELL"
-        else:
-            BG_BOT=bg['d_bot']; BG_TOP=bg['d_top']; BG_SL=bg['d_bot']-6; BG_TP1=bg['d_top']+11; BG_TP2=bg['d_top']+22; BG_TP3=bg['d_top']+33; BG_TXT="WAIT"
-        st.markdown("---")
-        st.markdown("### 🖤💛 BLACK GOLD - GOLD SETUP - V5.2")
-        st.markdown(f"**PRICE ABHI: {abhi_s} | DATE: {date_txt} | TIME: {time_txt}**")
-        colA, colB, colC = st.columns(3)
-        with colA:
-            st.markdown(f"**🟢 {BG_TXT} ZONE**\n\n### {BG_BOT} - {BG_TOP}")
-        with colB:
-            st.markdown(f"**🔴 STOP LOSS**\n\n### {BG_SL} - 6 DOLLAR")
-        with colC:
-            st.markdown(f"**🎯 TAKE PROFIT**\n\n### {BG_TP1} | {BG_TP2} | {BG_TP3}")
-        st.write(f"**SETUP:** {bg['faisla']} | {bg['chance_txt']} | {bg['rr']}")
-        st.write(f"**STRUCTURE:** {bg['bos']} | {bg['fvg']} | INDICATOR: BUY {buy_c}/12 | SELL {sell_c}/12 | RSI {rsi_s} | ATR {atr_s}")
-        st.write(f"**TRAILING:** {bg['trail_txt']}")
-        if bg['side'] in ['BUY','SELL']:
-            st.success(f"🚨 BLACK GOLD - {BG_TXT} SETUP BAN GAYA 🚨 - {BG_BOT}-{BG_TOP} | SL {BG_SL} | TP1 {BG_TP1} | TP2 {BG_TP2} | TP3 {BG_TP3} OPEN")
-            st.info(f"ROUND 2 - AGAR PRICE WAPAS {BG_BOT}-{BG_TOP} PAR AAYE TO PHIR SE {BG_TXT} KARNA - SAME SL / SAME TP")
-        else:
-            st.warning(f"⏳ PRICE BEECH ME HAI {abhi_s} - WAIT KARO - ZONE ME AANE DO - DEMAND {BG_BOT}-{BG_TOP}")
-        fig_bg, ax_bg = plt.subplots(figsize=(10,4))
-        fig_bg.patch.set_facecolor('white'); ax_bg.set_facecolor('white')
-        d_bg = df15_show.copy()
-        ax_bg.axhspan(BG_BOT, BG_TOP, color='#00FF88' if BG_TXT=='BUY' else '#FF4444' if BG_TXT=='SELL' else '#FFAA00', alpha=0.25)
-        ax_bg.text(len(d_bg)-1, BG_TOP+1, f"{BG_TXT} {BG_BOT}-{BG_TOP}", fontsize=8, color='black', weight='bold', ha='right')
-        ax_bg.axhline(BG_SL, color='red', linestyle='--', linewidth=1.2)
-        ax_bg.text(len(d_bg)-1, BG_SL, f" SL {BG_SL}", fontsize=8, color='red', weight='bold', va='bottom')
-        ax_bg.axhline(BG_TP1, color='green', linestyle='--', linewidth=1)
-        ax_bg.text(len(d_bg)-1, BG_TP1, f" TP1 {BG_TP1}", fontsize=8, color='green', weight='bold', va='bottom')
-        ax_bg.axhline(BG_TP2, color='green', linestyle='--', linewidth=1)
-        ax_bg.text(len(d_bg)-1, BG_TP2, f" TP2 {BG_TP2}", fontsize=8, color='green', weight='bold', va='bottom')
-        ax_bg.axhline(BG_TP3, color='green', linestyle='--', linewidth=1)
-        ax_bg.text(len(d_bg)-1, BG_TP3, f" TP3 {BG_TP3}", fontsize=8, color='green', weight='bold', va='bottom')
-        for i in range(len(d_bg)):
-            o=float(d_bg['Open'].iloc[i]); c=float(d_bg['Close'].iloc[i]); h=float(d_bg['High'].iloc[i]); l=float(d_bg['Low'].iloc[i])
-            col = '#00C853' if c>=o else '#FF1744'
-            ax_bg.plot([i,i],[l,h], color=col, linewidth=1)
-            ax_bg.add_patch(patches.Rectangle((i-0.35, min(o,c)), 0.7, max(abs(c-o),0.5), facecolor=col, edgecolor=col))
-        ax_bg.axhline(abhi, color='black', linestyle='--', linewidth=1, alpha=0.6)
-        ax_bg.text(len(d_bg)-1, abhi, f" {abhi_s}", fontsize=9, weight='bold', color='black', va='center')
-        ax_bg.set_xlim(-1, len(d_bg)); ax_bg.grid(False); ax_bg.set_xticks([])
-        for spine in ax_bg.spines.values():
-            spine.set_visible(False)
-        st.pyplot(fig_bg)
+    # استاد جی - 1B - 12 WALA - PURI LIST - TASVEER KE NEECHE BHI - TAAKE KABHI GHAIB NA LAGE
+    st.markdown("---")
+    st.markdown("### 📊 12 WALA INDICATOR - PURI TAFSEEL - BUY / SELL")
+    st.write(f"**BUY: {buy_c}/12 | SELL: {sell_c}/12 | RSI: {rsi_s} | EMA 15: {ema15_s} | EMA 50: {ema50_s} | VWAP: {vwap_s}**")
+    c_buy, c_sell = st.columns(2)
+    with c_buy:
+        st.markdown("**🟢 BUY WALA - 12**")
+        for naam, val, ok in buy_buttons:
+            st.write(f"{'✅ SABZ' if ok else '❌ NAHI'} - {naam} - {val}")
+    with c_sell:
+        st.markdown("**🔴 SELL WALA - 12**")
+        for naam, val, ok in sell_buttons:
+            st.write(f"{'✅ LAL' if ok else '❌ NAHI'} - {naam} - {val}")
 
-    # استاد جی - PAGE 3 - WAJAH WALA - KYUN SETUP DIYA?
-    if st.session_state['page'] == 3:
-        st.markdown("---")
-        st.markdown("### 📖 PAGE 3 - WAJAH WALA - MAIN IS LIYE SETUP DE RAHA HOON")
-        st.markdown(f"**PRICE ABHI: {abhi_s} | DATE: {date_txt} | TIME: {time_txt} | RSI: {rsi_s} | ATR: {atr_s}**")
-        st.markdown("**استاد جی، سیٹ اپ اپنی مرضی سے نہیں دیا، انڈیکیٹر دیکھ کر دیا ہے۔**")
-        def WAJAH_BANAO(r, tf_name):
-            lines = []
-            lines.append(f"**{tf_name} WALA - {r['faisla']}**")
-            lines.append(f"**CHANCE: {r['chance_txt']} | {r['rr']}**")
-            lines.append(f"**ENTRY: {r['entry']} | {r['sl_txt']} | {r['tp_txt']}**")
-            lines.append("")
-            if r['side'] == 'BUY':
-                lines.append("استاد جی، اوپر والا BUY میں اس لیے دے رہا ہوں کہ:")
-                lines.append(f"**۱۔** پرائس ڈیمانڈ زون **{r['d_bot']} - {r['d_top']}** پر آ گئی ہے، یہاں سے پہلے بھی اوپر اٹھی تھی۔")
-                lines.append(f"**۲۔** **{r['bos']}** ہو گیا ہے، مطلب ٹرینڈ اوپر بن گیا ہے۔")
-                lines.append(f"**۳۔** **{r['fvg']} - {r['fvg_bot']} - {r['fvg_top']}** ہے، مطلب نیچے سے اوپر کی طرف جگہ ہے۔")
-                lines.append(f"**۴۔** **RSI {round(r['rsi'],1)} ہے**، 50 سے اوپر ہے، مطلب بائے والا طاقتور ہے۔")
-                lines.append(f"**۵۔** **EMA 50 {int(r['ema50'])} ہے**، پرائس اس کے اوپر ہے، مطلب بڑا ٹرینڈ بھی اوپر ہے۔")
-                lines.append(f"**۶۔** **{r['trail_txt']}**")
-                lines.append("**اس لیے BUY دے رہا ہوں۔**")
-            elif r['side'] == 'SELL':
-                lines.append("استاد جی، اوپر والا SELL میں اس لیے دے رہا ہوں کہ:")
-                lines.append(f"**۱۔** پرائس سپلائی زون **{r['s_bot']} - {r['s_top']}** پر آ گئی ہے، یہاں سے پہلے بھی نیچے گری تھی۔")
-                lines.append(f"**۲۔** **{r['bos']}** ہو گیا ہے، مطلب ٹرینڈ نیچے بن گیا ہے۔")
-                lines.append(f"**۳۔** **{r['fvg']} - {r['fvg_bot']} - {r['fvg_top']}** ہے، مطلب اوپر سے نیچے کی طرف جگہ ہے۔")
-                lines.append(f"**۴۔** **RSI {round(r['rsi'],1)} ہے**، 50 سے نیچے ہے، مطلب سیلر طاقتور ہیں، بائے والا دباؤ ہی نہیں ہے۔")
-                lines.append(f"**۵۔** **EMA 50 {int(r['ema50'])} ہے**، پرائس اس کے نیچے ہے، مطلب بڑا ٹرینڈ بھی نیچے ہے۔")
-                lines.append(f"**۶۔** **{r['trail_txt']}**")
-                lines.append("**اس لیے SELL دے رہا ہوں۔**")
-            else:
-                lines.append("استاد جی، اوپر والا WAIT میں اس لیے بول رہا ہوں کہ:")
-                lines.append(f"**۱۔** پرائس بیچ میں ہے، نہ ڈیمانڈ **{r['d_bot']} - {r['d_top']}** پر ہے، نہ سپلائی **{r['s_bot']} - {r['s_top']}** پر ہے۔")
-                lines.append(f"**۲۔** 5 میں سے صرف **{int(r['chance']/20)} چیزیں** ملی ہیں، **3 چاہیے تھیں**۔")
-                lines.append(f"**۳۔** **RSI {round(r['rsi'],1)} ہے**، بیچ میں ہے۔")
-                lines.append(f"**۴۔** **BOS: {r['bos']} | FVG: {r['fvg']}** - ابھی پورا نہیں بنا۔")
-                lines.append("**اس لیے WAIT بولا ہے، تاکہ غلط انٹری نہ ہو۔**")
-            return "\n\n".join(lines)
-        st.markdown("---")
-        st.markdown(WAJAH_BANAO(r4h, "4H"))
-        st.markdown("---")
-        st.markdown(WAJAH_BANAO(r1h, "1H"))
-        st.markdown("---")
-        st.markdown(WAJAH_BANAO(r15, "15M"))
-        st.markdown("---")
-        bg_r = r1h
-        st.markdown("### 🖤💛 BLACK GOLD WALI WAJAH - ALAG SE")
-        if bg_r['side'] in ['BUY','SELL']:
-            st.markdown(f"**BLACK GOLD والا {bg_r['side']} میں اس لیے دے رہا ہوں کہ 1H والا بھی وہی بول رہا ہے۔**")
-            st.markdown(WAJAH_BANAO(bg_r, "BLACK GOLD - 1H SE"))
-            st.markdown(f"**ROUND 2 - اگر پرائس واپس {bg_r['entry_bot']} - {bg_r['entry_top']} پر آئے تو پھر سے {bg_r['side']} کرنا، اسی وجہ سے۔**")
-        else:
-            st.markdown("**BLACK GOLD والا WAIT میں اس لیے بول رہا ہے کہ 1H والا بھی WAIT بول رہا ہے۔**")
-            st.markdown(WAJAH_BANAO(bg_r, "BLACK GOLD - 1H SE"))
-        wajah_msg = f"WAJAH WALA - V5.2\nPRICE: {abhi_s} | {date_txt} | {time_txt}\n\n4H: {r4h['faisla']}\n1H: {r1h['faisla']}\n15M: {r15['faisla']}\nBLACK GOLD: {bg_r['faisla']}"
-        st.session_state['m_wajah'] = wajah_msg
-        st.write("---")
-        st.write("### 📋 WHATSAPP KE LIYE COPY - WAJAH WALA")
-        st.code(wajah_msg)
+    # استاد جی - 2 - BLACK GOLD WALA - 1H SE BANEGA - FIX NAHI
+    bg = r1h
+    if bg['side'] == 'BUY':
+        BG_BOT=bg['entry_bot']; BG_TOP=bg['entry_top']; BG_SL=bg['sl']; BG_TP1=bg['tp1']; BG_TP2=bg['tp2']; BG_TP3=bg['tp3']; BG_TXT="BUY"
+    elif bg['side'] == 'SELL':
+        BG_BOT=bg['entry_bot']; BG_TOP=bg['entry_top']; BG_SL=bg['sl']; BG_TP1=bg['tp1']; BG_TP2=bg['tp2']; BG_TP3=bg['tp3']; BG_TXT="SELL"
+    else:
+        BG_BOT=bg['d_bot']; BG_TOP=bg['d_top']; BG_SL=bg['d_bot']-6; BG_TP1=bg['d_top']+11; BG_TP2=bg['d_top']+22; BG_TP3=bg['d_top']+33; BG_TXT="WAIT"
+    st.markdown("---")
+    st.markdown("### 🖤💛 BLACK GOLD - GOLD SETUP - V5.3")
+    st.markdown(f"**PRICE ABHI: {abhi_s} | DATE: {date_txt} | TIME: {time_txt}**")
+    colA, colB, colC = st.columns(3)
+    with colA:
+        st.markdown(f"**🟢 {BG_TXT} ZONE**\n\n### {BG_BOT} - {BG_TOP}")
+    with colB:
+        st.markdown(f"**🔴 STOP LOSS**\n\n### {BG_SL} - 6 DOLLAR")
+    with colC:
+        st.markdown(f"**🎯 TAKE PROFIT**\n\n### {BG_TP1} | {BG_TP2} | {BG_TP3}")
+    st.write(f"**SETUP:** {bg['faisla']} | {bg['chance_txt']} | {bg['rr']}")
+    st.write(f"**STRUCTURE:** {bg['bos']} | {bg['fvg']} | INDICATOR: BUY {buy_c}/12 | SELL {sell_c}/12 | RSI {rsi_s} | ATR {atr_s}")
+    st.write(f"**TRAILING:** {bg['trail_txt']}")
+    if bg['side'] in ['BUY','SELL']:
+        st.success(f"🚨 BLACK GOLD - {BG_TXT} SETUP BAN GAYA 🚨 - {BG_BOT}-{BG_TOP} | SL {BG_SL} | TP1 {BG_TP1} | TP2 {BG_TP2} | TP3 {BG_TP3} OPEN")
+        st.info(f"ROUND 2 - AGAR PRICE WAPAS {BG_BOT}-{BG_TOP} PAR AAYE TO PHIR SE {BG_TXT} KARNA - SAME SL / SAME TP")
+    else:
+        st.warning(f"⏳ PRICE BEECH ME HAI {abhi_s} - WAIT KARO - ZONE ME AANE DO - DEMAND {BG_BOT}-{BG_TOP}")
+    fig_bg, ax_bg = plt.subplots(figsize=(10,4))
+    fig_bg.patch.set_facecolor('white'); ax_bg.set_facecolor('white')
+    d_bg = df15_show.copy()
+    ax_bg.axhspan(BG_BOT, BG_TOP, color='#00FF88' if BG_TXT=='BUY' else '#FF4444' if BG_TXT=='SELL' else '#FFAA00', alpha=0.25)
+    ax_bg.text(len(d_bg)-1, BG_TOP+1, f"{BG_TXT} {BG_BOT}-{BG_TOP}", fontsize=8, color='black', weight='bold', ha='right')
+    ax_bg.axhline(BG_SL, color='red', linestyle='--', linewidth=1.2)
+    ax_bg.text(len(d_bg)-1, BG_SL, f" SL {BG_SL}", fontsize=8, color='red', weight='bold', va='bottom')
+    ax_bg.axhline(BG_TP1, color='green', linestyle='--', linewidth=1)
+    ax_bg.text(len(d_bg)-1, BG_TP1, f" TP1 {BG_TP1}", fontsize=8, color='green', weight='bold', va='bottom')
+    ax_bg.axhline(BG_TP2, color='green', linestyle='--', linewidth=1)
+    ax_bg.text(len(d_bg)-1, BG_TP2, f" TP2 {BG_TP2}", fontsize=8, color='green', weight='bold', va='bottom')
+    ax_bg.axhline(BG_TP3, color='green', linestyle='--', linewidth=1)
+    ax_bg.text(len(d_bg)-1, BG_TP3, f" TP3 {BG_TP3}", fontsize=8, color='green', weight='bold', va='bottom')
+    for i in range(len(d_bg)):
+        o=float(d_bg['Open'].iloc[i]); c=float(d_bg['Close'].iloc[i]); h=float(d_bg['High'].iloc[i]); l=float(d_bg['Low'].iloc[i])
+        col = '#00C853' if c>=o else '#FF1744'
+        ax_bg.plot([i,i],[l,h], color=col, linewidth=1)
+        ax_bg.add_patch(patches.Rectangle((i-0.35, min(o,c)), 0.7, max(abs(c-o),0.5), facecolor=col, edgecolor=col))
+    ax_bg.axhline(abhi, color='black', linestyle='--', linewidth=1, alpha=0.6)
+    ax_bg.text(len(d_bg)-1, abhi, f" {abhi_s}", fontsize=9, weight='bold', color='black', va='center')
+    ax_bg.set_xlim(-1, len(d_bg)); ax_bg.grid(False); ax_bg.set_xticks([])
+    for spine in ax_bg.spines.values():
+        spine.set_visible(False)
+    st.pyplot(fig_bg)
 
-    # استاد جی - TELEGRAM WALA - SIRF SETUP BHEJEGA
+    # استاد جی - 3 - WAJAH WALA - DONO KI WAJAH - PAGE 1 WALE KI BHI + BLACK GOLD WALE KI BHI
+    st.markdown("---")
+    st.markdown("### 📖 WAJAH WALA - MAIN IS LIYE SETUP DE RAHA HOON")
+    st.markdown(f"**PRICE ABHI: {abhi_s} | DATE: {date_txt} | TIME: {time_txt} | RSI: {rsi_s} | ATR: {atr_s}**")
+    st.markdown("**استاد جی، سیٹ اپ اپنی مرضی سے نہیں دیا، انڈیکیٹر دیکھ کر دیا ہے۔**")
+    def WAJAH_BANAO(r, tf_name):
+        lines = []
+        lines.append(f"**{tf_name} WALA - {r['faisla']}**")
+        lines.append(f"**CHANCE: {r['chance_txt']} | {r['rr']}**")
+        lines.append(f"**ENTRY: {r['entry']} | {r['sl_txt']} | {r['tp_txt']}**")
+        lines.append("")
+        if r['side'] == 'BUY':
+            lines.append("استاد جی، اوپر والا BUY میں اس لیے دے رہا ہوں کہ:")
+            lines.append(f"**۱۔** پرائس ڈیمانڈ زون **{r['d_bot']} - {r['d_top']}** پر آ گئی ہے، یہاں سے پہلے بھی اوپر اٹھی تھی۔")
+            lines.append(f"**۲۔** **{r['bos']}** ہو گیا ہے، مطلب ٹرینڈ اوپر بن گیا ہے۔")
+            lines.append(f"**۳۔** **{r['fvg']} - {r['fvg_bot']} - {r['fvg_top']}** ہے، مطلب نیچے سے اوپر کی طرف جگہ ہے۔")
+            lines.append(f"**۴۔** **RSI {round(r['rsi'],1)} ہے**، 50 سے اوپر ہے، مطلب بائے والا طاقتور ہے۔")
+            lines.append(f"**۵۔** **EMA 50 {int(r['ema50'])} ہے**، پرائس اس کے اوپر ہے، مطلب بڑا ٹرینڈ بھی اوپر ہے۔")
+            lines.append(f"**۶۔** **{r['trail_txt']}**")
+            lines.append("**اس لیے BUY دے رہا ہوں۔**")
+        elif r['side'] == 'SELL':
+            lines.append("استاد جی، اوپر والا SELL میں اس لیے دے رہا ہوں کہ:")
+            lines.append(f"**۱۔** پرائس سپلائی زون **{r['s_bot']} - {r['s_top']}** پر آ گئی ہے، یہاں سے پہلے بھی نیچے گری تھی۔")
+            lines.append(f"**۲۔** **{r['bos']}** ہو گیا ہے، مطلب ٹرینڈ نیچے بن گیا ہے۔")
+            lines.append(f"**۳۔** **{r['fvg']} - {r['fvg_bot']} - {r['fvg_top']}** ہے، مطلب اوپر سے نیچے کی طرف جگہ ہے۔")
+            lines.append(f"**۴۔** **RSI {round(r['rsi'],1)} ہے**، 50 سے نیچے ہے، مطلب سیلر طاقتور ہیں، بائے والا دباؤ ہی نہیں ہے۔")
+            lines.append(f"**۵۔** **EMA 50 {int(r['ema50'])} ہے**، پرائس اس کے نیچے ہے، مطلب بڑا ٹرینڈ بھی نیچے ہے۔")
+            lines.append(f"**۶۔** **{r['trail_txt']}**")
+            lines.append("**اس لیے SELL دے رہا ہوں۔**")
+        else:
+            lines.append("استاد جی، اوپر والا WAIT میں اس لیے بول رہا ہوں کہ:")
+            lines.append(f"**۱۔** پرائس بیچ میں ہے، نہ ڈیمانڈ **{r['d_bot']} - {r['d_top']}** پر ہے، نہ سپلائی **{r['s_bot']} - {r['s_top']}** پر ہے۔")
+            lines.append(f"**۲۔** 5 میں سے صرف **{int(r['chance']/20)} چیزیں** ملی ہیں، **3 چاہیے تھیں**۔")
+            lines.append(f"**۳۔** **RSI {round(r['rsi'],1)} ہے**، بیچ میں ہے۔")
+            lines.append(f"**۴۔** **BOS: {r['bos']} | FVG: {r['fvg']}** - ابھی پورا نہیں بنا۔")
+            lines.append("**اس لیے WAIT بولا ہے، تاکہ غلط انٹری نہ ہو۔**")
+        return "\n\n".join(lines)
+    st.markdown("---")
+    st.markdown("#### PAGE 1 WALE KI WAJAH - WASEEM WALE KI")
+    st.markdown(WAJAH_BANAO(r4h, "4H"))
+    st.markdown("---")
+    st.markdown(WAJAH_BANAO(r1h, "1H"))
+    st.markdown("---")
+    st.markdown(WAJAH_BANAO(r15, "15M"))
+    st.markdown("---")
+    bg_r = r1h
+    st.markdown("### 🖤💛 BLACK GOLD WALI WAJAH - ALAG SE")
+    if bg_r['side'] in ['BUY','SELL']:
+        st.markdown(f"**BLACK GOLD والا {bg_r['side']} میں اس لیے دے رہا ہوں کہ 1H والا بھی وہی بول رہا ہے۔**")
+        st.markdown(WAJAH_BANAO(bg_r, "BLACK GOLD - 1H SE"))
+        st.markdown(f"**ROUND 2 - اگر پرائس واپس {bg_r['entry_bot']} - {bg_r['entry_top']} پر آئے تو پھر سے {bg_r['side']} کرنا، اسی وجہ سے۔**")
+    else:
+        st.markdown("**BLACK GOLD والا WAIT میں اس لیے بول رہا ہے کہ 1H والا بھی WAIT بول رہا ہے۔**")
+        st.markdown(WAJAH_BANAO(bg_r, "BLACK GOLD - 1H SE"))
+    wajah_msg = f"WAJAH WALA - V5.3\nPRICE: {abhi_s} | {date_txt} | {time_txt}\n\n4H: {r4h['faisla']}\n1H: {r1h['faisla']}\n15M: {r15['faisla']}\nBLACK GOLD: {bg_r['faisla']}"
+    st.session_state['m_wajah'] = wajah_msg
+    st.write("---")
+    st.write("### 📋 WHATSAPP KE LIYE COPY - WAJAH WALA")
+    st.code(wajah_msg)
+
+    # استاد جی - TELEGRAM WALA
     main = r1h
     if main['side'] in ['BUY','SELL']:
         bg_alert = f"🚨 {main['side']} SETUP BAN GAYA - PAHUNCHO 🚨\n\n{main['side']} ZONE: {main['entry_bot']} SE {main['entry_top']} TAK HAI\n\nPRICE ABHI: {abhi_s}\nDATE: {date_txt} | TIME: {time_txt}\n\nTP1: {main['tp1']}\nTP2: {main['tp2']}\nTP3: {main['tp3']} - OPEN\nSL: {main['sl_show']} - 6 DOLLAR\n\n{main['trail_txt']}\nCHANCE: {main['chance_txt']}\n\nROUND 2 - PRICE WAPAS ZONE PAR AAYE TO PHIR SE {main['side']} KARNA"
     else:
         bg_alert = ""
-    msg_status = f"STATUS - WASEEM TRADER V5.2\nPRICE: {abhi_s}\nATR: {atr_s} | DATE: {date_txt} | {time_txt}\nRSI: {rsi_s} | EMA 15: {ema15_s} | EMA 50: {ema50_s} | VWAP: {vwap_s}"
+    msg_status = f"STATUS - WASEEM TRADER V5.3\nPRICE: {abhi_s}\nATR: {atr_s} | DATE: {date_txt} | {time_txt}\nRSI: {rsi_s} | EMA 15: {ema15_s} | EMA 50: {ema50_s} | VWAP: {vwap_s}"
     msg_buysell = f"BUY / SELL - 12 WALA\nBUY: {buy_c}/12\nSELL: {sell_c}/12"
     msg_4h = f"4H: {r4h['faisla']}\n{r4h['entry']} | {r4h['sl_txt']} | {r4h['tp_txt']}\n{r4h['chance_txt']}"
     msg_1h = f"1H: {r1h['faisla']}\n{r1h['entry']} | {r1h['sl_txt']} | {r1h['tp_txt']}\n{r1h['chance_txt']}"
@@ -487,7 +481,7 @@ if st.session_state.get('has_data', False):
         if bg_alert != "" and last != abhi_key:
             ALAG_ALAG_BHEJO(msg_status, msg_buysell, msg_4h, msg_1h, msg_15m, msg_alert)
             st.session_state['last_bg_bheja'] = abhi_key
-            st.success("AUTO - TELEGRAM PE KHUD CHALA GAYA - V5.2 WALA")
+            st.success("AUTO - TELEGRAM PE KHUD CHALA GAYA - V5.3 WALA")
         elif bg_alert != "":
             st.write("YE WALA PEHLE HI BHEJ DIYA HAI")
         else:
@@ -498,9 +492,9 @@ if st.session_state.get('has_data', False):
         if bg_alert != "":
             st.success("SETUP BAN GAYA - NEECHE WALA BUTTON DABAO - TELEGRAM PE JAYEGA")
 else:
-    st.info("👆 PEHLE SIGNAL BANAO DABAO - PHIR NEXT DABAO - PAGE 2 / PAGE 3 KHOLEGA")
+    st.info("👆 PEHLE SIGNAL BANAO DABAO - PHIR EK HI PAGE PAR SARA AAYEGA")
 
 if 'm1' in st.session_state and not AUTO_ON and st.session_state.get('has_data', False):
     st.write("---")
-    if st.button("TELEGRAM PE BHEJO - ALAG ALAG MESSAGE", key="send_v52"):
+    if st.button("TELEGRAM PE BHEJO - ALAG ALAG MESSAGE", key="send_v53"):
         ALAG_ALAG_BHEJO(st.session_state['m1'], st.session_state['m2'], st.session_state['m3'], st.session_state['m4'], st.session_state['m5'], st.session_state['m6'])
