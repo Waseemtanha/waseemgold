@@ -361,5 +361,12 @@ SL: 6 DOLLAR | TP1: 11 DOLLAR | TP2: 22 DOLLAR
     else:
         st.warning(f"ABHI BREAKOUT NAHI - BUY {buy_c}/12 | SELL {sell_c}/12 - WAIT KARO")
 
+    # استاد جی - FIX - میسج کو محفوظ کر لیا، تاکہ نیچے والا بٹن دبانے پر ختم نہ ہو
+    st.session_state['last_msg'] = msg
+
+# استاد جی - FIX - یہ بٹن باہر ہے، بالکل آخر میں - اب ٹیسٹ کی طرح ہمیشہ چلے گا
+if 'last_msg' in st.session_state:
+    st.write("---")
+    st.write("SIGNAL TAYYAR HAI - NEECHE WALA BUTTON DABAO")
     if st.button("TELEGRAM PE BHEJO - SIRF MESSAGE"):
-        TELEGRAM_BHEJO(msg)
+        TELEGRAM_BHEJO(st.session_state['last_msg'])
