@@ -17,6 +17,15 @@ MANUAL_PRICE = st.number_input("MANUAL PRICE DALO", value=4045.0)
 # TELEGRAM - YE 2 CHEEZEIN STREAMLIT KE SECRET ME DALNI HAIN
 BOT_TOKEN = st.secrets["BOT_TOKEN"]
 CHAT_ID = st.secrets["CHAT_ID"]
+# 👇 استاد جی، دوسری والی اسکرپٹ یہاں ڈالیں، نیچے 👇
+
+if st.button("TEST TELEGRAM - SIRF MESSAGE"):
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    r = requests.post(url, data={"chat_id": CHAT_ID, "text": "TEST - WASEEM TRADER BOT CHAL RAHA HAI"})
+    st.write(str(r.text))
+
+
+
 
 def TELEGRAM_BHEJO(photo_path, message):
     try:
