@@ -1,55 +1,78 @@
-import os
-import io
+# WASEEM - V4.1 FINAL - STREAMLIT + TELEGRAM - SETUP SAME HAI
+import streamlit as st
 import yfinance as yf
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import time
-import matplotlib
-matplotlib.use('Agg')
+import requests
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-TOKEN = os.environ.get("BOT_TOKEN")
+st.set_page_config(page_title="WASEEM TRADER - V4.1", layout="centered")
+st.title("WASEEM TRADER - V4.1")
 
-def CLEAN(d):
-    d = d.copy()
-    if isinstance(d.columns, pd.MultiIndex):
-        d.columns = d.columns.get_level_values(0)
-    for c in list(d.columns):
-        if isinstance(d[c], pd.DataFrame):
-            d[c] = d[c].iloc[:,0]
-    d.columns = [str(c) for c in d.columns]
-    return d
+MANUAL_PRICE = st.number_input("MANUAL PRICE DALO", value=4045.0)
 
-def GET_DATA(period, interval, n):
-    for k in [1,2,3]:
-        try:
-            d = yf.download("GC=F", period=period, interval=interval, progress=False)
-            if d is not None and len(d)>20:
-                d = CLEAN(d)
-                return d.dropna().tail(n).copy()
-        except:
-            time.sleep(2)
-    return None
+# TELEGRAM - YE 2 CHEEZEIN STREAMLIT KE SECRET ME DALNI HAIN
+BOT_TOKEN = st.secrets["BOT_TOKEN"]
+CHAT_ID = st.secrets["CHAT_ID"]
 
-def BANAAO_SIGNAL(manual_price):
-    abhi = float(manual_price)
+def TELEGRAM_BHEJO(photo_path, message):
+    try:
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
+        with open(photo_path, "rb") as f:
+            requests.post(url, data={"chat_id": CHAT_ID, "caption": message}, files={"photo": f})
+        st.success("TELEGRAM PE BHEJ DIYA - CHECK KARO")
+    except Exception as e:
+        st.error(f"TELEGRAM ME GALTI: {e}")
+
+if st.button("SIGNAL BANAO"):
+    def CLEAN(d):
+        d = d.copy()
+        if isinstance(d.columns, pd.MultiIndex):
+            d.columns = d.columns.get_level_values(0)
+        for c in list(d.columns):
+            if isinstance(d[c], pd.DataFrame):
+                d[c] = d[c].iloc[:,0]
+        d.columns = [str(c) for c in d.columns]
+        return d
+
+    def GET_DATA(period, interval, n):
+        for k in [1,2,3]:
+            try:
+                d = yf.download("GC=F", period=period, interval=interval, progress=False)
+                if d is not None and len(d)>20:
+                    d = CLEAN(d)
+                    return d.dropna().tail(n).copy()
+            except:
+                time.sleep(2)
+        return None
+
     df4h = GET_DATA("1mo","4h",60)
     df = GET_DATA("5d","1h",120)
     df15 = GET_DATA("2d","15m",120)
-    if df is None or df15 is None or df4h is None:
-        return None, "ڈیٹا نہیں آیا - دوبارہ /signal لکھیں"
 
-    # قیمت آخری کینڈل میں ڈالو
-    for d in [df, df15, df4h]:
-        d.loc[d.index[-1], 'Close'] = abhi
-        if abhi > float(d.loc[d.index[-1], 'High']):
-            d.loc[d.index[-1], 'High'] = abhi
-        if abhi < float(d.loc[d.index[-1], 'Low']):
-            d.loc[d.index[-1], 'Low'] = abhi
+    if df is None or df15 is None or df4h is None:
+        st.error("DATA NAHI AAYA - WAIT KARO - NAQLI SETUP NAHI DUNGA")
+        st.stop()
+
+    abhi = float(MANUAL_PRICE)
+    df.loc[df.index[-1], 'Close'] = abhi
+    if abhi > float(df.loc[df.index[-1], 'High']):
+        df.loc[df.index[-1], 'High'] = abhi
+    if abhi < float(df.loc[df.index[-1], 'Low']):
+        df.loc[df.index[-1], 'Low'] = abhi
+    df15.loc[df15.index[-1], 'Close'] = abhi
+    if abhi > float(df15.loc[df15.index[-1], 'High']):
+        df15.loc[df15.index[-1], 'High'] = abhi
+    if abhi < float(df15.loc[df15.index[-1], 'Low']):
+        df15.loc[df15.index[-1], 'Low'] = abhi
+    df4h.loc[df4h.index[-1], 'Close'] = abhi
+    if abhi > float(df4h.loc[df4h.index[-1], 'High']):
+        df4h.loc[df4h.index[-1], 'High'] = abhi
+    if abhi < float(df4h.loc[df4h.index[-1], 'Low']):
+        df4h.loc[df4h.index[-1], 'Low'] = abhi
 
     pak_time = datetime.now() + timedelta(hours=5)
     date_txt = pak_time.strftime("%d %B %Y")
@@ -71,14 +94,14 @@ def BANAAO_SIGNAL(manual_price):
         curr_close = float(d['Close'].iloc[-1])
         bos_up = curr_close > last_high
         bos_down = curr_close < last_low
-        fvg_bull=False; fvg_bear=False; fvg_bot=0; fvg_top=0
+        fvg_bull = False; fvg_bear = False; fvg_bot = 0; fvg_top = 0
         for i in range(len(d)-15, len(d)):
             if i < 2: continue
-            h2=float(d['High'].iloc[i-2]); l0=float(d['Low'].iloc[i]); h0=float(d['High'].iloc[i]); l2=float(d['Low'].iloc[i-2])
-            if l0-h2>1 and l0-h2<8:
-                fvg_bull=True; fvg_bot=h2; fvg_top=l0
-            if l2-h0>1 and l2-h0<8:
-                fvg_bear=True; fvg_bot=h0; fvg_top=l2
+            h2 = float(d['High'].iloc[i-2]); l0 = float(d['Low'].iloc[i]); h0 = float(d['High'].iloc[i]); l2 = float(d['Low'].iloc[i-2])
+            if l0 - h2 > 1 and l0 - h2 < 8:
+                fvg_bull = True; fvg_bot = h2; fvg_top = l0
+            if l2 - h0 > 1 and l2 - h0 < 8:
+                fvg_bear = True; fvg_bot = h0; fvg_top = l2
         highs=[]; lows=[]
         for i in range(2, len(d)-2):
             h=float(d['High'].iloc[i]); l2=float(d['Low'].iloc[i])
@@ -92,16 +115,17 @@ def BANAAO_SIGNAL(manual_price):
         RES=round(RES/5)*5; SUP=round(SUP/5)*5
         d_bot=SUP; d_top=SUP+demand_size
         s_bot=RES-demand_size; s_top=RES
-        at_d=d_bot<=abhi<=d_top
-        at_s=s_bot<=abhi<=s_top
+        at_d = d_bot <= abhi <= d_top
+        at_s = s_bot <= abhi <= s_top
         o=float(d['Open'].iloc[-1]); c=float(d['Close'].iloc[-1]); h=float(d['High'].iloc[-1]); l=float(d['Low'].iloc[-1])
-        body=abs(c-o); up_w=h-max(c,o); low_w=min(c,o)-l
-        react_buy=at_d and low_w>body and c>o
-        react_sell=at_s and up_w>body and c<o
+        body=abs(c-o); up_w= h-max(c,o); low_w= min(c,o)-l
+        react_buy = at_d and low_w > body and c>o
+        react_sell = at_s and up_w > body and c<o
         vol_avg=float(d['Volume'].iloc[-20:].mean()); vol_last=float(d['Volume'].iloc[-3:].mean())
-        vol_ok=vol_last>vol_avg
+        vol_ok = vol_last > vol_avg
         ema50=float(d['Close'].ewm(span=50, adjust=False).mean().iloc[-1])
-        trend_up=abhi>ema50; trend_down=abhi<ema50
+        trend_up = abhi > ema50
+        trend_down = abhi < ema50
         buy_score=0
         if at_d: buy_score+=20
         if bos_up or fvg_bull: buy_score+=20
@@ -114,28 +138,28 @@ def BANAAO_SIGNAL(manual_price):
         if react_sell: sell_score+=20
         if vol_ok: sell_score+=20
         if trend_down: sell_score+=20
-        bos_txt="BOS UP" if bos_up else "BOS DOWN" if bos_down else "BOS Nahi"
-        fvg_txt="FVG Bullish" if fvg_bull else "FVG Bearish" if fvg_bear else "FVG Nahi"
+        bos_txt = "BOS UP" if bos_up else "BOS DOWN" if bos_down else "BOS Nahi"
+        fvg_txt = "FVG Bullish" if fvg_bull else "FVG Bearish" if fvg_bear else "FVG Nahi"
         if at_d and (bos_up or fvg_bull) and react_buy and vol_ok:
-            faisla=tf_name+" BUY SETUP - SAB MIL GAYA"; fcol="#00FF88"
+            faisla = tf_name+" BUY SETUP - SAB MIL GAYA"; fcol="#00FF88"
             entry="Buy "+str(int(d_bot))+" - "+str(int(d_top)); sl="SL: "+str(int(d_bot-sl_dist)); tp="TP: "+str(int(d_top+sl_dist*2))
             chance=buy_score; chance_txt="CHANCE: "+str(chance)+"% - MAZBOOT" if chance>=80 else "CHANCE: "+str(chance)+"% - THEEK HAI"
             rr_txt="RR: 1:2 - TRADE LENE LAYAQ"
         elif at_s and (bos_down or fvg_bear) and react_sell and vol_ok:
-            faisla=tf_name+" SELL SETUP - SAB MIL GAYA"; fcol="#FF4444"
+            faisla = tf_name+" SELL SETUP - SAB MIL GAYA"; fcol="#FF4444"
             entry="Sell "+str(int(s_bot))+" - "+str(int(s_top)); sl="SL: "+str(int(s_top+sl_dist)); tp="TP: "+str(int(s_bot-sl_dist*2))
             chance=sell_score; chance_txt="CHANCE: "+str(chance)+"% - MAZBOOT" if chance>=80 else "CHANCE: "+str(chance)+"% - THEEK HAI"
             rr_txt="RR: 1:2 - TRADE LENE LAYAQ"
         elif at_d:
-            faisla=tf_name+" WAIT - DEMAND PAR HAI"; fcol="#FFAA00"
+            faisla = tf_name+" WAIT - DEMAND PAR HAI"; fcol="#FFAA00"
             entry="Wait - Demand "+str(int(d_bot))+"-"+str(int(d_top))+" par hai"; sl="SL: Abhi Entry Nahi - ATR "+atr_s; tp="TP: Wait Karo"
             chance=buy_score; chance_txt="CHANCE: "+str(chance)+"% - ABHI KAM HAI"; rr_txt="RR: Abhi Entry Nahi"
         elif at_s:
-            faisla=tf_name+" WAIT - SUPPLY PAR HAI"; fcol="#FFAA00"
+            faisla = tf_name+" WAIT - SUPPLY PAR HAI"; fcol="#FFAA00"
             entry="Wait - Supply "+str(int(s_bot))+"-"+str(int(s_top))+" par hai"; sl="SL: Abhi Entry Nahi - ATR "+atr_s; tp="TP: Wait Karo"
             chance=sell_score; chance_txt="CHANCE: "+str(chance)+"% - ABHI KAM HAI"; rr_txt="RR: Abhi Entry Nahi"
         else:
-            faisla=tf_name+" WAIT - PRICE BEECH ME HAI"; fcol="#FFAA00"
+            faisla = tf_name+" WAIT - PRICE BEECH ME HAI"; fcol="#FFAA00"
             entry="Wait - Abhi Entry Nahi"; sl="SL: Abhi Entry Nahi - ATR "+atr_s; tp="TP: Wait Karo"
             chance=max(buy_score,sell_score); chance_txt="CHANCE: "+str(chance)+"% - ABHI KAM HAI"; rr_txt="RR: Abhi Entry Nahi"
         if react_buy: react_txt="REACTION: MAZBOOT - UPAR UTHA"; react_ok=True
@@ -145,9 +169,9 @@ def BANAAO_SIGNAL(manual_price):
         else: react_txt="REACTION: ABHI OB PAR NAHI"; react_ok=False
         return {'faisla':faisla,'fcol':fcol,'entry':entry,'sl':sl,'tp':tp,'chance':chance,'chance_txt':chance_txt,'rr':rr_txt,'bos':bos_txt,'fvg':fvg_txt,'react':react_txt,'react_ok':react_ok,'vol_ok':vol_ok,'d_bot':int(d_bot),'d_top':int(d_top),'s_bot':int(s_bot),'s_top':int(s_top),'fvg_bot':int(fvg_bot),'fvg_top':int(fvg_top),'trend_up':trend_up,'res':int(RES),'sup':int(SUP)}
 
-    r4h=SETUP_CALC(df4h,"4H",12)
-    r1h=SETUP_CALC(df,"1H",10)
-    r15=SETUP_CALC(df15,"15M",6)
+    r4h = SETUP_CALC(df4h, "4H", 12)
+    r1h = SETUP_CALC(df, "1H", 10)
+    r15 = SETUP_CALC(df15, "15M", 6)
 
     ema50_v=float(df['Close'].ewm(span=50, adjust=False).mean().iloc[-1]); ema50_s=str(int(ema50_v))
     ema15_v=float(df['Close'].ewm(span=15, adjust=False).mean().iloc[-1]); ema15_s=str(int(ema15_v))
@@ -168,14 +192,13 @@ def BANAAO_SIGNAL(manual_price):
     vol_avg=float(df['Volume'].iloc[-20:].mean()); vol_aakhri_3=float(df['Volume'].iloc[-3:].mean())
     volume_strong=vol_aakhri_3>vol_avg; vol_s=str(int(vol_aakhri_3)); vol_avg_s=str(int(vol_avg))
     fvg_bot_s=str(int(r1h['fvg_bot'])); fvg_top_s=str(int(r1h['fvg_top']))
-    fvg_touch=r1h['fvg_bot']-5 <= abhi <= r1h['fvg_top']+5
+    fvg_touch = r1h['fvg_bot']-5 <= abhi <= r1h['fvg_top']+5
     if session_on and abhi>ema15_v: sess_buy_txt="Session ON + Upar"; sess_buy_ok=True
     elif session_on: sess_buy_txt="Session ON - Price Neeche"; sess_buy_ok=False
     else: sess_buy_txt="Session Off"; sess_buy_ok=False
     if session_on and abhi<ema15_v: sess_sell_txt="London/NY ON + Neeche"; sess_sell_ok=True
     elif session_on: sess_sell_txt="Session ON - Price Upar"; sess_sell_ok=False
     else: sess_sell_txt="Session Off"; sess_sell_ok=False
-
     buy_buttons=[]
     buy_buttons.append(("1 FVG BUY ★", fvg_bot_s+"-"+fvg_top_s+" | "+abhi_s, fvg_touch))
     buy_buttons.append(("2 VWAP BUY", abhi_s+" > "+vwap_s if abhi>vwap_v else abhi_s+" < "+vwap_s, abhi>vwap_v))
@@ -204,7 +227,7 @@ def BANAAO_SIGNAL(manual_price):
     sell_buttons.append(("12 Volume SELL ★", "VOL STRONG" if volume_strong else "VOL KAM", (not volume_strong) and abhi<ema15_v))
     buy_c=sum(1 for _,_,v in buy_buttons if v); sell_c=sum(1 for _,_,v in sell_buttons if v)
 
-    # --- IMAGE BANANA ---
+    # PART 2 - TASVEER - AAP KA WAHI DESIGN
     fig,ax = plt.subplots(figsize=(10,30))
     ax.set_xlim(0,10); ax.set_ylim(0,30); ax.axis('off')
     fig.patch.set_facecolor('#0A0A0A'); ax.set_facecolor('#0A0A0A')
@@ -224,6 +247,7 @@ def BANAAO_SIGNAL(manual_price):
     ax.text(5,25.45,'BOS: '+r4h['bos']+' | '+r4h['fvg']+' | '+r4h['react'], ha='center',va='center', fontsize=8,color='white')
     ax.text(5,25.05,'4H D: '+str(r4h['d_bot'])+"-"+str(r4h['d_top'])+'  |  4H S: '+str(r4h['s_bot'])+"-"+str(r4h['s_top'])+'  |  VOL: '+('MAZBOOT' if r4h['vol_ok'] else 'KAMZOR'), ha='center',va='center', fontsize=8,color='white')
     ax.text(5,24.45,r4h['chance_txt']+"  |  "+r4h['rr'], ha='center',va='center', fontsize=10,weight='bold', color='#00FF88' if r4h['chance']>=80 else '#FFAA00')
+    ax.text(5,24.15,'4H WALA KISI KO NAHI ROKTA - APNA ALAG HAI', ha='center',va='center', fontsize=8,color='#AAAAAA')
     ax.add_patch(box((0.3,23.25),9.4,0.65, boxstyle="round,pad=0.1", facecolor='#FFD700'))
     ax.text(5,23.65,'BUTTON - SIRF ANDAZA - FAISLA NAHI KARTA', ha='center',va='center', fontsize=10,weight='bold', color='black')
     ax.text(5,23.35,'BUY '+str(buy_c)+'/12  |  SELL '+str(sell_c)+'/12  |  Resistance 1H: '+str(r1h['res'])+' | Support 1H: '+str(r1h['sup'])+' | RSI: '+rsi_s, ha='center',va='center', fontsize=8,color='black')
@@ -233,9 +257,9 @@ def BANAAO_SIGNAL(manual_price):
     for i,(naam,val,ok) in enumerate(buy_buttons):
         y = 21.75 - i*0.95
         is_star = "★" in naam
-        if ok: rang='#00FF88'; face='#003311'; txt="SABZ"
-        else: rang='#555555'; face='#1A1A1A'; txt="NAHI"
-        edge='#FFD700' if is_star else rang; lw=2.2 if is_star else 1.2
+        if ok: rang = '#00FF88'; face = '#003311'; txt = "SABZ"
+        else: rang = '#555555'; face = '#1A1A1A'; txt = "NAHI"
+        edge = '#FFD700' if is_star else rang; lw = 2.2 if is_star else 1.2
         ax.add_patch(patches.Rectangle((0.5,y-0.40),4.2,0.80, facecolor=face, edgecolor=edge, linewidth=lw))
         ax.text(0.65,y+0.18,naam, ha='left', va='center', fontsize=8, weight='bold', color='#FFD700' if is_star else 'white')
         ax.text(0.65,y-0.18,val, ha='left', va='center', fontsize=7, color='white')
@@ -246,9 +270,9 @@ def BANAAO_SIGNAL(manual_price):
     for i,(naam,val,ok) in enumerate(sell_buttons):
         y = 21.75 - i*0.95
         is_star = "★" in naam
-        if ok: rang='#FF4444'; face='#330000'; txt="LAL"
-        else: rang='#555555'; face='#1A1A1A'; txt="NAHI"
-        edge='#FFD700' if is_star else rang; lw=2.2 if is_star else 1.2
+        if ok: rang = '#FF4444'; face = '#330000'; txt = "LAL"
+        else: rang = '#555555'; face = '#1A1A1A'; txt = "NAHI"
+        edge = '#FFD700' if is_star else rang; lw = 2.2 if is_star else 1.2
         ax.add_patch(patches.Rectangle((5.3,y-0.40),4.2,0.80, facecolor=face, edgecolor=edge, linewidth=lw))
         ax.text(5.45,y+0.18,naam, ha='left', va='center', fontsize=8, weight='bold', color='#FFD700' if is_star else 'white')
         ax.text(5.45,y-0.18,val, ha='left', va='center', fontsize=7, color='white')
@@ -277,35 +301,31 @@ def BANAAO_SIGNAL(manual_price):
     ax.plot([5.0, 5.0], [3.0, 6.3], color='red', linewidth=4)
     ax.text(5,2.55,'★ = ZAROORI BUTTON - YE HONA HI CHAHIYE', ha='center',va='center', fontsize=9,weight='bold', color='#FFD700')
     ax.text(5,2.15,'CHANCE 80%+ HO TO HI MAZBOOT SAMJHO - 60% SE KAM HO TO WAIT KARO', ha='center',va='center', fontsize=9,weight='bold', color='white')
-    buf = io.BytesIO()
-    plt.savefig(buf, format='jpg', dpi=150)
-    plt.close(fig)
-    buf.seek(0)
-    caption = f"GOLD: {abhi_s} | {date_txt} {time_txt}\n\nBUY: {buy_c}/12 | SELL: {sell_c}/12\n\n4H: {r4h['faisla']} | {r4h['chance_txt']}\n1H: {r1h['faisla']} | {r1h['chance_txt']}\n15M: {r15['faisla']} | {r15['chance_txt']}"
-    return buf, caption
+    ax.text(5,1.75,'UPAR WALA 4H KISI KO NAHI ROKTA - NEECHE WALA APNA ALAG HAI', ha='center',va='center', fontsize=8,color='#AAAAAA')
+    plt.savefig("Waseem_Buy_Sell_V4_1.jpg",dpi=200)
+    st.pyplot(fig)
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("WASEEM TRADER V4.1\n\nSignal ke liye likho:\n/signal 4050\n\n4050 ki jagah apni price likho.")
+    # TELEGRAM WALA MESSAGE - SARA SETUP, PRICE, INDICATOR
+    msg = f"""WASEEM TRADER - V4.1
+GOLD: {abhi_s} [MANUAL] | ATR: {atr_s}
+DATE: {date_txt} | {time_txt}
 
-async def signal_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not context.args:
-        await update.message.reply_text("Price likho - jaise:\n/signal 4050")
-        return
-    try:
-        price = float(context.args[0])
-    except:
-        await update.message.reply_text("Sahi price likho - jaise /signal 4050")
-        return
-    await update.message.reply_text(f"Price {price} mil gayi - Signal bana raha hoon... 30 sec wait karo...")
-    buf, caption = BANAAO_SIGNAL(price)
-    if buf is None:
-        await update.message.reply_text(caption)
-        return
-    await update.message.reply_photo(photo=buf, caption=caption)
+UPAR 4H: {r4h['faisla']}
+{r4h['entry']} | {r4h['sl']} | {r4h['tp']}
+{r4h['chance_txt']} | {r4h['rr']}
 
-if __name__ == "__main__":
-    app = ApplicationBuilder().token(TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("signal", signal_cmd))
-    print("BOT CHAL GAYA")
-    app.run_polling()
+NEECHE 15M: {r15['faisla']}
+{r15['entry']} | {r15['sl']} | {r15['tp']}
+{r15['chance_txt']}
+
+NEECHE 1H: {r1h['faisla']}
+{r1h['entry']} | {r1h['sl']} | {r1h['tp']}
+{r1h['chance_txt']}
+
+INDICATOR:
+RSI: {rsi_s} | EMA 15: {ema15_s} | EMA 50: {ema50_s}
+VWAP: {vwap_s} | BUY: {buy_c}/12 | SELL: {sell_c}/12
+RES 1H: {r1h['res']} | SUP 1H: {r1h['sup']}
+"""
+    if st.button("TELEGRAM PE BHEJO"):
+        TELEGRAM_BHEJO("Waseem_Buy_Sell_V4_1.jpg", msg)
