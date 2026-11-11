@@ -1,5 +1,6 @@
-# WASEEM - V4.3 - STREAMLIT WALA - HISSA 1 - 5 BAAR CHECK KIYA HUA
+# WASEEM - V4.4 - STREAMLIT WALA - HISSA 1 - MANUAL PRICE KA CONNECTION KHATAM
 # PURANI FILE KHALI KAR KE YAHI PASTE KARO - PHIR HISSA 2 NEECHE LAGANA
+# IS ME MANUAL PRICE INDICATOR KO NAHI CHUEGI - SIRF DIKHANE KE LIYE HAI
 import streamlit as st
 import yfinance as yf
 import pandas as pd
@@ -9,12 +10,12 @@ import time
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-st.set_page_config(page_title="WASEEM TRADER - V4.3", layout="centered")
-st.title("WASEEM TRADER - V4.3 - STREAMLIT WALA")
+st.set_page_config(page_title="WASEEM TRADER - V4.4", layout="centered")
+st.title("WASEEM TRADER - V4.4 - INDICATOR SACH BOLEGA")
 
-# استاد جی - MANUAL PRICE - MT5 WALI - AB 4002 DALO - 4042 PURANI HO GAYI
-MANUAL_PRICE = st.number_input("MANUAL PRICE - MT5 WALI - JAISE 4002.0", value=4002.0, key="manual_v43")
-CHALAO = st.button("SIGNAL BANAO", key="signal_v43")
+# استاد جی - YAH SIRF DIKHANE KE LIYE HAI - MT5 SE MILANE KE LIYE - INDICATOR ME NAHI JAYEGI
+MANUAL_PRICE = st.number_input("MANUAL PRICE - SIRF MT5 SE MILANE KE LIYE - JAISE 3994.0", value=3994.0, key="manual_v44")
+CHALAO = st.button("SIGNAL BANAO", key="signal_v44")
 
 if CHALAO:
     def CLEAN(d):
@@ -42,17 +43,17 @@ if CHALAO:
     if df is None or df15 is None or df4h is None:
         st.error("DATA NAHI AAYA - WAIT KARO - NAQLI SETUP NAHI DUNGA")
         st.stop()
-    abhi = float(MANUAL_PRICE)
-    for _df in [df, df15, df4h]:
-        _df.loc[_df.index[-1], 'Close'] = abhi
-        if abhi > float(_df.loc[_df.index[-1], 'High']):
-            _df.loc[_df.index[-1], 'High'] = abhi
-        if abhi < float(_df.loc[_df.index[-1], 'Low']):
-            _df.loc[_df.index[-1], 'Low'] = abhi
+    # استاد جی - YAHI BADLA HAI - PEHLE YAHAN MANUAL PRICE KO CANDLE ME DALTE THE - AB NAHI DALENGE
+    # AB YAHOO WALI PRICE HI SACH HAI - MANUAL PRICE KO CANDLE ME NAHI DALA
+    abhi = float(df['Close'].iloc[-1])  # YAHOO WALI SACHI PRICE - INDICATOR ISI PAR BANEGA
+    manual_show = float(MANUAL_PRICE)  # SIRF DIKHANE KE LIYE
     pak_time = datetime.now() + timedelta(hours=5)
     date_txt = pak_time.strftime("%d %B %Y")
     time_txt = pak_time.strftime("%I:%M %p")
     abhi_s = str(int(abhi))
+    manual_s = str(int(manual_show))
+    farq = int(manual_show - abhi)
+    farq_txt = "MT5 SE FARQ: " + str(farq) + " $"
     df['TR'] = np.maximum(df['High']-df['Low'], np.maximum(abs(df['High']-df['Close'].shift(1)), abs(df['Low']-df['Close'].shift(1))))
     atr_v = float(df['TR'].rolling(14).mean().iloc[-1])
     if atr_v < 3: atr_v = 3.0
@@ -99,7 +100,6 @@ if CHALAO:
         ema50=float(d['Close'].ewm(span=50, adjust=False).mean().iloc[-1])
         trend_up = abhi > ema50
         trend_down = abhi < ema50
-        # استاد جی - YAHI 3/5 WALA HAI - 5 BAAR CHECK KIYA - PEHLE 5/5 THA
         buy_n = 0
         if at_d: buy_n+=1
         if bos_up or fvg_bull: buy_n+=1
@@ -147,6 +147,7 @@ if CHALAO:
     r4h = SETUP_CALC(df4h, "4H", 12)
     r1h = SETUP_CALC(df, "1H", 10)
     r15 = SETUP_CALC(df15, "15M", 6)
+    # استاد جی - YAH SAB INDICATOR SIRF YAHOO SE HAIN - MANUAL PRICE YAHAN KAHIN NAHI HAI
     ema50_v=float(df['Close'].ewm(span=50, adjust=False).mean().iloc[-1]); ema50_s=str(int(ema50_v))
     ema15_v=float(df['Close'].ewm(span=15, adjust=False).mean().iloc[-1]); ema15_s=str(int(ema15_v))
     delta=df['Close'].diff(); gain=delta.where(delta>0,0).rolling(14).mean(); loss=-delta.where(delta<0,0).rolling(14).mean()
@@ -204,10 +205,11 @@ if CHALAO:
     st.session_state['last_r4h']=r4h; st.session_state['last_r1h']=r1h; st.session_state['last_r15']=r15
     st.session_state['last_buy_buttons']=buy_buttons; st.session_state['last_sell_buttons']=sell_buttons
     st.session_state['last_buy_c']=buy_c; st.session_state['last_sell_c']=sell_c
-    st.session_state['last_abhi_s']=abhi_s; st.session_state['last_rsi_s']=rsi_s; st.session_state['last_atr_s']=atr_s
+    st.session_state['last_abhi_s']=abhi_s; st.session_state['last_manual_s']=manual_s; st.session_state['last_farq']=farq_txt
+    st.session_state['last_rsi_s']=rsi_s; st.session_state['last_atr_s']=atr_s
     st.session_state['last_date']=date_txt; st.session_state['last_time']=time_txt
-    st.success("HISAB HO GAYA - NEECHE TASVEER AAYEGI")
-    # WASEEM - V4.3 - STREAMLIT WALA - HISSA 2 - BOARD UPAR - KHALI JAGAH KHATAM - 5 BAAR CHECK KIYA
+    st.success("HISAB HO GAYA - INDICATOR YAHOO SE - MANUAL SE KOI CONNECTION NAHI")
+    # WASEEM - V4.4 - STREAMLIT WALA - HISSA 2 - BOARD UPAR - KHALI JAGAH KHATAM
 if st.session_state.get('has_data', False):
     r4h = st.session_state['last_r4h']
     r1h = st.session_state['last_r1h']
@@ -217,22 +219,23 @@ if st.session_state.get('has_data', False):
     buy_c = st.session_state['last_buy_c']
     sell_c = st.session_state['last_sell_c']
     abhi_s = st.session_state['last_abhi_s']
+    manual_s = st.session_state['last_manual_s']
+    farq_txt = st.session_state['last_farq']
     rsi_s = st.session_state['last_rsi_s']
     atr_s = st.session_state['last_atr_s']
     date_txt = st.session_state['last_date']
     time_txt = st.session_state['last_time']
-    # استاد جی - YAHI BADLA HAI - PEHLE FIG 24 THA - AB 19 HAI - KHALI JAGAH KHATAM
     fig,ax = plt.subplots(figsize=(10,19))
     ax.set_xlim(0,10); ax.set_ylim(0,19); ax.axis('off')
     fig.patch.set_facecolor('#0A0A0A'); ax.set_facecolor('#0A0A0A')
     box = patches.FancyBboxPatch
     ax.add_patch(box((0.3,18.3),9.4,0.6, boxstyle="round,pad=0.1", facecolor='#0A0A0A', edgecolor='#FFD700', linewidth=2.5))
-    ax.text(5,18.60,'WASEEM  TRADER - V4.3', ha='center',va='center', color='#FFD700', fontsize=20,weight='bold')
+    ax.text(5,18.60,'WASEEM  TRADER - V4.4', ha='center',va='center', color='#FFD700', fontsize=20,weight='bold')
     ax.add_patch(box((0.3,17.65),9.4,0.50, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor='#FFD700', linewidth=1))
     ax.text(5,17.90,date_txt + "  |  " + time_txt + "  |  PAKISTAN TIME", ha='center',va='center', fontsize=9,weight='bold', color='#FFD700')
     ax.add_patch(box((0.3,16.90),9.4,0.65, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor='#FFD700', linewidth=1.2))
-    ax.text(5,17.30,'GOLD: ' + abhi_s + ' [MANUAL]  |  ATR: ' + atr_s, ha='center',va='center', fontsize=18,weight='bold', color='white')
-    ax.text(5,17.02,'4H = MAZBOOT  |  1H = BEECH  |  15M = JALDI', ha='center',va='center', fontsize=8,weight='bold', color='#FFD700')
+    ax.text(5,17.30,'GOLD YAHOO: ' + abhi_s + '  |  ATR: ' + atr_s, ha='center',va='center', fontsize=18,weight='bold', color='white')
+    ax.text(5,17.02,'MT5 MANUAL: ' + manual_s + '  |  ' + farq_txt, ha='center',va='center', fontsize=8,weight='bold', color='#FFD700')
     ax.add_patch(box((0.3,15.15),9.4,1.60, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor=r4h['fcol'], linewidth=2))
     ax.text(5,16.50,'4H SETUP - MAZBOOT WALA', ha='center',va='center', fontsize=10,weight='bold', color='#FFD700')
     ax.text(5,16.15,r4h['faisla'], ha='center',va='center', fontsize=9,weight='bold', color=r4h['fcol'])
@@ -242,7 +245,6 @@ if st.session_state.get('has_data', False):
     ax.add_patch(box((0.3,14.60),9.4,0.45, boxstyle="round,pad=0.1", facecolor='#FFD700'))
     ax.text(5,14.82,'BUTTON - SIRF ANDAZA - FAISLA NAHI KARTA', ha='center',va='center', fontsize=9,weight='bold', color='black')
     ax.text(5,14.65,'BUY '+str(buy_c)+'/12  |  SELL '+str(sell_c)+'/12  |  RSI: '+rsi_s, ha='center',va='center', fontsize=7.5,color='black')
-    # استاد جی - YAHI BOARD UPAR LAYA HAI - PEHLE 4.2 SE SHURU THA - AB 5.20 SE SHURU HAI - KHALI JAGAH KHATAM
     ax.add_patch(box((0.3,5.20),4.6,9.30, boxstyle="round,pad=0.1", facecolor='#0A1A0A', edgecolor='#00FF88', linewidth=1.8))
     ax.text(2.6,14.20,'BUY - SIRF ANDAZA', ha='center', va='center', fontsize=10, weight='bold', color='#00FF88')
     ax.text(2.6,13.85,'BUY: ' + str(buy_c) + '/12', ha='center', va='center', fontsize=10, weight='bold', color='white')
@@ -256,7 +258,7 @@ if st.session_state.get('has_data', False):
         ax.text(0.65,y+0.12,naam, ha='left', va='center', fontsize=7.5, weight='bold', color='#FFD700' if is_star else 'white')
         ax.text(0.65,y-0.12,val, ha='left', va='center', fontsize=6.5, color='white')
         ax.text(4.55,y,txt, ha='right', va='center', fontsize=6.5, weight='bold', color=rang)
-    ax.add_patch(box((5.1,5.20),4.6,9.30, boxstyle="round,pad=0.1", facecolor='#1A0A0A', edgecolor='#FF4444', linewidth=1.8))
+    ax.add_patch(box((5.1,5.20),4.6,9.30, boxstyle="round,pad=0.1", facecolor='#1A1A0A', edgecolor='#FF4444', linewidth=1.8))
     ax.text(7.4,14.20,'SELL - SIRF ANDAZA', ha='center', va='center', fontsize=10, weight='bold', color='#FF4444')
     ax.text(7.4,13.85,'SELL: ' + str(sell_c) + '/12', ha='center', va='center', fontsize=10, weight='bold', color='white')
     for i,(naam,val,ok) in enumerate(sell_buttons):
@@ -270,7 +272,6 @@ if st.session_state.get('has_data', False):
         ax.text(5.45,y-0.12,val, ha='left', va='center', fontsize=6.5, color='white')
         ax.text(9.35,y,txt, ha='right', va='center', fontsize=6.5, weight='bold', color=rang)
     ax.plot([5.0, 5.0], [5.20, 14.50], color='red', linewidth=3)
-    # استاد جی - YAHI NEECHE WALA BOARD UPAR LAYA HAI - PEHLE 1.2 PAR THA - AB 2.70 PAR HAI - INDICATOR KE QAREEB
     ax.add_patch(box((0.3,4.65),9.4,0.45, boxstyle="round,pad=0.1", facecolor='#FFD700'))
     ax.text(5,4.87,'NEECHE WALA - JALDI WALA - INDICATOR KE QAREEB', ha='center',va='center', fontsize=8,weight='bold', color='black')
     ax.add_patch(box((0.3,2.35),4.45,2.20, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor=r15['fcol'], linewidth=2))
@@ -289,8 +290,8 @@ if st.session_state.get('has_data', False):
     ax.text(7.47,2.55,r1h['chance_txt'], ha='center',va='center', fontsize=7.5,weight='bold', color='#00FF88' if r1h['chance']>=80 else '#FFAA00')
     ax.plot([5.0, 5.0], [2.35, 4.60], color='red', linewidth=3)
     ax.text(5,1.85,'★ = ZAROORI BUTTON  |  CHANCE 60%+ HO TO SETUP', ha='center',va='center', fontsize=8,weight='bold', color='#FFD700')
-    ax.text(5,1.45,'3/5 MIL GAYA TO SETUP - 60% CHANCE', ha='center',va='center', fontsize=7,color='#AAAAAA')
-    ax.text(5,1.05,'MANUAL PRICE MT5 SE MILAO - PURANI PRICE PAR TRADE NAHI', ha='center',va='center', fontsize=7,weight='bold', color='white')
+    ax.text(5,1.45,'INDICATOR YAHOO SE - MANUAL SIRF MILANE KE LIYE', ha='center',va='center', fontsize=7,color='#AAAAAA')
+    ax.text(5,1.05,'MT5 SE FARQ DEKHO - AGAR ZYADA FARQ HO TO WAIT KARO', ha='center',va='center', fontsize=7,weight='bold', color='white')
     ax.text(5,0.60,'PEHLE DISCUSS KARO - PHIR TRADE KARO', ha='center',va='center', fontsize=8,weight='bold', color='#FFD700')
     st.pyplot(fig)
 else:
