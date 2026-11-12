@@ -1,19 +1,33 @@
-# WASEEM - V4.4 - STREAMLIT WALA - HISSA 1 - MANUAL PRICE KA CONNECTION KHATAM
-# PURANI FILE KHALI KAR KE YAHI PASTE KARO - PHIR HISSA 2 NEECHE LAGANA
-# IS ME MANUAL PRICE INDICATOR KO NAHI CHUEGI - SIRF DIKHANE KE LIYE HAI
+# WASEEM - V4.4 - FINAL FIXED - KATA HUA LAFZ THEEK
+# PURANI FILE KHALI KAR KE YAHI PASTE KARO
 import streamlit as st
 import yfinance as yf
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import time
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import requests, io
+import streamlit.components.v1 as components
 
 st.set_page_config(page_title="WASEEM TRADER - V4.4", layout="centered")
 st.title("WASEEM TRADER - V4.4 - INDICATOR SACH BOLEGA")
 
-# استاد جی - YAH SIRF DIKHANE KE LIYE HAI - MT5 SE MILANE KE LIYE - INDICATOR ME NAHI JAYEGI
+# USTAD JI - NEXT WALA - UPAR WALA - KATA HUA THEEK KAR DIYA
+if "next_count" not in st.session_state:
+    st.session_state.next_count = 0
+
+col_next1, col_next2 = st.columns([1,3])
+with col_next1:
+    if st.button("NEXT ➡️", use_container_width=True):
+        st.session_state.next_count += 1
+        st.rerun()
+with col_next2:
+    st.write(f"NEXT dabaya gaya: {st.session_state.next_count} baar")
+
 MANUAL_PRICE = st.number_input("MANUAL PRICE - SIRF MT5 SE MILANE KE LIYE - JAISE 3994.0", value=3994.0, key="manual_v44")
 CHALAO = st.button("SIGNAL BANAO", key="signal_v44")
 
@@ -43,10 +57,8 @@ if CHALAO:
     if df is None or df15 is None or df4h is None:
         st.error("DATA NAHI AAYA - WAIT KARO - NAQLI SETUP NAHI DUNGA")
         st.stop()
-    # استاد جی - YAHI BADLA HAI - PEHLE YAHAN MANUAL PRICE KO CANDLE ME DALTE THE - AB NAHI DALENGE
-    # AB YAHOO WALI PRICE HI SACH HAI - MANUAL PRICE KO CANDLE ME NAHI DALA
-    abhi = float(df['Close'].iloc[-1])  # YAHOO WALI SACHI PRICE - INDICATOR ISI PAR BANEGA
-    manual_show = float(MANUAL_PRICE)  # SIRF DIKHANE KE LIYE
+    abhi = float(df['Close'].iloc[-1])
+    manual_show = float(MANUAL_PRICE)
     pak_time = datetime.now() + timedelta(hours=5)
     date_txt = pak_time.strftime("%d %B %Y")
     time_txt = pak_time.strftime("%I:%M %p")
@@ -147,7 +159,6 @@ if CHALAO:
     r4h = SETUP_CALC(df4h, "4H", 12)
     r1h = SETUP_CALC(df, "1H", 10)
     r15 = SETUP_CALC(df15, "15M", 6)
-    # استاد جی - YAH SAB INDICATOR SIRF YAHOO SE HAIN - MANUAL PRICE YAHAN KAHIN NAHI HAI
     ema50_v=float(df['Close'].ewm(span=50, adjust=False).mean().iloc[-1]); ema50_s=str(int(ema50_v))
     ema15_v=float(df['Close'].ewm(span=15, adjust=False).mean().iloc[-1]); ema15_s=str(int(ema15_v))
     delta=df['Close'].diff(); gain=delta.where(delta>0,0).rolling(14).mean(); loss=-delta.where(delta<0,0).rolling(14).mean()
@@ -209,7 +220,7 @@ if CHALAO:
     st.session_state['last_rsi_s']=rsi_s; st.session_state['last_atr_s']=atr_s
     st.session_state['last_date']=date_txt; st.session_state['last_time']=time_txt
     st.success("HISAB HO GAYA - INDICATOR YAHOO SE - MANUAL SE KOI CONNECTION NAHI")
-    # WASEEM - V4.4 - STREAMLIT WALA - HISSA 2 - BOARD UPAR - KHALI JAGAH KHATAM
+
 if st.session_state.get('has_data', False):
     r4h = st.session_state['last_r4h']
     r1h = st.session_state['last_r1h']
@@ -296,53 +307,28 @@ if st.session_state.get('has_data', False):
     st.pyplot(fig)
 else:
     st.info("👆 PEHLE MANUAL PRICE DALO - PHIR SIGNAL BANAO DABAO - PHIR TASVEER AAYEGI")
-    # USTAD JI - PEHLA PAGE - STREAMLIT WALA - NEXT BUTTON UPAR WALA
-import streamlit as st
-import requests, datetime, streamlit.components.v1 as components
 
-st.set_page_config(page_title="USTAD JI - PEHLA PAGE", layout="centered")
-
-# --- NEXT BUTTON UPAR WALA ---
-# Pehla page maujood hai, sirf NEXT upar dala hai
-if "next_count" not in st.session_state:
-    st.session_state.next_count = 0
-
+# ============ USTAD JI - PEHLA PAGE - FINAL WALA ============
 st.markdown("<h3 style='text-align:center;color:#0a1f44'>USTAD JI - PEHLA PAGE - FINAL WALA</h3>", unsafe_allow_html=True)
-
-col_next1, col_next2 = st.columns([1,3])
-with col_next1:
-    if st.button("NEXT ➡️", use_container_width=True):
-        st.session_state.next_count += 1
-        st.rerun()
-with col_next2:
-    st.write(f"NEXT dabaya gaya: {st.session_state.next_count} baar")
-
 mt5_raw = st.text_input("Ustad Ji, MT5 wali price daalein (misal 3983)", value="3983")
 try:
     mt5 = float(mt5_raw)
 except:
     mt5 = 3983.0
-
 if mt5 < 1000 or mt5 > 5000:
     st.error(f"USTAD JI, PRICE GALAT HAI - Aap ne daali: {mt5_raw} - Puri price daalo - Misal 3983")
     st.stop()
-
-# --- YAHAN SE AAP WALA PEHLA PAGE WESA HI SHURU ---
-print("USTAD JI - FINAL WALA - OB DRAMA KHATAM")
-
 health = []
 def health_add(name, ok):
     health.append(f"{name} {'OK' if ok else 'FAIL'}")
-
 health_add("PRICE", True)
-now_dt = datetime.datetime.now()
+now_dt = datetime.now()
 now_min = now_dt.minute
 age_5m = now_min % 5
 age_15m = now_min % 15
 age_1h = now_min % 60
 hour_now = now_dt.hour
 health_add("TIME", True)
-
 if 11 <= hour_now < 15:
     session_name = "LONDON KILL ZONE"; session_note = "London Kill Zone Hai - Asli Move Aayega"; session_score_bonus = 10
 elif 17 <= hour_now < 22:
@@ -351,9 +337,7 @@ elif 0 <= hour_now < 8:
     session_name = "ASIA"; session_note = "Asia Hai - Sirf Manipulation Hogi - Range Banegi"; session_score_bonus = -10
 else:
     session_name = "OFF"; session_note = "Session Off Hai - Manipulation Wala Time"; session_score_bonus = -5
-
 corner_warnings = []
-
 def yahoo_fetch(symbol, interval, range_):
     url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?interval={interval}&range={range_}"
     try:
@@ -368,7 +352,6 @@ def yahoo_fetch(symbol, interval, range_):
         if price is None or len(c2) < 50: return {"ok":False}
         return {"ok":True,"closes":c2,"highs":h2,"lows":l2,"opens":o2,"vols":v2,"price":price,"symbol":symbol}
     except: return {"ok":False}
-
 def repair_line(d):
     if not d["ok"]: return d
     vols=d["vols"]; last_good_vol=None
@@ -386,29 +369,23 @@ def repair_line(d):
             else: new_arr.append(val); last_good=val
         d[key]=new_arr
     return d
-
 def get_one_time(interval_yahoo):
     d2 = yahoo_fetch("XAUUSD=X", interval_yahoo, "5d")
     if d2["ok"]: return repair_line(d2), "SPOT"
     d3 = yahoo_fetch("GC=F", interval_yahoo, "5d")
     if d3["ok"]: return repair_line(d3), "FUTURE"
     return {"ok":False}, "KHALI"
-
 d5_raw, src5 = get_one_time("5m")
 d15_raw, src15 = get_one_time("15m")
 d1h_raw, src1h = get_one_time("60m")
 health_add("DATA", d5_raw["ok"] or d15_raw["ok"] or d1h_raw["ok"])
-
 if d5_raw["ok"]: yahoo_price_raw = d5_raw["price"]
 elif d15_raw["ok"]: yahoo_price_raw = d15_raw["price"]
 elif d1h_raw["ok"]: yahoo_price_raw = d1h_raw["price"]
 else: yahoo_price_raw = mt5
-
 farq_asli = yahoo_price_raw - mt5
-
 if abs(farq_asli) > 20:
     if "Farq-Zyada" not in corner_warnings: corner_warnings.append("Farq-Zyada")
-
 shift = mt5 - yahoo_price_raw
 def apply_shift(d):
     if not d["ok"]: return d
@@ -424,13 +401,11 @@ elif farq > 4: side_farq="BUY"; machhli=f"MACHHLI BUY - Farq {farq:.2f}"
 else:
     if farq>=0: side_farq="BUY"; machhli=f"MACHHLI HALKI BUY - Farq {farq:.2f}"
     else: side_farq="SELL"; machhli=f"MACHHLI HALKI SELL - Farq {farq:.2f}"
-
 def get_pakki_arrays(d):
     if not d["ok"] or len(d["closes"])<3: return d
     d2=dict(d); d2["closes"]=d["closes"][:-1]; d2["highs"]=d["highs"][:-1]; d2["lows"]=d["lows"][:-1]; d2["opens"]=d["opens"][:-1]; d2["vols"]=d["vols"][:-1] if len(d["vols"])==len(d["closes"]) else d["vols"]; return d2
 d5_pakki=get_pakki_arrays(d5); d15_pakki=get_pakki_arrays(d15); d1h_pakki=get_pakki_arrays(d1h)
 health_add("PAKKI-CANDLE", True)
-
 def calc_rsi(closes, period=14):
     if len(closes)<period+1: return None
     gains=0; losses=0
@@ -441,7 +416,6 @@ def calc_rsi(closes, period=14):
     avg_g=gains/period; avg_l=losses/period
     if avg_l==0: return 100.0
     rs=avg_g/avg_l; return 100-(100/(1+rs))
-
 def calc_atr_list(highs,lows,closes,period=14):
     atrs=[None]*len(closes)
     for i in range(1,len(closes)):
@@ -452,7 +426,6 @@ def calc_atr_list(highs,lows,closes,period=14):
                 tr2=max(highs[k]-lows[k], abs(highs[k]-closes[k-1]), abs(lows[k]-closes[k-1])); trs.append(tr2)
             atrs[i]=sum(trs)/len(trs)
     return atrs
-
 def calc_vwap_single(d1h_pakki):
     if not d1h_pakki["ok"]: return None
     closes=d1h_pakki["closes"]; highs=d1h_pakki["highs"]; lows=d1h_pakki["lows"]; vols=d1h_pakki.get("vols",[]); total_pv=0; total_v=0
@@ -464,7 +437,6 @@ vwap_common=calc_vwap_single(d1h_pakki)
 if vwap_common is not None: vwap_common_side="VWAP Upar" if mt5>vwap_common else "VWAP Neeche"
 else: vwap_common_side="VWAP Nahi"
 health_add("VWAP", vwap_common is not None)
-
 if session_name=="ASIA":
     regime = "RANGE"
 elif d1h_pakki["ok"] and vwap_common is not None:
@@ -472,7 +444,6 @@ elif d1h_pakki["ok"] and vwap_common is not None:
     if dist_vwap < 8: regime = "RANGE"
     else: regime = "TREND"
 else: regime = "RANGE"
-
 try:
     dxy_data = yahoo_fetch("DX-Y.NYB", "60m", "5d")
     if dxy_data["ok"] and len(dxy_data["closes"])>5:
@@ -490,7 +461,6 @@ try:
     else: yield_now=0; yield_txt="Yield Nahi"; yield_high=False
 except: yield_now=0; yield_txt="Yield Nahi"; yield_high=False
 health_add("MACRO-DXY", dxy_txt!="DXY Nahi")
-
 def check_pin(o,h,l,c):
     body=abs(c-o)
     if body<0.01: body=0.01
@@ -515,7 +485,6 @@ def check_liquidity_sweep(highs,lows,closes):
     if last_high>prev_high and last_close<prev_high: return "Liq Sweep SELL"
     if last_low<prev_low and last_close>prev_low: return "Liq Sweep BUY"
     return "Liq Nahi"
-
 def check_sweep_displacement(d_pakki, liq_txt):
     if "Sweep" not in liq_txt: return False, "Sweep Nahi"
     if not d_pakki["ok"] or len(d_pakki["closes"])<5: return False, "Sweep Jhoota"
@@ -524,7 +493,6 @@ def check_sweep_displacement(d_pakki, liq_txt):
     move = abs(closes[-1]-closes[-3])
     if move >= atr_now*0.8: return True, "Sweep SACHA + Displacement"
     else: return False, "Sweep JHOOTA - Displacement Nahi"
-
 def check_order_block(opens,closes,highs,lows):
     if len(closes)<5: return "OB Nahi", None, None
     cur=closes[-1]
@@ -540,7 +508,6 @@ def check_order_block(opens,closes,highs,lows):
                 if ob_low-2<=cur<=ob_high: return "OB SELL Me Hai", ob_low, ob_high
                 elif cur<ob_low: return "OB SELL Tor Diya", ob_low, ob_high
     return "OB Nahi", None, None
-
 def calc_volume(vols, src_name):
     if src_name=="FUTURE": return {"text":"Vol FUTURE Me Nahi","trend":"FUTURE","pct":0}
     if not vols or len(vols)<22: return {"text":"Vol Nahi","trend":"NAHI","pct":0}
@@ -556,7 +523,6 @@ def calc_volume(vols, src_name):
     if last>avg*1.2: return {"text":f"Vol +{pct}%","trend":"BADH","pct":pct}
     elif last<avg*0.8: return {"text":f"Vol {pct}%","trend":"GIR","pct":pct}
     else: return {"text":f"Vol {pct}%","trend":"NORMAL","pct":pct}
-
 def calc_tp_hit_both(opens,closes,highs,lows,atrs,look_ahead,tp_mult):
     buy_pins=[]; sell_pins=[]
     for i in range(max(20,len(closes)-150), len(closes)-1):
@@ -585,7 +551,6 @@ def calc_tp_hit_both(opens,closes,highs,lows,atrs,look_ahead,tp_mult):
         if len(pins)==0: return {"pct":0,"small_pct":0,"txt":"TP Data Nahi"}
         ws=sum(1 for x in pins if x[0]=="TP"); wb=sum(1 for x in pins if x[1]=="TP"); t=len(pins); ps=int(ws*100/t); pb=int(wb*100/t); return {"pct":pb,"small_pct":ps,"txt":f"TP {pb}% - {wb}/{t}"}
     return {"buy":make(buy_pins),"sell":make(sell_pins)}
-
 def process(d_pakki, age_min, adhuri_limit, src_name, look_ahead, tp_mult):
     if not d_pakki["ok"]:
         return {"rsi":"Nahi","atr":"Nahi","pin":"Data Nahi","fvg":"Data Nahi","choch":"Data Nahi","liq":"Data Nahi","ob":"Data Nahi","ob_low":None,"ob_high":None,"vwap_side":vwap_common_side,"vol":{"text":"Vol Nahi","trend":"NAHI","pct":0},"tp":{"buy":{"pct":0,"small_pct":0,"txt":""},"sell":{"pct":0,"small_pct":0,"txt":""}},"E":mt5,"adhuri":True,"rsi_val":None,"age":age_min,"src":src_name,"sweep_sacha":False,"sweep_note":"Sweep Nahi","trap":""}
@@ -601,19 +566,16 @@ def process(d_pakki, age_min, adhuri_limit, src_name, look_ahead, tp_mult):
     elif choch=="CHoCH SELL" and vol["trend"]!="BADH" and rsi is not None and rsi<30:
         trap="BEAR TRAP"
     return {"rsi":f"{rsi:.0f}" if rsi is not None else "Nahi","atr":f"{atr:.2f}" if atr is not None else "Nahi","pin":pin,"fvg":fvg,"choch":choch,"liq":liq,"ob":ob,"ob_low":ob_low,"ob_high":ob_high,"vwap_side":vwap_common_side,"vol":vol,"tp":tp,"E":E,"adhuri":adhuri,"rsi_val":rsi,"age":age_min,"src":src_name,"sweep_sacha":sweep_sacha,"sweep_note":sweep_note,"trap":trap}
-
 p5=process(d5_pakki, age_5m, 4, src5, 10, 2.5)
 p15=process(d15_pakki, age_15m, 12, src15, 5, 2.0)
 p1h=process(d1h_pakki, age_1h, 45, src1h, 3, 1.5)
 health_add("SETUP", True)
-
 if p1h["rsi_val"] is not None and p1h["rsi_val"]<20:
     if "RSI-Oversold" not in corner_warnings: corner_warnings.append("RSI-Oversold")
 elif p1h["rsi_val"] is not None and p1h["rsi_val"]>80:
     if "RSI-Overbought" not in corner_warnings: corner_warnings.append("RSI-Overbought")
 if p5["trap"]!="" or p15["trap"]!="" or p1h["trap"]!="":
     if "TRAP" not in corner_warnings: corner_warnings.append("TRAP")
-
 def candle_side_sach(p):
     buy_count = sum([1 for x in [p["pin"],p["fvg"],p["choch"],p["liq"]] if "BUY" in x])
     sell_count = sum([1 for x in [p["pin"],p["fvg"],p["choch"],p["liq"]] if "SELL" in x])
@@ -626,11 +588,9 @@ def candle_side_sach(p):
     if buy_count>0: return "BUY", "SAAF"
     if sell_count>0: return "SELL", "SAAF"
     return side_farq, "MACHHLI PAR"
-
 c5, note5 = candle_side_sach(p5)
 c15, note15 = candle_side_sach(p15)
 c1h, note1h = candle_side_sach(p1h)
-
 def calc_chance_advance(p, candle):
     if candle=="BUY": tp_pct=p["tp"]["buy"]["pct"]
     else: tp_pct=p["tp"]["sell"]["pct"]
@@ -671,16 +631,13 @@ def calc_chance_advance(p, candle):
     if total < 1: total = 1
     if total > 95: total = 95
     return total, tp_pct
-
 ch5,tp5=calc_chance_advance(p5,c5); ch15,tp15=calc_chance_advance(p15,c15); ch1h,tp1h=calc_chance_advance(p1h,c1h)
-
 def equity_for(chance):
     if chance>=80: return ("0.05","2%","FULL ENTRY")
     elif chance>=70: return ("0.03","1.5%","BADI ENTRY")
     elif chance>=60: return ("0.02","1%","NORMAL ENTRY")
     elif chance>=50: return ("0.01","0.5%","CHOTI ENTRY")
     else: return ("0.00","0%","TRADE NAHI - CHANCE KAM HAI")
-
 buy_count_final = sum([1 for x in [c5,c15,c1h] if x=="BUY"])
 sell_count_final = sum([1 for x in [c5,c15,c1h] if x=="SELL"])
 mixed=False
@@ -691,7 +648,6 @@ if src5=="FUTURE" or src15=="FUTURE" or src1h=="FUTURE":
     if "Future-Vol" not in corner_warnings: corner_warnings.append("Future-Vol")
 if "Sweep" in p5["liq"] or "Sweep" in p15["liq"] or "Sweep" in p1h["liq"]:
     if "Liq-Sweep" not in corner_warnings: corner_warnings.append("Liq-Sweep")
-
 all_below_50=(ch5<50 and ch15<50 and ch1h<50)
 candidates=[(ch5,c5,"5M"),(ch15,c15,"15M"),(ch1h,c1h,"1H")]
 if buy_count_final > sell_count_final:
@@ -707,24 +663,18 @@ majority_sorted=sorted(majority_candidates, key=lambda x: x[0], reverse=True)
 final_chance, final_side, final_time=majority_sorted[0]
 if majority_side is not None:
     final_side=majority_side
-
 final_p = p5 if final_time=="5M" else p15 if final_time=="15M" else p1h
-
 def get_entry_info(p, side):
     return p["E"], True
-
 final_entry_price, final_has_entry = get_entry_info(final_p, final_side)
 health_add("ENTRY", True)
 health_add("FINAL", True)
-
 lot_final, risk_final, entry_final = equity_for(final_chance)
-
 def ob_corner_text(p):
     if p["ob_low"] is not None and p["ob_high"] is not None:
         return f"OB INFO: {p['ob']} {p['ob_low']:.2f}-{p['ob_high']:.2f} | Tumhari Marzi - Lagana Hai To Lagao, Nahi To Mat Lagao"
     else:
         return f"OB INFO: {p['ob']} | Tumhari Marzi - Lagana Hai To Lagao, Nahi To Mat Lagao"
-
 def box_data(p, auto_side, chance, note):
     if p["atr"]=="Nahi": return "<div style='padding:4px;text-align:center;font-size:9px'>Data Nahi</div>"
     atr=float(p["atr"])
@@ -756,10 +706,8 @@ def box_data(p, auto_side, chance, note):
     <div style="background:#fff;border:1.5px solid {chance_color};border-radius:3px;padding:2px;margin-top:2px"><div style="font-size:16px;font-weight:bold;color:{chance_color};line-height:1">{chance}%</div><div style="font-size:8px;font-weight:bold;color:{chance_color}">{chance_txt} CHANCE</div></div>
     <div style="background:#fef9c3;border:1px dashed #a16207;border-radius:3px;padding:2px;margin-top:2px;font-size:7px;color:#713f12">{ob_txt}</div>
     </div></div>"""
-
 if len(corner_warnings)==0: warning_strip="<div style='background:#0a7a2e;color:#fff;text-align:center;font-size:8px;font-weight:bold;padding:2px;border-radius:3px;margin:2px 0'>✅ OK - Sab Sahi Hai</div>"
 else: warning_strip=f"<div style='background:#e60000;color:#fff;text-align:center;font-size:8px;font-weight:bold;padding:2px;border-radius:3px;margin:2px 0'>⚠️ {' | '.join(corner_warnings)}</div>"
-
 if mixed and all_below_50:
     final_bg="#7f1d1d"; final_side_text_full=f"FINAL: TRADE NAHI - MIXED - {buy_count_final} BUY vs {sell_count_final} SELL - Best {final_side} {final_chance}%"
 elif mixed:
@@ -768,17 +716,14 @@ elif all_below_50:
     final_bg="#7f1d1d"; final_side_text_full=f"FINAL: TRADE NAHI - Teenon 50 se Neeche Hain - Best {final_side} {final_chance}% - MARNA HAI TO MARO, KARNA HAI TO KARO, NAHI KARNA TO MAT KARO"
 else:
     final_bg="#14532d" if final_side=="BUY" else "#7f1d1d"; final_side_text_full=f"FINAL: {final_side} - {final_time} Wala {final_chance}% Chance - KARNA HAI TO KARO"
-
 if final_chance < 50:
     lot_final, risk_final, entry_final = "0.00","0%","TRADE NAHI - CHANCE KAM HAI"
-
 if final_side=="BUY":
     final_entry_txt = f"FINAL ENTRY: {final_entry_price:.2f} - {final_entry_price+3.0:.2f} SE BUY KARO"
 else:
     final_entry_txt = f"FINAL ENTRY: {final_entry_price:.2f} - {final_entry_price-3.0:.2f} SE SELL KARO"
-
 health_txt = " | ".join(health)
-now=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=3))); date_str=now.strftime("%I:%M")
+now=datetime.now(datetime.timezone(datetime.timedelta(hours=3))); date_str=now.strftime("%I:%M")
 final_ob_txt = ob_corner_text(p1h)
 html=f"""
 <div id="capture" style="max-width:400px;margin:auto;font-family:Arial;background:#fff;padding:2px;color:#000;position:relative" dir="rtl">
@@ -805,27 +750,16 @@ html=f"""
 components.html(html, height=950, scrolling=True)
 st.info(f"HO GAYA - 5M {c5} {ch5}% - 15M {c15} {ch15}% - 1H {c1h} {ch1h}% - Final {final_side} {final_chance}% - LOT {lot_final}")
 
-# --- NEECHE BHI NEXT ---
+# --- NEECHE BHI NEXT - KATA HUA FIXED ---
 if st.button("NEXT ➡️ - Dobara Naya Data Dekho", use_container_width=True):
-    st.session_state.next_count += 
-   # ============================================================
-# USTAD JI - FINAL WALA - TEENON KAAM EK SATH
-# 1. ONE / TWO + MT5 PRICE LAZMI
-# 2. TEENON EK + KOI EK 50% PAR = AUTO MESSAGE
-# 3. 40 DOLLAR HARKAT = WARNING - UPAR YA NEECHE DONON
-# SETTING ME NAAM: BOT_TOKEN aur CHAT_ID
-# DONON PAGE KE NEECHE, SAB SE AAKHIR ME LAGANA HAI
+    st.session_state.next_count += 1
+    st.rerun()
+
 # ============================================================
-
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import io
-
-# ---------- 1. TELEGRAM - SETTING SE ----------
+# USTAD JI - TELEGRAM WALA - TEENON KAAM
+# ============================================================
 BOT_TOKEN = st.secrets.get("BOT_TOKEN", "")
 CHAT_ID = st.secrets.get("CHAT_ID", "")
-
 def telegram_bhejo(msg):
     if not BOT_TOKEN or not CHAT_ID:
         return False
@@ -835,7 +769,6 @@ def telegram_bhejo(msg):
         return True
     except:
         return False
-
 def telegram_tasveer_bhejo(image_bytes, caption_text):
     if not BOT_TOKEN or not CHAT_ID:
         return False
@@ -847,38 +780,27 @@ def telegram_tasveer_bhejo(image_bytes, caption_text):
         return True
     except:
         return False
-
-# ---------- 2. TEENON EK + KOI EK 50% PAR ----------
 teenon_buy = (c5=="BUY" and c15=="BUY" and c1h=="BUY")
 teenon_sell = (c5=="SELL" and c15=="SELL" and c1h=="SELL")
 teenon_ek = teenon_buy or teenon_sell
 koi_ek_50 = (ch5>=50 or ch15>=50 or ch1h>=50)
-
-# ---------- 3. KANDLE WALA HISAB - 12 ME SE ----------
 def kandle_ginti(p):
     buy_g = sum([1 for x in [p["pin"], p["fvg"], p["choch"], p["liq"]] if "BUY" in x])
     sell_g = sum([1 for x in [p["pin"], p["fvg"], p["choch"], p["liq"]] if "SELL" in x])
     return buy_g, sell_g
-
 b5, s5 = kandle_ginti(p5)
 b15, s15 = kandle_ginti(p15)
 b1h, s1h = kandle_ginti(p1h)
 total_buy_kandle = b5 + b15 + b1h
 total_sell_kandle = s5 + s15 + s1h
-
 if teenon_buy:
     final_side_msg = "TEENON BUY - TEENON GREEN"
 else:
     final_side_msg = "TEENON SELL - TEENON RED"
-
-# ---------- 4. TASVEER BANANE WALA - MT5 PRICE FIT KAR KE ----------
-# USTAD JI - Is me mt5_price wohi hoga jo aap ONE / TWO ke sath bhejoge
-# Agar auto message hoga to wohi mt5 wala price fit hoga
-
 def pehle_page_ki_tasveer_banao(mt5_price):
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.axis('off')
-    ax.set_title("USTAD JI - PEHLA PAGE - 12 ME SE HISAB", fontsize=14, fontweight='bold', pad=20)
+    fig2, ax2 = plt.subplots(figsize=(8, 5))
+    ax2.axis('off')
+    ax2.set_title("USTAD JI - PEHLA PAGE - 12 ME SE HISAB", fontsize=14, fontweight='bold', pad=20)
     table_data = [
         ["Time", "Side", "Chance %", "MT5 Price"],
         ["5M", f"{c5}", f"{ch5}%", f"{mt5_price:.2f}"],
@@ -889,20 +811,19 @@ def pehle_page_ki_tasveer_banao(mt5_price):
         ["12 Me Se BUY", f"{total_buy_kandle}", "", ""],
         ["12 Me Se SELL", f"{total_sell_kandle}", "", ""],
     ]
-    table = ax.table(cellText=table_data, loc='center', cellLoc='center')
+    table = ax2.table(cellText=table_data, loc='center', cellLoc='center')
     table.auto_set_font_size(False)
     table.set_fontsize(12)
     table.scale(1, 1.8)
     buf = io.BytesIO()
     plt.savefig(buf, format='png', bbox_inches='tight', dpi=150)
-    plt.close(fig)
+    plt.close(fig2)
     buf.seek(0)
     return buf.getvalue()
-
 def doosre_page_ki_tasveer_banao(mt5_price):
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.axis('off')
-    ax.set_title("USTAD JI - DOOSRA PAGE - TEENON EK", fontsize=14, fontweight='bold', pad=20)
+    fig3, ax3 = plt.subplots(figsize=(8, 5))
+    ax3.axis('off')
+    ax3.set_title("USTAD JI - DOOSRA PAGE - TEENON EK", fontsize=14, fontweight='bold', pad=20)
     table_data = [
         ["Time", "Side", "Chance %", "MT5 Price"],
         ["5M", f"{c5}", f"{ch5}%", f"{mt5_price:.2f}"],
@@ -911,17 +832,15 @@ def doosre_page_ki_tasveer_banao(mt5_price):
         ["", "", "", ""],
         ["FINAL", f"{final_side}", f"{final_chance}%", f"{mt5_price:.2f}"],
     ]
-    table = ax.table(cellText=table_data, loc='center', cellLoc='center')
+    table = ax3.table(cellText=table_data, loc='center', cellLoc='center')
     table.auto_set_font_size(False)
     table.set_fontsize(12)
     table.scale(1, 1.8)
     buf = io.BytesIO()
     plt.savefig(buf, format='png', bbox_inches='tight', dpi=150)
-    plt.close(fig)
+    plt.close(fig3)
     buf.seek(0)
     return buf.getvalue()
-
-# ---------- 5. AUTO MESSAGE - TEENON EK + KOI EK 50% PAR ----------
 if teenon_ek and koi_ek_50:
     poora_msg = f"USTAD JI - TEENON EK HO GAYE\n{final_side_msg}\n\n5M: {c5} {ch5}% - MT5 Price {mt5:.2f}\n15M: {c15} {ch15}% - MT5 Price {mt5:.2f}\n1H: {c1h} {ch1h}% - MT5 Price {mt5:.2f}\n\nKANDLE WALA HISAB:\n12 Me Se {total_buy_kandle} BUY Par Hain\n12 Me Se {total_sell_kandle} SELL Par Hain\n\nFinal: {final_side} {final_chance}% - MT5 {mt5:.2f}"
     telegram_bhejo(poora_msg)
@@ -932,42 +851,24 @@ if teenon_ek and koi_ek_50:
     st.success("USTAD JI - MESSAGE + DONON TASVEER BHEJ DI - Teenon Ek + Ek 50% Par")
 else:
     st.info(f"Abhi auto nahi bheja - Teenon Ek: {teenon_ek} - Koi 50 par: {koi_ek_50}")
-
-# ---------- 6. WARNING - 40 DOLLAR HARKAT - UPAR YA NEECHE ----------
-# USTAD JI - Subah wali price ko base manenge, us se 40 upar ya 40 neeche hua to warning
-# Ek warning ke baad base nayi price ho jayegi, taake baar baar warning na aaye
-
-# Abhi wali Yahoo wali price ko lete hain - p5 wali price
 abhi_price = p5['E']
-
 if "warning_base_price" not in st.session_state:
     st.session_state.warning_base_price = abhi_price
-
 base_price = st.session_state.warning_base_price
 fark = abhi_price - base_price
-
 if fark >= 40:
     telegram_bhejo(f"USTAD JI - WARNING - MARKET UPAR CHALI GAYI\n\nBase Price Thi: {base_price:.2f}\nAbhi Price Hai: {abhi_price:.2f}\nHarkat: +{fark:.2f} Dollar UPAR\n\nUstad Ji, 40 Dollar Upar Ho Gaya Hai, Dhyan Rakho")
     st.warning(f"USTAD JI - WARNING BHEJ DI - 40 Dollar Upar - {base_price:.2f} se {abhi_price:.2f}")
     st.session_state.warning_base_price = abhi_price
-
 elif fark <= -40:
     telegram_bhejo(f"USTAD JI - WARNING - MARKET NEECHE GIR GAYI\n\nBase Price Thi: {base_price:.2f}\nAbhi Price Hai: {abhi_price:.2f}\nHarkat: {fark:.2f} Dollar NEECHE\n\nUstad Ji, 40 Dollar Neeche Gir Gaya Hai, Dhyan Rakho")
     st.warning(f"USTAD JI - WARNING BHEJ DI - 40 Dollar Neeche - {base_price:.2f} se {abhi_price:.2f}")
     st.session_state.warning_base_price = abhi_price
-
 else:
     st.info(f"Warning Base: {base_price:.2f} - Abhi: {abhi_price:.2f} - Fark: {fark:.2f} - 40 Dollar par warning aayegi")
-
-# ---------- 7. ONE / TWO WALA - TELEGRAM SE PADHNA ----------
-# USTAD JI - Bot har baar Telegram se poochega ke Ustad Ji ne kya likha hai
-# ONE 2635.50 likhoge to pehla page, TWO 2635.50 likhoge to doosra page
-# Price ke bagair koi kaam nahi karega
-
 def telegram_se_naya_msg_padho():
     try:
         url = f"https://api.telegram.org/bot{BOT_TOKEN}/getUpdates"
-        # Aakhri wala hi padhenge
         r = requests.get(url, params={"timeout": 10, "limit": 5}, timeout=15)
         data = r.json()
         if not data.get("result"):
@@ -979,21 +880,16 @@ def telegram_se_naya_msg_padho():
         return text, msg_id
     except:
         return None
-
-# Puraana wala msg_id yaad rakhenge, taake ek hi ONE ko baar baar na padhen
 if "aakhri_update_id" not in st.session_state:
     st.session_state.aakhri_update_id = 0
-
 naya = telegram_se_naya_msg_padho()
 if naya:
     text_upar, update_id = naya
     if update_id != st.session_state.aakhri_update_id:
         st.session_state.aakhri_update_id = update_id
         parts = text_upar.split()
-        # parts[0] = ONE ya TWO, parts[1] = Price hona lazmi hai
         if len(parts) >= 1 and parts[0].upper() in ["ONE", "TWO"]:
             if len(parts) < 2:
-                # Price nahi likha - Koi kaam nahi karega, sirf price mangega
                 telegram_bhejo("USTAD JI - PRICE BHI LIKHEN\nJaise: ONE 2635.50\nYa: TWO 2635.50\nPrice ke bagair tasveer nahi bhejunga")
                 st.error("USTAD JI - ONE / TWO likha, lekin Price nahi likha - Isliye tasveer nahi bheji")
             else:
@@ -1013,8 +909,6 @@ if naya:
                     telegram_bhejo("USTAD JI - PRICE SAHI NAHI LIKHA\nJaise likhen: ONE 2635.50")
         else:
             st.info(f"Telegram par aakhri msg: {text_upar} - ONE / TWO nahi hai, isliye kuch nahi bheja")
-
-# ---------- 8. TESTING WALA BUTTON ----------
 st.markdown("---")
 st.subheader("USTAD JI - TESTING WALA BUTTON")
 if st.button("TEST KARO - MESSAGE + DONON TASVEER BHEJO", use_container_width=True):
@@ -1024,6 +918,4 @@ if st.button("TEST KARO - MESSAGE + DONON TASVEER BHEJO", use_container_width=Tr
     telegram_tasveer_bhejo(t1, "USTAD JI - PEHLA PAGE - TEST")
     t2 = doosre_page_ki_tasveer_banao(mt5)
     telegram_tasveer_bhejo(t2, "USTAD JI - DOOSRA PAGE - TEST")
-    st.success("USTAD JI - HO GAYA - Telegram check karo") 
-    
-    
+    st.success("USTAD JI - HO GAYA - Telegram check karo")
