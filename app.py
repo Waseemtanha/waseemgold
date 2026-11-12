@@ -807,10 +807,14 @@ st.info(f"HO GAYA - 5M {c5} {ch5}% - 15M {c15} {ch15}% - 1H {c1h} {ch1h}% - Fina
 
 # --- NEECHE BHI NEXT ---
 if st.button("NEXT ➡️ - Dobara Naya Data Dekho", use_container_width=True):
-    st.session_state.next_count += 1
-    st.rerun()
-    # ============================================================
-# USTAD JI - POORI KAHANI - EK HI SCRIPT - DONON PAGE KE NEECHE LAGANA HAI
+    st.session_state.next_count += 
+   # ============================================================
+# USTAD JI - FINAL WALA - TEENON KAAM EK SATH
+# 1. ONE / TWO + MT5 PRICE LAZMI
+# 2. TEENON EK + KOI EK 50% PAR = AUTO MESSAGE
+# 3. 40 DOLLAR HARKAT = WARNING - UPAR YA NEECHE DONON
+# SETTING ME NAAM: BOT_TOKEN aur CHAT_ID
+# DONON PAGE KE NEECHE, SAB SE AAKHIR ME LAGANA HAI
 # ============================================================
 
 import matplotlib
@@ -818,28 +822,27 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import io
 
-# ---------- 1. TELEGRAM - SETTING SE UTHAYEGA ----------
-# Script me Token / ID nahi likha hua - Setting me se uthayega
-TELEGRAM_TOKEN = st.secrets.get("TELEGRAM_TOKEN", "")
-TELEGRAM_CHAT_ID = st.secrets.get("TELEGRAM_CHAT_ID", "")
+# ---------- 1. TELEGRAM - SETTING SE ----------
+BOT_TOKEN = st.secrets.get("BOT_TOKEN", "")
+CHAT_ID = st.secrets.get("CHAT_ID", "")
 
 def telegram_bhejo(msg):
-    if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
+    if not BOT_TOKEN or not CHAT_ID:
         return False
     try:
-        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-        requests.post(url, data={"chat_id": TELEGRAM_CHAT_ID, "text": msg}, timeout=10)
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+        requests.post(url, data={"chat_id": CHAT_ID, "text": msg}, timeout=10)
         return True
     except:
         return False
 
 def telegram_tasveer_bhejo(image_bytes, caption_text):
-    if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
+    if not BOT_TOKEN or not CHAT_ID:
         return False
     try:
-        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendPhoto"
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
         files = {"photo": ("page.png", image_bytes)}
-        data = {"chat_id": TELEGRAM_CHAT_ID, "caption": caption_text}
+        data = {"chat_id": CHAT_ID, "caption": caption_text}
         requests.post(url, data=data, files=files, timeout=20)
         return True
     except:
@@ -849,7 +852,6 @@ def telegram_tasveer_bhejo(image_bytes, caption_text):
 teenon_buy = (c5=="BUY" and c15=="BUY" and c1h=="BUY")
 teenon_sell = (c5=="SELL" and c15=="SELL" and c1h=="SELL")
 teenon_ek = teenon_buy or teenon_sell
-
 koi_ek_50 = (ch5>=50 or ch15>=50 or ch1h>=50)
 
 # ---------- 3. KANDLE WALA HISAB - 12 ME SE ----------
@@ -861,28 +863,27 @@ def kandle_ginti(p):
 b5, s5 = kandle_ginti(p5)
 b15, s15 = kandle_ginti(p15)
 b1h, s1h = kandle_ginti(p1h)
-
 total_buy_kandle = b5 + b15 + b1h
 total_sell_kandle = s5 + s15 + s1h
 
-# ---------- 4. MESSAGE BANANA ----------
 if teenon_buy:
     final_side_msg = "TEENON BUY - TEENON GREEN"
 else:
     final_side_msg = "TEENON SELL - TEENON RED"
 
-poora_msg = f"USTAD JI - TEENON EK HO GAYE\n{final_side_msg}\n\n5M: {c5} {ch5}% - Price {p5['E']:.2f}\n15M: {c15} {ch15}% - Price {p15['E']:.2f}\n1H: {c1h} {ch1h}% - Price {p1h['E']:.2f}\n\nKANDLE WALA HISAB:\n12 Me Se {total_buy_kandle} BUY Par Hain\n12 Me Se {total_sell_kandle} SELL Par Hain\n\nFinal: {final_side} {final_chance}% - MT5 {mt5:.2f}"
+# ---------- 4. TASVEER BANANE WALA - MT5 PRICE FIT KAR KE ----------
+# USTAD JI - Is me mt5_price wohi hoga jo aap ONE / TWO ke sath bhejoge
+# Agar auto message hoga to wohi mt5 wala price fit hoga
 
-# ---------- 5. PEHLE PAGE KI TASVEER ----------
-def pehle_page_ki_tasveer_banao():
+def pehle_page_ki_tasveer_banao(mt5_price):
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.axis('off')
     ax.set_title("USTAD JI - PEHLA PAGE - 12 ME SE HISAB", fontsize=14, fontweight='bold', pad=20)
     table_data = [
-        ["Time", "Side", "Chance %", "Price"],
-        ["5M", f"{c5}", f"{ch5}%", f"{p5['E']:.2f}"],
-        ["15M", f"{c15}", f"{ch15}%", f"{p15['E']:.2f}"],
-        ["1H", f"{c1h}", f"{ch1h}%", f"{p1h['E']:.2f}"],
+        ["Time", "Side", "Chance %", "MT5 Price"],
+        ["5M", f"{c5}", f"{ch5}%", f"{mt5_price:.2f}"],
+        ["15M", f"{c15}", f"{ch15}%", f"{mt5_price:.2f}"],
+        ["1H", f"{c1h}", f"{ch1h}%", f"{mt5_price:.2f}"],
         ["", "", "", ""],
         ["KANDLE HISAB", "", "", ""],
         ["12 Me Se BUY", f"{total_buy_kandle}", "", ""],
@@ -898,18 +899,17 @@ def pehle_page_ki_tasveer_banao():
     buf.seek(0)
     return buf.getvalue()
 
-# ---------- 6. DOOSRE PAGE KI TASVEER ----------
-def doosre_page_ki_tasveer_banao():
+def doosre_page_ki_tasveer_banao(mt5_price):
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.axis('off')
     ax.set_title("USTAD JI - DOOSRA PAGE - TEENON EK", fontsize=14, fontweight='bold', pad=20)
     table_data = [
         ["Time", "Side", "Chance %", "MT5 Price"],
-        ["5M", f"{c5}", f"{ch5}%", f"{mt5:.2f}"],
-        ["15M", f"{c15}", f"{ch15}%", f"{mt5:.2f}"],
-        ["1H", f"{c1h}", f"{ch1h}%", f"{mt5:.2f}"],
+        ["5M", f"{c5}", f"{ch5}%", f"{mt5_price:.2f}"],
+        ["15M", f"{c15}", f"{ch15}%", f"{mt5_price:.2f}"],
+        ["1H", f"{c1h}", f"{ch1h}%", f"{mt5_price:.2f}"],
         ["", "", "", ""],
-        ["FINAL", f"{final_side}", f"{final_chance}%", f"{mt5:.2f}"],
+        ["FINAL", f"{final_side}", f"{final_chance}%", f"{mt5_price:.2f}"],
     ]
     table = ax.table(cellText=table_data, loc='center', cellLoc='center')
     table.auto_set_font_size(False)
@@ -921,31 +921,109 @@ def doosre_page_ki_tasveer_banao():
     buf.seek(0)
     return buf.getvalue()
 
-# ---------- 7. AUTO MESSAGE - JAB TEENON EK + EK 50% PAR ----------
+# ---------- 5. AUTO MESSAGE - TEENON EK + KOI EK 50% PAR ----------
 if teenon_ek and koi_ek_50:
+    poora_msg = f"USTAD JI - TEENON EK HO GAYE\n{final_side_msg}\n\n5M: {c5} {ch5}% - MT5 Price {mt5:.2f}\n15M: {c15} {ch15}% - MT5 Price {mt5:.2f}\n1H: {c1h} {ch1h}% - MT5 Price {mt5:.2f}\n\nKANDLE WALA HISAB:\n12 Me Se {total_buy_kandle} BUY Par Hain\n12 Me Se {total_sell_kandle} SELL Par Hain\n\nFinal: {final_side} {final_chance}% - MT5 {mt5:.2f}"
     telegram_bhejo(poora_msg)
-    tasveer_1 = pehle_page_ki_tasveer_banao()
-    telegram_tasveer_bhejo(tasveer_1, "USTAD JI - PEHLA PAGE - Poora Data")
-    tasveer_2 = doosre_page_ki_tasveer_banao()
-    telegram_tasveer_bhejo(tasveer_2, "USTAD JI - DOOSRA PAGE - Teenon Ek Wala")
+    tasveer_1 = pehle_page_ki_tasveer_banao(mt5)
+    telegram_tasveer_bhejo(tasveer_1, "USTAD JI - PEHLA PAGE - Poora Data - MT5 Price Fit")
+    tasveer_2 = doosre_page_ki_tasveer_banao(mt5)
+    telegram_tasveer_bhejo(tasveer_2, "USTAD JI - DOOSRA PAGE - Teenon Ek Wala - MT5 Price Fit")
     st.success("USTAD JI - MESSAGE + DONON TASVEER BHEJ DI - Teenon Ek + Ek 50% Par")
 else:
-    st.info(f"Abhi nahi bheja - Teenon Ek: {teenon_ek} - Koi 50 par: {koi_ek_50} - 5M {ch5}% - 15M {ch15}% - 1H {ch1h}%")
+    st.info(f"Abhi auto nahi bheja - Teenon Ek: {teenon_ek} - Koi 50 par: {koi_ek_50}")
+
+# ---------- 6. WARNING - 40 DOLLAR HARKAT - UPAR YA NEECHE ----------
+# USTAD JI - Subah wali price ko base manenge, us se 40 upar ya 40 neeche hua to warning
+# Ek warning ke baad base nayi price ho jayegi, taake baar baar warning na aaye
+
+# Abhi wali Yahoo wali price ko lete hain - p5 wali price
+abhi_price = p5['E']
+
+if "warning_base_price" not in st.session_state:
+    st.session_state.warning_base_price = abhi_price
+
+base_price = st.session_state.warning_base_price
+fark = abhi_price - base_price
+
+if fark >= 40:
+    telegram_bhejo(f"USTAD JI - WARNING - MARKET UPAR CHALI GAYI\n\nBase Price Thi: {base_price:.2f}\nAbhi Price Hai: {abhi_price:.2f}\nHarkat: +{fark:.2f} Dollar UPAR\n\nUstad Ji, 40 Dollar Upar Ho Gaya Hai, Dhyan Rakho")
+    st.warning(f"USTAD JI - WARNING BHEJ DI - 40 Dollar Upar - {base_price:.2f} se {abhi_price:.2f}")
+    st.session_state.warning_base_price = abhi_price
+
+elif fark <= -40:
+    telegram_bhejo(f"USTAD JI - WARNING - MARKET NEECHE GIR GAYI\n\nBase Price Thi: {base_price:.2f}\nAbhi Price Hai: {abhi_price:.2f}\nHarkat: {fark:.2f} Dollar NEECHE\n\nUstad Ji, 40 Dollar Neeche Gir Gaya Hai, Dhyan Rakho")
+    st.warning(f"USTAD JI - WARNING BHEJ DI - 40 Dollar Neeche - {base_price:.2f} se {abhi_price:.2f}")
+    st.session_state.warning_base_price = abhi_price
+
+else:
+    st.info(f"Warning Base: {base_price:.2f} - Abhi: {abhi_price:.2f} - Fark: {fark:.2f} - 40 Dollar par warning aayegi")
+
+# ---------- 7. ONE / TWO WALA - TELEGRAM SE PADHNA ----------
+# USTAD JI - Bot har baar Telegram se poochega ke Ustad Ji ne kya likha hai
+# ONE 2635.50 likhoge to pehla page, TWO 2635.50 likhoge to doosra page
+# Price ke bagair koi kaam nahi karega
+
+def telegram_se_naya_msg_padho():
+    try:
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/getUpdates"
+        # Aakhri wala hi padhenge
+        r = requests.get(url, params={"timeout": 10, "limit": 5}, timeout=15)
+        data = r.json()
+        if not data.get("result"):
+            return None
+        aakhri = data["result"][-1]
+        msg = aakhri.get("message", {})
+        text = msg.get("text", "").strip()
+        msg_id = aakhri.get("update_id", 0)
+        return text, msg_id
+    except:
+        return None
+
+# Puraana wala msg_id yaad rakhenge, taake ek hi ONE ko baar baar na padhen
+if "aakhri_update_id" not in st.session_state:
+    st.session_state.aakhri_update_id = 0
+
+naya = telegram_se_naya_msg_padho()
+if naya:
+    text_upar, update_id = naya
+    if update_id != st.session_state.aakhri_update_id:
+        st.session_state.aakhri_update_id = update_id
+        parts = text_upar.split()
+        # parts[0] = ONE ya TWO, parts[1] = Price hona lazmi hai
+        if len(parts) >= 1 and parts[0].upper() in ["ONE", "TWO"]:
+            if len(parts) < 2:
+                # Price nahi likha - Koi kaam nahi karega, sirf price mangega
+                telegram_bhejo("USTAD JI - PRICE BHI LIKHEN\nJaise: ONE 2635.50\nYa: TWO 2635.50\nPrice ke bagair tasveer nahi bhejunga")
+                st.error("USTAD JI - ONE / TWO likha, lekin Price nahi likha - Isliye tasveer nahi bheji")
+            else:
+                try:
+                    mt5_price_jo_aapne_bheja = float(parts[1])
+                    if parts[0].upper() == "ONE":
+                        t1 = pehle_page_ki_tasveer_banao(mt5_price_jo_aapne_bheja)
+                        telegram_tasveer_bhejo(t1, f"USTAD JI - PEHLA PAGE - Aap Wala MT5 Price: {mt5_price_jo_aapne_bheja:.2f}")
+                        telegram_bhejo(f"USTAD JI - PEHLA PAGE BHEJ DIYA\nMT5 Price Jo Aapne Bheja: {mt5_price_jo_aapne_bheja:.2f}\nIsi ko fit kar ke tasveer bheji hai")
+                        st.success(f"ONE wala - Pehla Page bhej diya - MT5 Price: {mt5_price_jo_aapne_bheja}")
+                    else:
+                        t2 = doosre_page_ki_tasveer_banao(mt5_price_jo_aapne_bheja)
+                        telegram_tasveer_bhejo(t2, f"USTAD JI - DOOSRA PAGE - Aap Wala MT5 Price: {mt5_price_jo_aapne_bheja:.2f}")
+                        telegram_bhejo(f"USTAD JI - DOOSRA PAGE BHEJ DIYA\nMT5 Price Jo Aapne Bheja: {mt5_price_jo_aapne_bheja:.2f}\nIsi ko fit kar ke tasveer bheji hai")
+                        st.success(f"TWO wala - Doosra Page bhej diya - MT5 Price: {mt5_price_jo_aapne_bheja}")
+                except:
+                    telegram_bhejo("USTAD JI - PRICE SAHI NAHI LIKHA\nJaise likhen: ONE 2635.50")
+        else:
+            st.info(f"Telegram par aakhri msg: {text_upar} - ONE / TWO nahi hai, isliye kuch nahi bheja")
 
 # ---------- 8. TESTING WALA BUTTON ----------
 st.markdown("---")
 st.subheader("USTAD JI - TESTING WALA BUTTON")
-
 if st.button("TEST KARO - MESSAGE + DONON TASVEER BHEJO", use_container_width=True):
-    st.info("USTAD JI - Tasveeren ban rahi hain, thoda ruk jao...")
-    test_msg = "USTAD JI - TESTING HO RAHI HAI\nYe test wala message hai\nAgar ye aa gaya to matlab Telegram bilkul theek chal raha hai\n\n" + poora_msg
-    bheja_gaya = telegram_bhejo(test_msg)
-    tasveer_1 = pehle_page_ki_tasveer_banao()
-    telegram_tasveer_bhejo(tasveer_1, "USTAD JI - PEHLA PAGE - TEST - Poora Data")
-    tasveer_2 = doosre_page_ki_tasveer_banao()
-    telegram_tasveer_bhejo(tasveer_2, "USTAD JI - DOOSRA PAGE - TEST - Teenon Ek Wala")
-    if bheja_gaya:
-        st.success("USTAD JI - HO GAYA - Telegram pe message + donon tasveer chali gayi hai - Ab Telegram check karo")
-    else:
-        st.error("USTAD JI - NAHI GAYA - Setting me Token ya Chat ID nahi mila - Setting check karo")
+    test_msg = "USTAD JI - TESTING HO RAHI HAI\nYe test wala message hai\nAgar ye aa gaya to matlab Telegram bilkul theek chal raha hai"
+    telegram_bhejo(test_msg)
+    t1 = pehle_page_ki_tasveer_banao(mt5)
+    telegram_tasveer_bhejo(t1, "USTAD JI - PEHLA PAGE - TEST")
+    t2 = doosre_page_ki_tasveer_banao(mt5)
+    telegram_tasveer_bhejo(t2, "USTAD JI - DOOSRA PAGE - TEST")
+    st.success("USTAD JI - HO GAYA - Telegram check karo") 
+    
     
