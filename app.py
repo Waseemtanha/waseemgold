@@ -809,4 +809,143 @@ st.info(f"HO GAYA - 5M {c5} {ch5}% - 15M {c15} {ch15}% - 1H {c1h} {ch1h}% - Fina
 if st.button("NEXT ➡️ - Dobara Naya Data Dekho", use_container_width=True):
     st.session_state.next_count += 1
     st.rerun()
+    # ============================================================
+# USTAD JI - POORI KAHANI - EK HI SCRIPT - DONON PAGE KE NEECHE LAGANA HAI
+# ============================================================
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import io
+
+# ---------- 1. TELEGRAM - SETTING SE UTHAYEGA ----------
+# Script me Token / ID nahi likha hua - Setting me se uthayega
+TELEGRAM_TOKEN = st.secrets.get("TELEGRAM_TOKEN", "")
+TELEGRAM_CHAT_ID = st.secrets.get("TELEGRAM_CHAT_ID", "")
+
+def telegram_bhejo(msg):
+    if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
+        return False
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+        requests.post(url, data={"chat_id": TELEGRAM_CHAT_ID, "text": msg}, timeout=10)
+        return True
+    except:
+        return False
+
+def telegram_tasveer_bhejo(image_bytes, caption_text):
+    if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
+        return False
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendPhoto"
+        files = {"photo": ("page.png", image_bytes)}
+        data = {"chat_id": TELEGRAM_CHAT_ID, "caption": caption_text}
+        requests.post(url, data=data, files=files, timeout=20)
+        return True
+    except:
+        return False
+
+# ---------- 2. TEENON EK + KOI EK 50% PAR ----------
+teenon_buy = (c5=="BUY" and c15=="BUY" and c1h=="BUY")
+teenon_sell = (c5=="SELL" and c15=="SELL" and c1h=="SELL")
+teenon_ek = teenon_buy or teenon_sell
+
+koi_ek_50 = (ch5>=50 or ch15>=50 or ch1h>=50)
+
+# ---------- 3. KANDLE WALA HISAB - 12 ME SE ----------
+def kandle_ginti(p):
+    buy_g = sum([1 for x in [p["pin"], p["fvg"], p["choch"], p["liq"]] if "BUY" in x])
+    sell_g = sum([1 for x in [p["pin"], p["fvg"], p["choch"], p["liq"]] if "SELL" in x])
+    return buy_g, sell_g
+
+b5, s5 = kandle_ginti(p5)
+b15, s15 = kandle_ginti(p15)
+b1h, s1h = kandle_ginti(p1h)
+
+total_buy_kandle = b5 + b15 + b1h
+total_sell_kandle = s5 + s15 + s1h
+
+# ---------- 4. MESSAGE BANANA ----------
+if teenon_buy:
+    final_side_msg = "TEENON BUY - TEENON GREEN"
+else:
+    final_side_msg = "TEENON SELL - TEENON RED"
+
+poora_msg = f"USTAD JI - TEENON EK HO GAYE\n{final_side_msg}\n\n5M: {c5} {ch5}% - Price {p5['E']:.2f}\n15M: {c15} {ch15}% - Price {p15['E']:.2f}\n1H: {c1h} {ch1h}% - Price {p1h['E']:.2f}\n\nKANDLE WALA HISAB:\n12 Me Se {total_buy_kandle} BUY Par Hain\n12 Me Se {total_sell_kandle} SELL Par Hain\n\nFinal: {final_side} {final_chance}% - MT5 {mt5:.2f}"
+
+# ---------- 5. PEHLE PAGE KI TASVEER ----------
+def pehle_page_ki_tasveer_banao():
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.axis('off')
+    ax.set_title("USTAD JI - PEHLA PAGE - 12 ME SE HISAB", fontsize=14, fontweight='bold', pad=20)
+    table_data = [
+        ["Time", "Side", "Chance %", "Price"],
+        ["5M", f"{c5}", f"{ch5}%", f"{p5['E']:.2f}"],
+        ["15M", f"{c15}", f"{ch15}%", f"{p15['E']:.2f}"],
+        ["1H", f"{c1h}", f"{ch1h}%", f"{p1h['E']:.2f}"],
+        ["", "", "", ""],
+        ["KANDLE HISAB", "", "", ""],
+        ["12 Me Se BUY", f"{total_buy_kandle}", "", ""],
+        ["12 Me Se SELL", f"{total_sell_kandle}", "", ""],
+    ]
+    table = ax.table(cellText=table_data, loc='center', cellLoc='center')
+    table.auto_set_font_size(False)
+    table.set_fontsize(12)
+    table.scale(1, 1.8)
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', bbox_inches='tight', dpi=150)
+    plt.close(fig)
+    buf.seek(0)
+    return buf.getvalue()
+
+# ---------- 6. DOOSRE PAGE KI TASVEER ----------
+def doosre_page_ki_tasveer_banao():
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.axis('off')
+    ax.set_title("USTAD JI - DOOSRA PAGE - TEENON EK", fontsize=14, fontweight='bold', pad=20)
+    table_data = [
+        ["Time", "Side", "Chance %", "MT5 Price"],
+        ["5M", f"{c5}", f"{ch5}%", f"{mt5:.2f}"],
+        ["15M", f"{c15}", f"{ch15}%", f"{mt5:.2f}"],
+        ["1H", f"{c1h}", f"{ch1h}%", f"{mt5:.2f}"],
+        ["", "", "", ""],
+        ["FINAL", f"{final_side}", f"{final_chance}%", f"{mt5:.2f}"],
+    ]
+    table = ax.table(cellText=table_data, loc='center', cellLoc='center')
+    table.auto_set_font_size(False)
+    table.set_fontsize(12)
+    table.scale(1, 1.8)
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', bbox_inches='tight', dpi=150)
+    plt.close(fig)
+    buf.seek(0)
+    return buf.getvalue()
+
+# ---------- 7. AUTO MESSAGE - JAB TEENON EK + EK 50% PAR ----------
+if teenon_ek and koi_ek_50:
+    telegram_bhejo(poora_msg)
+    tasveer_1 = pehle_page_ki_tasveer_banao()
+    telegram_tasveer_bhejo(tasveer_1, "USTAD JI - PEHLA PAGE - Poora Data")
+    tasveer_2 = doosre_page_ki_tasveer_banao()
+    telegram_tasveer_bhejo(tasveer_2, "USTAD JI - DOOSRA PAGE - Teenon Ek Wala")
+    st.success("USTAD JI - MESSAGE + DONON TASVEER BHEJ DI - Teenon Ek + Ek 50% Par")
+else:
+    st.info(f"Abhi nahi bheja - Teenon Ek: {teenon_ek} - Koi 50 par: {koi_ek_50} - 5M {ch5}% - 15M {ch15}% - 1H {ch1h}%")
+
+# ---------- 8. TESTING WALA BUTTON ----------
+st.markdown("---")
+st.subheader("USTAD JI - TESTING WALA BUTTON")
+
+if st.button("TEST KARO - MESSAGE + DONON TASVEER BHEJO", use_container_width=True):
+    st.info("USTAD JI - Tasveeren ban rahi hain, thoda ruk jao...")
+    test_msg = "USTAD JI - TESTING HO RAHI HAI\nYe test wala message hai\nAgar ye aa gaya to matlab Telegram bilkul theek chal raha hai\n\n" + poora_msg
+    bheja_gaya = telegram_bhejo(test_msg)
+    tasveer_1 = pehle_page_ki_tasveer_banao()
+    telegram_tasveer_bhejo(tasveer_1, "USTAD JI - PEHLA PAGE - TEST - Poora Data")
+    tasveer_2 = doosre_page_ki_tasveer_banao()
+    telegram_tasveer_bhejo(tasveer_2, "USTAD JI - DOOSRA PAGE - TEST - Teenon Ek Wala")
+    if bheja_gaya:
+        st.success("USTAD JI - HO GAYA - Telegram pe message + donon tasveer chali gayi hai - Ab Telegram check karo")
+    else:
+        st.error("USTAD JI - NAHI GAYA - Setting me Token ya Chat ID nahi mila - Setting check karo")
     
