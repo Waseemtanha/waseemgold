@@ -890,3 +890,22 @@ if teenon_ek and koi_ek_48:
     st.success("USTAD JI - MESSAGE + DONON TASVEER BHEJ DI - Teenon Ek + Ek 48% Par")
 else:
     st.info(f"Abhi auto nahi bheja - Teenon Ek: {teenon_ek} - Koi 48 par: {koi_ek_48}")
+    # --- ARZI TEST BUTTON - SIRF TEST KE LIYE ---
+st.markdown("---")
+st.subheader("ARZI TEST - TELEGRAM DESIGN CHECK")
+
+if st.button("TELEGRAM TEST KARO - DONO TASVEEREN BHEJO"):
+    st.write("Test chal raha hai, Telegram check karo...")
+    try:
+        # Yahoo se live price lega, wahi jo Telegram ke liye likha hua hai
+        test_price = get_yahoo_price()
+        if test_price is None:
+            test_price = 3983.0
+            st.write("Yahoo se price nahi mili, 3983 se test kar raha hun")
+
+        # Yahan wahi wala function chalega jo asli signal par chalta hai
+        # Is me teenon ek taraf hone wali shart nahi lagegi, sirf design check hoga
+        send_telegram_both_images(test_price)
+        st.success("Ho gaya! Telegram me dono tasveeren check karo")
+    except Exception as e:
+        st.error(f"Test me masla aaya: {e}")
