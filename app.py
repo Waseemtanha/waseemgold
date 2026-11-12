@@ -1,4 +1,4 @@
-# WASEEM - V4.4 - FINAL FIXED - KATA HUA LAFZ THEEK
+# WASEEM - V4.4 - FINAL FIXED - DOBARA SAHI WALA
 # PURANI FILE KHALI KAR KE YAHI PASTE KARO
 import streamlit as st
 import yfinance as yf
@@ -16,7 +16,6 @@ import streamlit.components.v1 as components
 st.set_page_config(page_title="WASEEM TRADER - V4.4", layout="centered")
 st.title("WASEEM TRADER - V4.4 - INDICATOR SACH BOLEGA")
 
-# USTAD JI - NEXT WALA - UPAR WALA - KATA HUA THEEK KAR DIYA
 if "next_count" not in st.session_state:
     st.session_state.next_count = 0
 
@@ -723,7 +722,9 @@ if final_side=="BUY":
 else:
     final_entry_txt = f"FINAL ENTRY: {final_entry_price:.2f} - {final_entry_price-3.0:.2f} SE SELL KARO"
 health_txt = " | ".join(health)
-now=datetime.now(datetime.timezone(datetime.timedelta(hours=3))); date_str=now.strftime("%I:%M")
+# USTAD JI - YAHI WALI LINE THEEK KI HAI - PEHLE WALI GALAT THI
+now = datetime.now() + timedelta(hours=3)
+date_str=now.strftime("%I:%M")
 final_ob_txt = ob_corner_text(p1h)
 html=f"""
 <div id="capture" style="max-width:400px;margin:auto;font-family:Arial;background:#fff;padding:2px;color:#000;position:relative" dir="rtl">
@@ -750,7 +751,6 @@ html=f"""
 components.html(html, height=950, scrolling=True)
 st.info(f"HO GAYA - 5M {c5} {ch5}% - 15M {c15} {ch15}% - 1H {c1h} {ch1h}% - Final {final_side} {final_chance}% - LOT {lot_final}")
 
-# --- NEECHE BHI NEXT - KATA HUA FIXED ---
 if st.button("NEXT ➡️ - Dobara Naya Data Dekho", use_container_width=True):
     st.session_state.next_count += 1
     st.rerun()
