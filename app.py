@@ -296,30 +296,28 @@ if st.session_state.get('has_data', False):
     st.pyplot(fig)
 else:
     st.info("👆 PEHLE MANUAL PRICE DALO - PHIR SIGNAL BANAO DABAO - PHIR TASVEER AAYEGI")
-    # USTAD JI - STREAMLIT WALA - FINAL - OB DRAMA KHATAM - NEXT BUTTON WALA
+    # USTAD JI - PEHLA PAGE - STREAMLIT WALA - NEXT BUTTON UPAR WALA
 import streamlit as st
-import requests, datetime
+import requests, datetime, streamlit.components.v1 as components
 
-st.set_page_config(page_title="USTAD JI - GOLD", layout="centered")
-st.markdown("<h2 style='text-align:center;color:#0a1f44'>USTAD JI - GOLD - FINAL WALA</h2>", unsafe_allow_html=True)
+st.set_page_config(page_title="USTAD JI - PEHLA PAGE", layout="centered")
 
-# --- NEXT BUTTON WALA HISAB ---
-# Jab NEXT dabayenge to naya data aayega
+# --- NEXT BUTTON UPAR WALA ---
+# Pehla page maujood hai, sirf NEXT upar dala hai
 if "next_count" not in st.session_state:
     st.session_state.next_count = 0
 
-col1, col2 = st.columns([3,1])
-with col1:
-    mt5_raw = st.text_input("Ustad Ji, MT5 wali price daalein (misal 3983)", value="3983")
-with col2:
-    st.write("")
-    st.write("")
-    next_dabaya = st.button("NEXT ➡️", use_container_width=True)
+st.markdown("<h3 style='text-align:center;color:#0a1f44'>USTAD JI - PEHLA PAGE - FINAL WALA</h3>", unsafe_allow_html=True)
 
-if next_dabaya:
-    st.session_state.next_count += 1
-    st.rerun()
+col_next1, col_next2 = st.columns([1,3])
+with col_next1:
+    if st.button("NEXT ➡️", use_container_width=True):
+        st.session_state.next_count += 1
+        st.rerun()
+with col_next2:
+    st.write(f"NEXT dabaya gaya: {st.session_state.next_count} baar")
 
+mt5_raw = st.text_input("Ustad Ji, MT5 wali price daalein (misal 3983)", value="3983")
 try:
     mt5 = float(mt5_raw)
 except:
@@ -329,27 +327,32 @@ if mt5 < 1000 or mt5 > 5000:
     st.error(f"USTAD JI, PRICE GALAT HAI - Aap ne daali: {mt5_raw} - Puri price daalo - Misal 3983")
     st.stop()
 
-st.info(f"NEXT dabaya gaya: {st.session_state.next_count} baar | MT5 Price: {mt5}")
+# --- YAHAN SE AAP WALA PEHLA PAGE WESA HI SHURU ---
+print("USTAD JI - FINAL WALA - OB DRAMA KHATAM")
 
-# --- YAHAN SE AAP WALA PURANA SYSTEM SHURU ---
-# Neeche wahi wala system hai jo pehle tha
-# Pin + FVG + CHoCH + Liq + VWAP + RSI + Volume + Trap + Machhli + OB Kone Me
+health = []
+def health_add(name, ok):
+    health.append(f"{name} {'OK' if ok else 'FAIL'}")
 
+health_add("PRICE", True)
 now_dt = datetime.datetime.now()
 now_min = now_dt.minute
 age_5m = now_min % 5
 age_15m = now_min % 15
 age_1h = now_min % 60
 hour_now = now_dt.hour
+health_add("TIME", True)
 
 if 11 <= hour_now < 15:
-    session_name = "LONDON KILL ZONE"; session_score_bonus = 10
+    session_name = "LONDON KILL ZONE"; session_note = "London Kill Zone Hai - Asli Move Aayega"; session_score_bonus = 10
 elif 17 <= hour_now < 22:
-    session_name = "NEW YORK KILL ZONE"; session_score_bonus = 10
+    session_name = "NEW YORK KILL ZONE"; session_note = "New York Kill Zone Hai - Sab Se Zyada Volume"; session_score_bonus = 10
 elif 0 <= hour_now < 8:
-    session_name = "ASIA"; session_score_bonus = -10
+    session_name = "ASIA"; session_note = "Asia Hai - Sirf Manipulation Hogi - Range Banegi"; session_score_bonus = -10
 else:
-    session_name = "OFF"; session_score_bonus = -5
+    session_name = "OFF"; session_note = "Session Off Hai - Manipulation Wala Time"; session_score_bonus = -5
+
+corner_warnings = []
 
 def yahoo_fetch(symbol, interval, range_):
     url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?interval={interval}&range={range_}"
@@ -366,18 +369,35 @@ def yahoo_fetch(symbol, interval, range_):
         return {"ok":True,"closes":c2,"highs":h2,"lows":l2,"opens":o2,"vols":v2,"price":price,"symbol":symbol}
     except: return {"ok":False}
 
+def repair_line(d):
+    if not d["ok"]: return d
+    vols=d["vols"]; last_good_vol=None
+    for v in reversed(vols):
+        if v is not None and v!=0 and v>0: last_good_vol=v; break
+    new_vols=[]
+    for v in vols:
+        if v is None or v==0: new_vols.append(last_good_vol if last_good_vol is not None else None)
+        else: new_vols.append(v); last_good_vol=v
+    d["vols"]=new_vols
+    for key in ["closes","highs","lows","opens"]:
+        arr=d[key]; new_arr=[]; last_good=arr[0] if len(arr)>0 else mt5
+        for val in arr:
+            if val is None or val==0: new_arr.append(last_good)
+            else: new_arr.append(val); last_good=val
+        d[key]=new_arr
+    return d
+
 def get_one_time(interval_yahoo):
     d2 = yahoo_fetch("XAUUSD=X", interval_yahoo, "5d")
-    if d2["ok"]: return d2, "SPOT"
+    if d2["ok"]: return repair_line(d2), "SPOT"
     d3 = yahoo_fetch("GC=F", interval_yahoo, "5d")
-    if d3["ok"]: return d3, "FUTURE"
+    if d3["ok"]: return repair_line(d3), "FUTURE"
     return {"ok":False}, "KHALI"
 
-# 12 CANDLE WALA HISAB - AAP WALA PURANA
-# Yahan 12 candle ka data bhi rakha hai, taake website pe 12 candle bhi dikhen
 d5_raw, src5 = get_one_time("5m")
 d15_raw, src15 = get_one_time("15m")
 d1h_raw, src1h = get_one_time("60m")
+health_add("DATA", d5_raw["ok"] or d15_raw["ok"] or d1h_raw["ok"])
 
 if d5_raw["ok"]: yahoo_price_raw = d5_raw["price"]
 elif d15_raw["ok"]: yahoo_price_raw = d15_raw["price"]
@@ -385,25 +405,31 @@ elif d1h_raw["ok"]: yahoo_price_raw = d1h_raw["price"]
 else: yahoo_price_raw = mt5
 
 farq_asli = yahoo_price_raw - mt5
-shift = mt5 - yahoo_price_raw
 
+if abs(farq_asli) > 20:
+    if "Farq-Zyada" not in corner_warnings: corner_warnings.append("Farq-Zyada")
+
+shift = mt5 - yahoo_price_raw
 def apply_shift(d):
     if not d["ok"]: return d
     d2=dict(d); d2["closes"]=[x+shift for x in d["closes"]]; d2["highs"]=[x+shift for x in d["highs"]]; d2["lows"]=[x+shift for x in d["lows"]]; d2["opens"]=[x+shift for x in d["opens"]]; d2["price"]=d["price"]+shift; return d2
-
 d5=apply_shift(d5_raw); d15=apply_shift(d15_raw); d1h=apply_shift(d1h_raw)
-
-if farq_asli < -4: side_farq="SELL"; machhli=f"MACHHLI SELL - Farq {farq_asli:.2f}"
-elif farq_asli > 4: side_farq="BUY"; machhli=f"MACHHLI BUY - Farq {farq_asli:.2f}"
+if d5["ok"]: yahoo_price=d5["price"]
+elif d15["ok"]: yahoo_price=d15["price"]
+elif d1h["ok"]: yahoo_price=d1h["price"]
+else: yahoo_price=mt5
+farq=farq_asli
+if farq < -4: side_farq="SELL"; machhli=f"MACHHLI SELL - Farq {farq:.2f}"
+elif farq > 4: side_farq="BUY"; machhli=f"MACHHLI BUY - Farq {farq:.2f}"
 else:
-    if farq_asli>=0: side_farq="BUY"; machhli=f"MACHHLI HALKI BUY - Farq {farq_asli:.2f}"
-    else: side_farq="SELL"; machhli=f"MACHHLI HALKI SELL - Farq {farq_asli:.2f}"
+    if farq>=0: side_farq="BUY"; machhli=f"MACHHLI HALKI BUY - Farq {farq:.2f}"
+    else: side_farq="SELL"; machhli=f"MACHHLI HALKI SELL - Farq {farq:.2f}"
 
 def get_pakki_arrays(d):
     if not d["ok"] or len(d["closes"])<3: return d
     d2=dict(d); d2["closes"]=d["closes"][:-1]; d2["highs"]=d["highs"][:-1]; d2["lows"]=d["lows"][:-1]; d2["opens"]=d["opens"][:-1]; d2["vols"]=d["vols"][:-1] if len(d["vols"])==len(d["closes"]) else d["vols"]; return d2
-
 d5_pakki=get_pakki_arrays(d5); d15_pakki=get_pakki_arrays(d15); d1h_pakki=get_pakki_arrays(d1h)
+health_add("PAKKI-CANDLE", True)
 
 def calc_rsi(closes, period=14):
     if len(closes)<period+1: return None
@@ -434,30 +460,36 @@ def calc_vwap_single(d1h_pakki):
         tp=(highs[i]+lows[i]+closes[i])/3; v=vols[i] if i<len(vols) and vols[i] is not None and vols[i]!=0 else 1; total_pv+=tp*v; total_v+=v
     if total_v==0: return None
     return total_pv/total_v
-
 vwap_common=calc_vwap_single(d1h_pakki)
-vwap_common_side="VWAP Upar" if vwap_common is not None and mt5>vwap_common else "VWAP Neeche" if vwap_common is not None else "VWAP Nahi"
+if vwap_common is not None: vwap_common_side="VWAP Upar" if mt5>vwap_common else "VWAP Neeche"
+else: vwap_common_side="VWAP Nahi"
+health_add("VWAP", vwap_common is not None)
 
-if session_name=="ASIA": regime="RANGE"
+if session_name=="ASIA":
+    regime = "RANGE"
 elif d1h_pakki["ok"] and vwap_common is not None:
-    regime="RANGE" if abs(mt5-vwap_common)<8 else "TREND"
-else: regime="RANGE"
+    dist_vwap = abs(mt5 - vwap_common)
+    if dist_vwap < 8: regime = "RANGE"
+    else: regime = "TREND"
+else: regime = "RANGE"
 
-# DXY + YIELD
 try:
     dxy_data = yahoo_fetch("DX-Y.NYB", "60m", "5d")
     if dxy_data["ok"] and len(dxy_data["closes"])>5:
-        dxy_up = dxy_data["closes"][-1] > dxy_data["closes"][-5]
+        dxy_now = dxy_data["closes"][-1]; dxy_old = dxy_data["closes"][-5]
+        dxy_up = dxy_now > dxy_old
         dxy_txt = "DXY Upar" if dxy_up else "DXY Neeche"
     else: dxy_up=False; dxy_txt="DXY Nahi"
 except: dxy_up=False; dxy_txt="DXY Nahi"
-
 try:
     yield_data = yahoo_fetch("^TNX", "60m", "5d")
     if yield_data["ok"] and len(yield_data["closes"])>2:
-        yield_now = yield_data["closes"][-1]; yield_txt=f"Yield {yield_now:.2f}%"; yield_high=yield_now>5.0
-    else: yield_txt="Yield Nahi"; yield_high=False
-except: yield_txt="Yield Nahi"; yield_high=False
+        yield_now = yield_data["closes"][-1]
+        yield_txt = f"Yield {yield_now:.2f}%"
+        yield_high = yield_now > 5.0
+    else: yield_now=0; yield_txt="Yield Nahi"; yield_high=False
+except: yield_now=0; yield_txt="Yield Nahi"; yield_high=False
+health_add("MACRO-DXY", dxy_txt!="DXY Nahi")
 
 def check_pin(o,h,l,c):
     body=abs(c-o)
@@ -484,6 +516,15 @@ def check_liquidity_sweep(highs,lows,closes):
     if last_low<prev_low and last_close>prev_low: return "Liq Sweep BUY"
     return "Liq Nahi"
 
+def check_sweep_displacement(d_pakki, liq_txt):
+    if "Sweep" not in liq_txt: return False, "Sweep Nahi"
+    if not d_pakki["ok"] or len(d_pakki["closes"])<5: return False, "Sweep Jhoota"
+    closes=d_pakki["closes"]; highs=d_pakki["highs"]; lows=d_pakki["lows"]
+    atrs=calc_atr_list(highs,lows,closes); atr_now=atrs[-1] if atrs[-1] is not None else 5
+    move = abs(closes[-1]-closes[-3])
+    if move >= atr_now*0.8: return True, "Sweep SACHA + Displacement"
+    else: return False, "Sweep JHOOTA - Displacement Nahi"
+
 def check_order_block(opens,closes,highs,lows):
     if len(closes)<5: return "OB Nahi", None, None
     cur=closes[-1]
@@ -493,9 +534,11 @@ def check_order_block(opens,closes,highs,lows):
             if c_next<o_next and c>o:
                 ob_low=min(o,c); ob_high=max(o,c)
                 if ob_low<=cur<=ob_high+2: return "OB BUY Me Hai", ob_low, ob_high
+                elif cur>ob_high: return "OB BUY Tor Diya", ob_low, ob_high
             if c_next>o_next and c<o:
                 ob_low=min(o,c); ob_high=max(o,c)
                 if ob_low-2<=cur<=ob_high: return "OB SELL Me Hai", ob_low, ob_high
+                elif cur<ob_low: return "OB SELL Tor Diya", ob_low, ob_high
     return "OB Nahi", None, None
 
 def calc_volume(vols, src_name):
@@ -514,27 +557,68 @@ def calc_volume(vols, src_name):
     elif last<avg*0.8: return {"text":f"Vol {pct}%","trend":"GIR","pct":pct}
     else: return {"text":f"Vol {pct}%","trend":"NORMAL","pct":pct}
 
-def process(d_pakki, age_min, adhuri_limit, src_name):
+def calc_tp_hit_both(opens,closes,highs,lows,atrs,look_ahead,tp_mult):
+    buy_pins=[]; sell_pins=[]
+    for i in range(max(20,len(closes)-150), len(closes)-1):
+        if atrs[i] is None or atrs[i]==0: continue
+        oo=opens[i]; cc=closes[i]; hh=highs[i]; ll=lows[i]; b=abs(cc-oo)
+        if b<0.01: b=0.01
+        lw=min(oo,cc)-ll; uw=hh-max(oo,cc); bull=lw>b*1.5; bear=uw>b*1.5
+        if bull or bear:
+            E=cc; atr_here=atrs[i]; sl=atr_here*1.5; tp_small=atr_here*1.5; tp1=atr_here*tp_mult
+            if bull:
+                slP=E-sl; tpSP=E+tp_small; tpP=E+tp1; hit_small="NAHI"; hit_big="NAHI"
+                for j in range(i+1, min(i+1+look_ahead, len(closes))):
+                    if highs[j]>=tpSP and hit_small=="NAHI": hit_small="TP"
+                    if highs[j]>=tpP and hit_big=="NAHI": hit_big="TP"
+                    if lows[j]<=slP: break
+                buy_pins.append((hit_small,hit_big))
+            else:
+                slP=E+sl; tpSP=E-tp_small; tpP=E-tp1; hit_small="NAHI"; hit_big="NAHI"
+                for j in range(i+1, min(i+1+look_ahead, len(closes))):
+                    if lows[j]<=tpSP and hit_small=="NAHI": hit_small="TP"
+                    if lows[j]<=tpP and hit_big=="NAHI": hit_big="TP"
+                    if highs[j]>=slP: break
+                sell_pins.append((hit_small,hit_big))
+    buy_pins=buy_pins[-20:]; sell_pins=sell_pins[-20:]
+    def make(pins):
+        if len(pins)==0: return {"pct":0,"small_pct":0,"txt":"TP Data Nahi"}
+        ws=sum(1 for x in pins if x[0]=="TP"); wb=sum(1 for x in pins if x[1]=="TP"); t=len(pins); ps=int(ws*100/t); pb=int(wb*100/t); return {"pct":pb,"small_pct":ps,"txt":f"TP {pb}% - {wb}/{t}"}
+    return {"buy":make(buy_pins),"sell":make(sell_pins)}
+
+def process(d_pakki, age_min, adhuri_limit, src_name, look_ahead, tp_mult):
     if not d_pakki["ok"]:
-        return {"rsi":"Nahi","atr":"Nahi","pin":"Data Nahi","fvg":"Data Nahi","choch":"Data Nahi","liq":"Data Nahi","ob":"Data Nahi","ob_low":None,"ob_high":None,"vwap_side":vwap_common_side,"vol":{"text":"Vol Nahi","trend":"NAHI","pct":0},"E":mt5,"adhuri":True,"rsi_val":None,"age":age_min,"src":src_name,"trap":""}
+        return {"rsi":"Nahi","atr":"Nahi","pin":"Data Nahi","fvg":"Data Nahi","choch":"Data Nahi","liq":"Data Nahi","ob":"Data Nahi","ob_low":None,"ob_high":None,"vwap_side":vwap_common_side,"vol":{"text":"Vol Nahi","trend":"NAHI","pct":0},"tp":{"buy":{"pct":0,"small_pct":0,"txt":""},"sell":{"pct":0,"small_pct":0,"txt":""}},"E":mt5,"adhuri":True,"rsi_val":None,"age":age_min,"src":src_name,"sweep_sacha":False,"sweep_note":"Sweep Nahi","trap":""}
     closes=d_pakki["closes"]; highs=d_pakki["highs"]; lows=d_pakki["lows"]; opens=d_pakki["opens"]; vols=d_pakki.get("vols",[])
     rsi=calc_rsi(closes); atrs=calc_atr_list(highs,lows,closes); atr=atrs[-1]
-    pin=check_pin(opens[-1],highs[-1],lows[-1],closes[-1]); fvg=check_fvg(highs,lows); choch=check_choch(highs,lows); liq=check_liquidity_sweep(highs,lows,closes); ob, ob_low, ob_high = check_order_block(opens,closes,highs,lows); vol=calc_volume(vols,src_name)
-    adhuri=True if age_min<adhuri_limit else False
+    pin=check_pin(opens[-1],highs[-1],lows[-1],closes[-1]); fvg=check_fvg(highs,lows); choch=check_choch(highs,lows); liq=check_liquidity_sweep(highs,lows,closes); ob, ob_low, ob_high = check_order_block(opens,closes,highs,lows); vol=calc_volume(vols,src_name); tp=calc_tp_hit_both(opens,closes,highs,lows,atrs,look_ahead,tp_mult); adhuri=False
+    if age_min<adhuri_limit: adhuri=True
     E=closes[-1]
+    sweep_sacha, sweep_note = check_sweep_displacement(d_pakki, liq)
     trap=""
-    if choch=="CHoCH BUY" and vol["trend"]!="BADH" and rsi is not None and rsi>70: trap="BULL TRAP"
-    elif choch=="CHoCH SELL" and vol["trend"]!="BADH" and rsi is not None and rsi<30: trap="BEAR TRAP"
-    return {"rsi":f"{rsi:.0f}" if rsi is not None else "Nahi","atr":f"{atr:.2f}" if atr is not None else "Nahi","pin":pin,"fvg":fvg,"choch":choch,"liq":liq,"ob":ob,"ob_low":ob_low,"ob_high":ob_high,"vwap_side":vwap_common_side,"vol":vol,"E":E,"adhuri":adhuri,"rsi_val":rsi,"age":age_min,"src":src_name,"trap":trap}
+    if choch=="CHoCH BUY" and vol["trend"]!="BADH" and rsi is not None and rsi>70:
+        trap="BULL TRAP"
+    elif choch=="CHoCH SELL" and vol["trend"]!="BADH" and rsi is not None and rsi<30:
+        trap="BEAR TRAP"
+    return {"rsi":f"{rsi:.0f}" if rsi is not None else "Nahi","atr":f"{atr:.2f}" if atr is not None else "Nahi","pin":pin,"fvg":fvg,"choch":choch,"liq":liq,"ob":ob,"ob_low":ob_low,"ob_high":ob_high,"vwap_side":vwap_common_side,"vol":vol,"tp":tp,"E":E,"adhuri":adhuri,"rsi_val":rsi,"age":age_min,"src":src_name,"sweep_sacha":sweep_sacha,"sweep_note":sweep_note,"trap":trap}
 
-p5=process(d5_pakki, age_5m, 4, src5)
-p15=process(d15_pakki, age_15m, 12, src15)
-p1h=process(d1h_pakki, age_1h, 45, src1h)
+p5=process(d5_pakki, age_5m, 4, src5, 10, 2.5)
+p15=process(d15_pakki, age_15m, 12, src15, 5, 2.0)
+p1h=process(d1h_pakki, age_1h, 45, src1h, 3, 1.5)
+health_add("SETUP", True)
+
+if p1h["rsi_val"] is not None and p1h["rsi_val"]<20:
+    if "RSI-Oversold" not in corner_warnings: corner_warnings.append("RSI-Oversold")
+elif p1h["rsi_val"] is not None and p1h["rsi_val"]>80:
+    if "RSI-Overbought" not in corner_warnings: corner_warnings.append("RSI-Overbought")
+if p5["trap"]!="" or p15["trap"]!="" or p1h["trap"]!="":
+    if "TRAP" not in corner_warnings: corner_warnings.append("TRAP")
 
 def candle_side_sach(p):
     buy_count = sum([1 for x in [p["pin"],p["fvg"],p["choch"],p["liq"]] if "BUY" in x])
     sell_count = sum([1 for x in [p["pin"],p["fvg"],p["choch"],p["liq"]] if "SELL" in x])
-    if buy_count==0 and sell_count==0: return side_farq, "KUCH NAHI BANA"
+    if buy_count==0 and sell_count==0:
+        return side_farq, "KUCH NAHI BANA"
     if buy_count>0 and sell_count>0:
         if buy_count > sell_count: return "BUY", "ANDAR MIXED - BUY Zyada"
         elif sell_count > buy_count: return "SELL", "ANDAR MIXED - SELL Zyada"
@@ -547,23 +631,48 @@ c5, note5 = candle_side_sach(p5)
 c15, note15 = candle_side_sach(p15)
 c1h, note1h = candle_side_sach(p1h)
 
-def calc_chance(p, candle):
-    score_vol=15 if p["vol"]["trend"]=="BADH" else 10 if p["vol"]["trend"]=="NORMAL" else 3 if p["vol"]["trend"]=="GIR" else 10
-    rsi_v=p["rsi_val"]; score_rsi=10 if rsi_v is not None and ((candle=="BUY" and rsi_v<70) or (candle=="SELL" and rsi_v>30)) else 2 if rsi_v is not None else 5
+def calc_chance_advance(p, candle):
+    if candle=="BUY": tp_pct=p["tp"]["buy"]["pct"]
+    else: tp_pct=p["tp"]["sell"]["pct"]
+    score_tp = tp_pct * 0.35
+    if candle==side_farq: score_machhli=5 if abs(farq)>=4 else 3
+    else: score_machhli=0
+    if p["vol"]["trend"]=="BADH": score_vol=15
+    elif p["vol"]["trend"]=="NORMAL": score_vol=10
+    elif p["vol"]["trend"]=="GIR": score_vol=3
+    else: score_vol=10
+    rsi_v=p["rsi_val"]; score_rsi=5
+    if rsi_v is not None:
+        if candle=="BUY" and rsi_v<70: score_rsi=10
+        elif candle=="SELL" and rsi_v>30: score_rsi=10
+        else: score_rsi=2
     score_adhuri=2 if p["adhuri"] else 10
-    score_machhli=5 if candle==side_farq and abs(farq_asli)>=4 else 3 if candle==side_farq else 0
-    score_vwap=5 if (candle=="BUY" and "Upar" in p["vwap_side"]) or (candle=="SELL" and "Neeche" in p["vwap_side"]) else -5 if (candle=="BUY" and "Neeche" in p["vwap_side"]) or (candle=="SELL" and "Upar" in p["vwap_side"]) else 0
-    score_trap=-7 if p["trap"]!="" else 0
+    score_liq=0
+    if candle=="BUY" and "BUY" in p["liq"]:
+        score_liq=20 if p["sweep_sacha"] else 0
+    elif candle=="SELL" and "SELL" in p["liq"]:
+        score_liq=20 if p["sweep_sacha"] else 0
+    score_ob=0
+    score_vwap=0
+    if candle=="BUY" and "Upar" in p["vwap_side"]: score_vwap=5
+    elif candle=="SELL" and "Neeche" in p["vwap_side"]: score_vwap=5
+    elif candle=="BUY" and "Neeche" in p["vwap_side"]: score_vwap=-5
+    elif candle=="SELL" and "Upar" in p["vwap_side"]: score_vwap=-5
+    score_session=session_score_bonus
+    score_regime=0
+    if regime=="RANGE" and score_liq==0: score_regime=-3
     score_macro=0
     if candle=="BUY" and dxy_up: score_macro-=10
     if candle=="SELL" and not dxy_up: score_macro-=5
     if candle=="BUY" and yield_high: score_macro-=10
-    total=int(round(score_vol+score_rsi+score_adhuri+score_machhli+score_vwap+score_trap+session_score_bonus+score_macro))
-    if total<1: total=1
-    if total>95: total=95
-    return total
+    score_trap=0
+    if p["trap"]!="": score_trap=-7
+    total=int(round(score_tp+score_machhli+score_vol+score_rsi+score_adhuri+score_liq+score_ob+score_vwap+score_session+score_regime+score_macro+score_trap))
+    if total < 1: total = 1
+    if total > 95: total = 95
+    return total, tp_pct
 
-ch5=calc_chance(p5,c5); ch15=calc_chance(p15,c15); ch1h=calc_chance(p1h,c1h)
+ch5,tp5=calc_chance_advance(p5,c5); ch15,tp15=calc_chance_advance(p15,c15); ch1h,tp1h=calc_chance_advance(p1h,c1h)
 
 def equity_for(chance):
     if chance>=80: return ("0.05","2%","FULL ENTRY")
@@ -574,57 +683,130 @@ def equity_for(chance):
 
 buy_count_final = sum([1 for x in [c5,c15,c1h] if x=="BUY"])
 sell_count_final = sum([1 for x in [c5,c15,c1h] if x=="SELL"])
-mixed = not (c5==c15==c1h)
+mixed=False
+if not (c5==c15==c1h):
+    mixed=True
+    if "MIXED" not in corner_warnings: corner_warnings.append("MIXED")
+if src5=="FUTURE" or src15=="FUTURE" or src1h=="FUTURE":
+    if "Future-Vol" not in corner_warnings: corner_warnings.append("Future-Vol")
+if "Sweep" in p5["liq"] or "Sweep" in p15["liq"] or "Sweep" in p1h["liq"]:
+    if "Liq-Sweep" not in corner_warnings: corner_warnings.append("Liq-Sweep")
+
+all_below_50=(ch5<50 and ch15<50 and ch1h<50)
 candidates=[(ch5,c5,"5M"),(ch15,c15,"15M"),(ch1h,c1h,"1H")]
-majority_side="BUY" if buy_count_final>sell_count_final else "SELL" if sell_count_final>buy_count_final else None
-majority_candidates=[x for x in candidates if x[1]==majority_side] if majority_side else candidates
-final_chance, final_side, final_time=sorted(majority_candidates, key=lambda x: x[0], reverse=True)[0]
-if majority_side: final_side=majority_side
-final_p = p5 if final_time=="5M" else p15 if final_time=="15M" else p1h
-lot_final, risk_final, entry_final = equity_for(final_chance)
-if final_chance<50: lot_final, risk_final, entry_final = "0.00","0%","TRADE NAHI - CHANCE KAM HAI"
-
-# --- WEBSITE PE DIKHANA ---
-st.markdown(f"<div style='background:#0a1f44;color:#fff;padding:8px;border-radius:6px;text-align:center'><b>BADI MACHHLI: {machhli}</b><br>Bahar {yahoo_price_raw:.2f} | MT5 {mt5:.2f} | Farq {farq_asli:.2f} | {session_name} | Regime {regime} | {dxy_txt} | {yield_txt}</div>", unsafe_allow_html=True)
-
-# 12 CANDLE WALI TABLE - AAP WALI PURANI
-if d5_pakki["ok"]:
-    st.subheader("12 Candle - 5M Wala")
-    last12 = list(zip(d5_pakki["opens"][-12:], d5_pakki["highs"][-12:], d5_pakki["lows"][-12:], d5_pakki["closes"][-12:]))
-    st.table([{"Open":f"{o:.2f}","High":f"{h:.2f}","Low":f"{l:.2f}","Close":f"{c:.2f}"} for o,h,l,c in last12])
-
-colA, colB, colC = st.columns(3)
-def show_box(p, side, chance, note, title):
-    lot_c, risk_c, entry_c = equity_for(chance)
-    atr = float(p["atr"]) if p["atr"]!="Nahi" else 5
-    E = p["E"]
-    if side=="BUY": entry_txt=f"ENTRY {E:.2f} - {E+3.0:.2f} SE BUY KARO"; sl=E-atr*1.5; tp1=E+atr*1.5; tp2=E+atr*2.5
-    else: entry_txt=f"ENTRY {E:.2f} - {E-3.0:.2f} SE SELL KARO"; sl=E+atr*1.5; tp1=E-atr*1.5; tp2=E-atr*2.5
-    ob_txt = f"OB INFO: {p['ob']} | Tumhari Marzi - Lagana Hai To Lagao, Nahi To Mat Lagao" if p["ob_low"] is None else f"OB INFO: {p['ob']} {p['ob_low']:.2f}-{p['ob_high']:.2f} | Tumhari Marzi"
-    st.markdown(f"### {title} - {side} - {chance}%")
-    st.write(f"{p['pin']} | {p['fvg']} | {p['choch']} | {p['liq']}")
-    st.write(f"{note} | {p['vol']['text']} | RSI {p['rsi']} | {p['vwap_side']} | TRAP: {p['trap'] if p['trap'] else 'Nahi'}")
-    st.success(entry_txt)
-    st.write(f"SL {sl:.2f} | TP1 {tp1:.2f} | TP2 {tp2:.2f} | LOT {lot_c} | RISK {risk_c}")
-    st.warning(ob_txt)
-
-with colA: show_box(p5,c5,ch5,note5,"5M")
-with colB: show_box(p15,c15,ch15,note15,"15M")
-with colC: show_box(p1h,c1h,ch1h,note1h,"1H")
-
-if mixed:
-    st.error(f"FINAL: TRADE NAHI - MIXED - {buy_count_final} BUY vs {sell_count_final} SELL - Best {final_side} {final_chance}%")
-elif final_chance<50:
-    st.error(f"FINAL: TRADE NAHI - Teenon 50 se Neeche Hain - Best {final_side} {final_chance}% - MARNA HAI TO MARO, KARNA HAI TO KARO, NAHI KARNA TO MAT KARO")
+if buy_count_final > sell_count_final:
+    majority_side="BUY"
+    majority_candidates=[x for x in candidates if x[1]=="BUY"]
+elif sell_count_final > buy_count_final:
+    majority_side="SELL"
+    majority_candidates=[x for x in candidates if x[1]=="SELL"]
 else:
-    st.success(f"FINAL: {final_side} - {final_time} Wala {final_chance}% Chance - KARNA HAI TO KARO")
-    if final_side=="BUY": st.success(f"FINAL ENTRY: {final_p['E']:.2f} - {final_p['E']+3.0:.2f} SE BUY KARO")
-    else: st.success(f"FINAL ENTRY: {final_p['E']:.2f} - {final_p['E']-3.0:.2f} SE SELL KARO")
+    majority_side=None
+    majority_candidates=candidates
+majority_sorted=sorted(majority_candidates, key=lambda x: x[0], reverse=True)
+final_chance, final_side, final_time=majority_sorted[0]
+if majority_side is not None:
+    final_side=majority_side
 
-st.markdown(f"<div style='background:#0a1f44;color:#ffd700;padding:8px;border-radius:6px;text-align:center'><b>EQUITY: LOT {lot_final} | RISK {risk_final} | {entry_final}</b></div>", unsafe_allow_html=True)
-st.markdown(f"<div style='background:#fef9c3;padding:6px;border-radius:6px;text-align:center;font-size:12px'>OB KONE ME INFO: {p1h['ob']} | Tumhari Marzi - Lagana Hai To Lagao, Nahi To Mat Lagao</div>", unsafe_allow_html=True)
+final_p = p5 if final_time=="5M" else p15 if final_time=="15M" else p1h
 
-# DOBARA NEXT BUTTON - NEECHE BHI
+def get_entry_info(p, side):
+    return p["E"], True
+
+final_entry_price, final_has_entry = get_entry_info(final_p, final_side)
+health_add("ENTRY", True)
+health_add("FINAL", True)
+
+lot_final, risk_final, entry_final = equity_for(final_chance)
+
+def ob_corner_text(p):
+    if p["ob_low"] is not None and p["ob_high"] is not None:
+        return f"OB INFO: {p['ob']} {p['ob_low']:.2f}-{p['ob_high']:.2f} | Tumhari Marzi - Lagana Hai To Lagao, Nahi To Mat Lagao"
+    else:
+        return f"OB INFO: {p['ob']} | Tumhari Marzi - Lagana Hai To Lagao, Nahi To Mat Lagao"
+
+def box_data(p, auto_side, chance, note):
+    if p["atr"]=="Nahi": return "<div style='padding:4px;text-align:center;font-size:9px'>Data Nahi</div>"
+    atr=float(p["atr"])
+    entry_price, has_entry = get_entry_info(p, auto_side)
+    if auto_side=="BUY":
+        entry_txt = f"ENTRY {entry_price:.2f} - {entry_price+3.0:.2f} SE BUY KARO"
+        sl=entry_price-atr*1.5; tp1=entry_price+atr*1.5; tp2=entry_price+atr*2.5
+    else:
+        entry_txt = f"ENTRY {entry_price:.2f} - {entry_price-3.0:.2f} SE SELL KARO"
+        sl=entry_price+atr*1.5; tp1=entry_price-atr*1.5; tp2=entry_price-atr*2.5
+    entry_box = f"<div style='background:#0a1f44;color:#ffd700;font-weight:bold;font-size:9px;padding:3px;border-radius:3px;margin:2px 0'>{entry_txt}</div>"
+    sl_tp_txt = f"SL {sl:.2f} | TP1 {tp1:.2f}<br>TP2 {tp2:.2f}"
+    if auto_side=="BUY": tp_txt=p['tp']['buy']['txt']; head="BUY"; bg="#22c55e"; bg2="#f0fdf4"; border="#22c55e"
+    else: tp_txt=p['tp']['sell']['txt']; head="SELL"; bg="#ef4444"; bg2="#fef2f2"; border="#ef4444"
+    if chance>=70: chance_color="#0a7a2e"; chance_txt="ACHA"
+    elif chance>=50: chance_color="#d97706"; chance_txt="HALKA"
+    else: chance_color="#e60000"; chance_txt="KAM - TRADE NAHI"
+    extra_line=""
+    if "Sweep" in p["liq"]: extra_line=f"<div style='font-size:8px;color:#7c3aed;font-weight:bold'>{p['sweep_note']}</div>"
+    if p["trap"]!="": extra_line+=f"<div style='font-size:8px;color:#e60000;font-weight:bold'>⚠️ {p['trap']}</div>"
+    lot_c, risk_c, entry_c = equity_for(chance)
+    ob_txt = ob_corner_text(p)
+    return f"""<div style="border:1.5px solid {border};border-radius:4px;overflow:hidden;background:{bg2}">
+    <div style="background:{bg};color:#fff;text-align:center;padding:3px;font-weight:bold;font-size:11px">{head}</div>
+    <div style="padding:3px;font-size:9px;line-height:1.3;text-align:center">{extra_line}
+    <div style="font-size:7px;color:#555">{note}</div>
+    {entry_box}
+    {sl_tp_txt} | {tp_txt}<br>{p['vol']['text']} | RSI {p['rsi']} | {p['vwap_side']}<br><b>LOT {lot_c} | RISK {risk_c}</b>
+    <div style="background:#fff;border:1.5px solid {chance_color};border-radius:3px;padding:2px;margin-top:2px"><div style="font-size:16px;font-weight:bold;color:{chance_color};line-height:1">{chance}%</div><div style="font-size:8px;font-weight:bold;color:{chance_color}">{chance_txt} CHANCE</div></div>
+    <div style="background:#fef9c3;border:1px dashed #a16207;border-radius:3px;padding:2px;margin-top:2px;font-size:7px;color:#713f12">{ob_txt}</div>
+    </div></div>"""
+
+if len(corner_warnings)==0: warning_strip="<div style='background:#0a7a2e;color:#fff;text-align:center;font-size:8px;font-weight:bold;padding:2px;border-radius:3px;margin:2px 0'>✅ OK - Sab Sahi Hai</div>"
+else: warning_strip=f"<div style='background:#e60000;color:#fff;text-align:center;font-size:8px;font-weight:bold;padding:2px;border-radius:3px;margin:2px 0'>⚠️ {' | '.join(corner_warnings)}</div>"
+
+if mixed and all_below_50:
+    final_bg="#7f1d1d"; final_side_text_full=f"FINAL: TRADE NAHI - MIXED - {buy_count_final} BUY vs {sell_count_final} SELL - Best {final_side} {final_chance}%"
+elif mixed:
+    final_bg="#7f1d1d"; final_side_text_full=f"FINAL: TRADE NAHI - MIXED - {buy_count_final} BUY vs {sell_count_final} SELL - Best {final_side} {final_chance}%"
+elif all_below_50:
+    final_bg="#7f1d1d"; final_side_text_full=f"FINAL: TRADE NAHI - Teenon 50 se Neeche Hain - Best {final_side} {final_chance}% - MARNA HAI TO MARO, KARNA HAI TO KARO, NAHI KARNA TO MAT KARO"
+else:
+    final_bg="#14532d" if final_side=="BUY" else "#7f1d1d"; final_side_text_full=f"FINAL: {final_side} - {final_time} Wala {final_chance}% Chance - KARNA HAI TO KARO"
+
+if final_chance < 50:
+    lot_final, risk_final, entry_final = "0.00","0%","TRADE NAHI - CHANCE KAM HAI"
+
+if final_side=="BUY":
+    final_entry_txt = f"FINAL ENTRY: {final_entry_price:.2f} - {final_entry_price+3.0:.2f} SE BUY KARO"
+else:
+    final_entry_txt = f"FINAL ENTRY: {final_entry_price:.2f} - {final_entry_price-3.0:.2f} SE SELL KARO"
+
+health_txt = " | ".join(health)
+now=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=3))); date_str=now.strftime("%I:%M")
+final_ob_txt = ob_corner_text(p1h)
+html=f"""
+<div id="capture" style="max-width:400px;margin:auto;font-family:Arial;background:#fff;padding:2px;color:#000;position:relative" dir="rtl">
+<div style="background:#0a1f44;color:#d4af37;text-align:center;padding:4px;border-radius:4px"><b style="font-size:12px">USTAD JI - GOLD - FINAL WALA - OB DRAMA KHATAM</b><div style="color:#fff;font-size:8px">{date_str} | {session_name} - {session_note} | Pakki Candle Wala</div></div>
+{warning_strip}
+<div style="background:#0a7a2e;color:#fff;text-align:center;font-size:7px;font-weight:bold;padding:2px;border-radius:3px;margin:2px 0">SYSTEM CHECK: {health_txt}</div>
+<div style="border:1px solid #0a1f44;border-radius:4px;padding:3px;margin:3px 0;background:#fdf6e3;font-size:9px;text-align:center">
+<b>BADI MACHHLI: {machhli}</b> | Bahar {yahoo_price_raw:.2f} | MT5 {mt5:.2f} | Farq {farq:.2f} | Shift {shift:.2f} | LOCK KHATAM<br>
+<span style="font-size:8px;color:#555">DUNIYA: Upar 4074 | Neeche 3950 | Regime {regime} | {dxy_txt} | {yield_txt} | 5M: {src5} | 15M: {src15} | 1H: {src1h}</span>
+</div>
+<div style="display:flex;gap:3px;margin:2px 0" dir="ltr">
+<div style="flex:1"><div style="background:#0a1f44;color:#fff;text-align:center;padding:2px;font-weight:bold;font-size:10px">5M - {c5} - {src5}</div>{box_data(p5,c5,ch5,note5)}</div>
+<div style="flex:1"><div style="background:#0a1f44;color:#fff;text-align:center;padding:2px;font-weight:bold;font-size:10px">15M - {c15} - {src15}</div>{box_data(p15,c15,ch15,note15)}</div>
+<div style="flex:1"><div style="background:#0a1f44;color:#fff;text-align:center;padding:2px;font-weight:bold;font-size:10px">1H - {c1h} - {src1h}</div>{box_data(p1h,c1h,ch1h,note1h)}</div>
+</div>
+<div style="font-size:9px;text-align:center;background:#eef7f0;padding:2px;border-radius:3px">5M: {p5['pin']} | {p5['fvg']} | {p5['choch']} | {p5['liq']}<br>15M: {p15['pin']} | {p15['fvg']} | {p15['choch']} | {p15['liq']}<br>1H: {p1h['pin']} | {p1h['fvg']} | {p1h['choch']} | {p1h['liq']}</div>
+<div style="background:#fef9c3;border:1px dashed #a16207;border-radius:4px;padding:4px;margin-top:3px;text-align:center;font-size:8px;color:#713f12"><b>OB KONE ME INFO:</b> {final_ob_txt}<br><span style="font-size:7px">OB ka time hai - Tumhari Marzi - Lagana Hai To Lagao, Nahi Lagana Hai To Mat Lagao - Setup aur Chance Wese Hi Rahenge</span></div>
+<div style="background:{final_bg};color:#fff;text-align:center;padding:5px;border-radius:4px;font-weight:bold;font-size:11px;margin-top:3px">{final_side_text_full}<br><span style="font-size:10px;color:#ffd700">{final_entry_txt}</span></div>
+<div style="background:#0a1f44;color:#ffd700;text-align:center;padding:5px;border-radius:4px;font-weight:bold;font-size:11px;margin-top:3px">EQUITY: LOT {lot_final} | RISK {risk_final} | {entry_final}</div>
+<div style="text-align:center;font-size:8px;color:#000;background:#fff3cd;padding:2px;border-radius:3px;margin-top:2px"><b>Pakki Candle Se Bana Hai</b> | 5M: {age_5m} min | 15M: {age_15m} min | {session_note}</div>
+<div style="text-align:center;font-size:8px;color:#555">Final Wala - OB Drama Khatam - OB Sirf Kone Me - Setup + Chance Wese Hi</div>
+</div>
+"""
+components.html(html, height=950, scrolling=True)
+st.info(f"HO GAYA - 5M {c5} {ch5}% - 15M {c15} {ch15}% - 1H {c1h} {ch1h}% - Final {final_side} {final_chance}% - LOT {lot_final}")
+
+# --- NEECHE BHI NEXT ---
 if st.button("NEXT ➡️ - Dobara Naya Data Dekho", use_container_width=True):
     st.session_state.next_count += 1
     st.rerun()
+    
