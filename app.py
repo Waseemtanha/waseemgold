@@ -1,11 +1,11 @@
-# WASEEM - V4.4 - FINAL FIXED - DOBARA SAHI WALA
-# PURANI FILE KHALI KAR KE YAHI PASTE KARO
+# WASEEM - V4.4 - FINAL FIXED - POORA SCRIPT - USTAD JI WALA
 import streamlit as st
 import yfinance as yf
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import time
+import re
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -268,7 +268,7 @@ if st.session_state.get('has_data', False):
         ax.text(0.65,y+0.12,naam, ha='left', va='center', fontsize=7.5, weight='bold', color='#FFD700' if is_star else 'white')
         ax.text(0.65,y-0.12,val, ha='left', va='center', fontsize=6.5, color='white')
         ax.text(4.55,y,txt, ha='right', va='center', fontsize=6.5, weight='bold', color=rang)
-    ax.add_patch(box((5.1,5.20),4.6,9.30, boxstyle="round,pad=0.1", facecolor='#1A1A0A', edgecolor='#FF4444', linewidth=1.8))
+    ax.add_patch(box((5.1,5.20),4.6,9.30, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor='#FF4444', linewidth=1.8))
     ax.text(7.4,14.20,'SELL - SIRF ANDAZA', ha='center', va='center', fontsize=10, weight='bold', color='#FF4444')
     ax.text(7.4,13.85,'SELL: ' + str(sell_c) + '/12', ha='center', va='center', fontsize=10, weight='bold', color='white')
     for i,(naam,val,ok) in enumerate(sell_buttons):
@@ -722,7 +722,6 @@ if final_side=="BUY":
 else:
     final_entry_txt = f"FINAL ENTRY: {final_entry_price:.2f} - {final_entry_price-3.0:.2f} SE SELL KARO"
 health_txt = " | ".join(health)
-# USTAD JI - YAHI WALI LINE THEEK KI HAI - PEHLE WALI GALAT THI
 now = datetime.now() + timedelta(hours=3)
 date_str=now.strftime("%I:%M")
 final_ob_txt = ob_corner_text(p1h)
@@ -756,7 +755,7 @@ if st.button("NEXT ➡️ - Dobara Naya Data Dekho", use_container_width=True):
     st.rerun()
 
 # ============================================================
-# USTAD JI - TELEGRAM WALA - TEENON KAAM
+# USTAD JI - TELEGRAM WALA - TEENON KAAM - FIXED
 # ============================================================
 BOT_TOKEN = st.secrets.get("BOT_TOKEN", "")
 CHAT_ID = st.secrets.get("CHAT_ID", "")
@@ -798,49 +797,41 @@ if teenon_buy:
 else:
     final_side_msg = "TEENON SELL - TEENON RED"
 def pehle_page_ki_tasveer_banao(mt5_price):
-    fig2, ax2 = plt.subplots(figsize=(8, 5))
-    ax2.axis('off')
-    ax2.set_title("USTAD JI - PEHLA PAGE - 12 ME SE HISAB", fontsize=14, fontweight='bold', pad=20)
-    table_data = [
-        ["Time", "Side", "Chance %", "MT5 Price"],
-        ["5M", f"{c5}", f"{ch5}%", f"{mt5_price:.2f}"],
-        ["15M", f"{c15}", f"{ch15}%", f"{mt5_price:.2f}"],
-        ["1H", f"{c1h}", f"{ch1h}%", f"{mt5_price:.2f}"],
-        ["", "", "", ""],
-        ["KANDLE HISAB", "", "", ""],
-        ["12 Me Se BUY", f"{total_buy_kandle}", "", ""],
-        ["12 Me Se SELL", f"{total_sell_kandle}", "", ""],
-    ]
-    table = ax2.table(cellText=table_data, loc='center', cellLoc='center')
-    table.auto_set_font_size(False)
-    table.set_fontsize(12)
-    table.scale(1, 1.8)
+    # USTAD JI - YAHI WALA ASLI PAGE HAI - TABLE NAHI - POORA FRONT PAGE
+    fig2, ax2 = plt.subplots(figsize=(8, 11))
+    ax2.set_xlim(0, 10); ax2.set_ylim(0, 11); ax2.axis('off')
+    fig2.patch.set_facecolor('white'); ax2.set_facecolor('white')
+    ax2.add_patch(plt.Rectangle((0.2, 10.2), 9.6, 0.6, facecolor='#0a1f44'))
+    ax2.text(5, 10.5, 'USTAD JI - GOLD - FINAL WALA', ha='center', va='center', color='#ffd700', fontsize=13, weight='bold')
+    ax2.add_patch(plt.Rectangle((0.2, 9.4), 9.6, 0.7, facecolor='#fdf6e3', edgecolor='#0a1f44'))
+    ax2.text(5, 9.75, f'BADI MACHHLI: {machhli}', ha='center', va='center', fontsize=10, weight='bold', color='black')
+    ax2.text(5, 9.5, f'MT5: {mt5_price:.2f} | Farq: {farq:.2f}', ha='center', va='center', fontsize=9, color='black')
+    colors = {'BUY': '#22c55e', 'SELL': '#ef4444'}
+    datas = [(p5, c5, ch5, '5M'), (p15, c15, ch15, '15M'), (p1h, c1h, ch1h, '1H')]
+    x_start = [0.2, 3.5, 6.8]
+    for idx, (p, side, ch, name) in enumerate(datas):
+        x = x_start[idx]
+        col = colors.get(side, '#555555')
+        ax2.add_patch(plt.Rectangle((x, 6.0), 3.0, 3.2, facecolor='white', edgecolor=col, linewidth=2))
+        ax2.add_patch(plt.Rectangle((x, 8.7), 3.0, 0.5, facecolor=col))
+        ax2.text(x+1.5, 8.95, f'{name} - {side}', ha='center', va='center', color='white', fontsize=11, weight='bold')
+        ax2.text(x+1.5, 8.3, f'ENTRY {p["E"]:.2f}', ha='center', va='center', fontsize=9, weight='bold', color='black')
+        ax2.text(x+1.5, 7.8, f'{p["pin"]} | {p["fvg"]}', ha='center', va='center', fontsize=7, color='black')
+        ax2.text(x+1.5, 7.4, f'{p["choch"]} | {p["liq"]}', ha='center', va='center', fontsize=7, color='black')
+        ax2.text(x+1.5, 6.9, f'{ch}% CHANCE', ha='center', va='center', fontsize=14, weight='bold', color=col)
+        ax2.text(x+1.5, 6.4, f'LOT {equity_for(ch)[0]} | RISK {equity_for(ch)[1]}', ha='center', va='center', fontsize=8, color='black')
+    ax2.add_patch(plt.Rectangle((0.2, 4.8), 9.6, 1.0, facecolor='#14532d' if final_side=="BUY" else '#7f1d1d'))
+    ax2.text(5, 5.5, f'FINAL: {final_side} - {final_chance}% Chance', ha='center', va='center', color='white', fontsize=12, weight='bold')
+    ax2.text(5, 5.05, f'FINAL ENTRY: {final_entry_price:.2f} | LOT {lot_final} | RISK {risk_final}', ha='center', va='center', color='#ffd700', fontsize=10, weight='bold')
+    ax2.text(5, 4.3, f'KANDLE HISAB: 12 Me Se {total_buy_kandle} BUY | 12 Me Se {total_sell_kandle} SELL', ha='center', va='center', fontsize=10, weight='bold', color='black')
+    ax2.text(5, 3.8, 'Pakki Candle Se Bana Hai - Pehle Discuss Karo - Phir Trade Karo', ha='center', va='center', fontsize=8, color='#555555')
     buf = io.BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight', dpi=150)
+    plt.savefig(buf, format='png', bbox_inches='tight', dpi=180)
     plt.close(fig2)
     buf.seek(0)
     return buf.getvalue()
 def doosre_page_ki_tasveer_banao(mt5_price):
-    fig3, ax3 = plt.subplots(figsize=(8, 5))
-    ax3.axis('off')
-    ax3.set_title("USTAD JI - DOOSRA PAGE - TEENON EK", fontsize=14, fontweight='bold', pad=20)
-    table_data = [
-        ["Time", "Side", "Chance %", "MT5 Price"],
-        ["5M", f"{c5}", f"{ch5}%", f"{mt5_price:.2f}"],
-        ["15M", f"{c15}", f"{ch15}%", f"{mt5_price:.2f}"],
-        ["1H", f"{c1h}", f"{ch1h}%", f"{mt5_price:.2f}"],
-        ["", "", "", ""],
-        ["FINAL", f"{final_side}", f"{final_chance}%", f"{mt5_price:.2f}"],
-    ]
-    table = ax3.table(cellText=table_data, loc='center', cellLoc='center')
-    table.auto_set_font_size(False)
-    table.set_fontsize(12)
-    table.scale(1, 1.8)
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight', dpi=150)
-    plt.close(fig3)
-    buf.seek(0)
-    return buf.getvalue()
+    return pehle_page_ki_tasveer_banao(mt5_price)
 if teenon_ek and koi_ek_50:
     poora_msg = f"USTAD JI - TEENON EK HO GAYE\n{final_side_msg}\n\n5M: {c5} {ch5}% - MT5 Price {mt5:.2f}\n15M: {c15} {ch15}% - MT5 Price {mt5:.2f}\n1H: {c1h} {ch1h}% - MT5 Price {mt5:.2f}\n\nKANDLE WALA HISAB:\n12 Me Se {total_buy_kandle} BUY Par Hain\n12 Me Se {total_sell_kandle} SELL Par Hain\n\nFinal: {final_side} {final_chance}% - MT5 {mt5:.2f}"
     telegram_bhejo(poora_msg)
@@ -887,7 +878,12 @@ if naya:
     text_upar, update_id = naya
     if update_id != st.session_state.aakhri_update_id:
         st.session_state.aakhri_update_id = update_id
-        parts = text_upar.split()
+        # FIXED - TWO3886.50 ho ya TWO 3886.50 ho - dono chalega
+        m = re.match(r'(ONE|TWO)\s*([0-9.]+)', text_upar.upper())
+        if m:
+            parts = [m.group(1), m.group(2)]
+        else:
+            parts = text_upar.split()
         if len(parts) >= 1 and parts[0].upper() in ["ONE", "TWO"]:
             if len(parts) < 2:
                 telegram_bhejo("USTAD JI - PRICE BHI LIKHEN\nJaise: ONE 2635.50\nYa: TWO 2635.50\nPrice ke bagair tasveer nahi bhejunga")
