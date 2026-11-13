@@ -1017,9 +1017,22 @@ if auto_bhejo:
             st.warning("TELEGRAM NAHI GAYA - BOT_TOKEN / CHAT_ID CHECK KARO - SECRETS ME DALA HAI?")
     else:
         st.info("YEHI SIGNAL PEHLE HI TELEGRAM PAR BHEJ DIYA HAI - NAYA SIGNAL AAYEGA TO PHIR BHEJEGA")
-else:
-    st.info(f"TELEGRAM NAHI BHEJA - SHART PURI NAHI HUI - {final_side_msg} - 5M {ch5}% 15M {ch15}% 1H {ch1h}% - TEENON EK + KOI EK 48+ CHAHIYE")
+        
+# PURANA RULE - TEENON EK + KOI EK 48
+teenon_buy = (c5=="BUY" and c15=="BUY" and c1h=="BUY")
+teenon_sell = (c5=="SELL" and c15=="SELL" and c1h=="SELL")
+teenon_ek = teenon_buy or teenon_sell
+koi_ek_48 = (ch5>=48 or ch15>=48 or ch1h>=48)
+purana_rule = teenon_ek and koi_ek_48
 
+# NAYA RULE - USTAD JI WALA - 1H 60% + 15M SAME SIDE
+# 1H BOSS HAI - 15M ENTRY HAI - 5M SHOR HAI - USKO CHHOR DO
+ek_ghanta_60_buy = (c1h=="BUY" and c15=="BUY" and ch1h>=60)
+ek_ghanta_60_sell = (c1h=="SELL" and c15=="SELL" and ch1h>=60)
+naya_rule = ek_ghanta_60_buy or ek_ghanta_60_sell
+
+# FINAL - DONON ME SE KOI EK HO TO BHEJO
+auto_bhejo = purana_rule or naya_rule
 # Manual test ke liye - jab chaaho haath se bhejo
 if st.button("TELEGRAM PAR ABHI BHEJO - TEST", use_container_width=True):
     caption2 = f"TEST - USTAD JI - {final_side_msg}\n5M {c5} {ch5}% | 15M {c15} {ch15}% | 1H {c1h} {ch1h}%\nFINAL {final_side} {final_chance}% | ENTRY {final_entry_price:.2f}"
