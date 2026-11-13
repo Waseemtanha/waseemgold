@@ -1,5 +1,5 @@
 # WASEEM - V4.4 - FINAL - POORA SCRIPT - USTAD JI WALA - EK HI BAAR ME POORA
-# AUTO 30 SECOND + TALA KHATAM + 3 TASVEER + TIME BEECH ME
+# AUTO 30 SECOND + TALA KHATAM + 3 TASVEER + TIME BEECH ME + TRAP WALA FIX
 import streamlit as st
 import yfinance as yf
 import pandas as pd
@@ -761,7 +761,7 @@ if st.button("NEXT ➡️ - Dobara Naya Data Dekho", use_container_width=True):
     st.rerun()
 
 # ============================================================
-# USTAD JI - TELEGRAM WALA - FINAL - TALA KHATAM - HAR BAAR JAYEGA
+# USTAD JI - TELEGRAM WALA - FINAL - TALA KHATAM - HAR BAAR JAYEGA + TRAP FIX
 # ============================================================
 BOT_TOKEN = st.secrets.get("BOT_TOKEN", "")
 CHAT_ID = st.secrets.get("CHAT_ID", "")
@@ -811,6 +811,15 @@ time_txt_telegram = abhi_time_pak.strftime("%I:%M %p")
 date_txt_telegram = abhi_time_pak.strftime("%d %B %Y")
 poora_time_telegram = date_txt_telegram + " | " + time_txt_telegram + " | PAKISTAN TIME"
 
+# USTAD JI - TRAP TEXT - TELEGRAM MESSAGE ME BHI
+trap_list_msg = []
+for _pp in [p5, p15, p1h]:
+    if _pp.get("trap","") != "":
+        trap_list_msg.append(_pp["trap"])
+trap_msg_txt = ""
+if trap_list_msg:
+    trap_msg_txt = "\nTRAP WARNING: " + " | ".join(list(set(trap_list_msg))) + " - BACH KE\n"
+
 def chrome_wali_tasveer_banao():
     bb = st.session_state.get('last_buy_buttons', [])
     sb = st.session_state.get('last_sell_buttons', [])
@@ -845,11 +854,15 @@ def chrome_wali_tasveer_banao():
     ax0.add_patch(plt.Rectangle((0.2, 7.5), 9.6, 0.4, facecolor='#FFD700'))
     ax0.text(5, 7.7, 'BUTTON - SIRF ANDAZA - FAISLA NAHI KARTA', ha='center', va='center', fontsize=8, weight='bold', color='black')
     ax0.text(5, 7.55, f'BUY {bc}/12  |  SELL {sc}/12  |  RSI: {rsi_txt}', ha='center', va='center', fontsize=7, color='black')
+    # USTAD JI - TRAP WALA - V4.4 TASVEER ME BHI - LAL PATTI
+    if trap_list_msg:
+        ax0.add_patch(plt.Rectangle((0.2, 7.15), 9.6, 0.3, facecolor='#e60000'))
+        ax0.text(5, 7.30, f'TRAP: {" | ".join(list(set(trap_list_msg)))} - BACH KE', ha='center', va='center', fontsize=8, weight='bold', color='white')
     ax0.add_patch(plt.Rectangle((0.2, 1.5), 4.6, 5.8, facecolor='#0A1A0A', edgecolor='#00FF88', linewidth=1.5))
-    ax0.text(2.5, 7.15, 'BUY - SIRF ANDAZA', ha='center', va='center', fontsize=8, weight='bold', color='#00FF88')
-    ax0.text(2.5, 6.95, f'BUY: {bc}/12', ha='center', va='center', fontsize=8, weight='bold', color='white')
+    ax0.text(2.5, 7.0, 'BUY - SIRF ANDAZA', ha='center', va='center', fontsize=8, weight='bold', color='#00FF88')
+    ax0.text(2.5, 6.80, f'BUY: {bc}/12', ha='center', va='center', fontsize=8, weight='bold', color='white')
     for i, (naam, val, ok) in enumerate(bb):
-        y = 6.6 - i*0.42
+        y = 6.45 - i*0.42
         if ok: rang = '#00FF88'; face = '#003311'; txt = "SABZ"
         else: rang = '#555555'; face = '#1A1A1A'; txt = "NAHI"
         is_star = "★" in naam
@@ -859,10 +872,10 @@ def chrome_wali_tasveer_banao():
         ax0.text(0.45, y-0.08, val, ha='left', va='center', fontsize=5.5, color='white')
         ax0.text(4.5, y, txt, ha='right', va='center', fontsize=5.5, weight='bold', color=rang)
     ax0.add_patch(plt.Rectangle((5.2, 1.5), 4.6, 5.8, facecolor='#1A1A1A', edgecolor='#FF4444', linewidth=1.5))
-    ax0.text(7.5, 7.15, 'SELL - SIRF ANDAZA', ha='center', va='center', fontsize=8, weight='bold', color='#FF4444')
-    ax0.text(7.5, 6.95, f'SELL: {sc}/12', ha='center', va='center', fontsize=8, weight='bold', color='white')
+    ax0.text(7.5, 7.0, 'SELL - SIRF ANDAZA', ha='center', va='center', fontsize=8, weight='bold', color='#FF4444')
+    ax0.text(7.5, 6.80, f'SELL: {sc}/12', ha='center', va='center', fontsize=8, weight='bold', color='white')
     for i, (naam, val, ok) in enumerate(sb):
-        y = 6.6 - i*0.42
+        y = 6.45 - i*0.42
         if ok: rang = '#FF4444'; face = '#330000'; txt = "LAL"
         else: rang = '#555555'; face = '#1A1A1A'; txt = "NAHI"
         is_star = "★" in naam
@@ -916,6 +929,10 @@ def pehle_page_ki_tasveer_banao(yahoo_price_input):
             ax2.text(x+1.05, y0-1.4, k_txt, ha='center', va='center', color='white', fontsize=7, weight='bold')
         ax2.text(5, y0-1.9, f'{kandle_list[0][1]} | {kandle_list[1][1]}', ha='center', va='center', fontsize=7, color='black')
         ax2.text(5, y0-2.2, f'{kandle_list[2][1]} | {kandle_list[3][1]} | Vol {p["vol"]["text"]} | RSI {p["rsi"]}', ha='center', va='center', fontsize=7, color='black')
+        # USTAD JI - TRAP WALA - TELEGRAM ME BHI AAYEGA - YEHI FIX HAI
+        if p.get("trap","") != "":
+            ax2.add_patch(plt.Rectangle((0.2, y0-2.6), 9.6, 0.32, facecolor='#e60000'))
+            ax2.text(5, y0-2.44, f'TRAP: {p["trap"]} - BACH KE', ha='center', va='center', fontsize=8, weight='bold', color='white')
     ax2.text(5, 0.4, f'KANDLE HISAB: 12 Me Se {total_buy_kandle} BUY (GREEN) | 12 Me Se {total_sell_kandle} SELL (RED)', ha='center', va='center', fontsize=10, weight='bold', color='black')
     ax2.text(5, 0.05, 'Pakki Candle Se Bana Hai - Pehle Discuss Karo - Phir Trade Karo', ha='center', va='center', fontsize=8, color='#555555')
     buf = io.BytesIO()
@@ -945,6 +962,10 @@ def doosre_page_ki_tasveer_banao(yahoo_price_input):
         ax2.text(x+1.5, 8.3, f'ENTRY {p["E"]:.2f}', ha='center', va='center', fontsize=9, weight='bold', color='black')
         ax2.text(x+1.5, 7.8, f'{p["pin"]} | {p["fvg"]}', ha='center', va='center', fontsize=7, color='black')
         ax2.text(x+1.5, 7.4, f'{p["choch"]} | {p["liq"]}', ha='center', va='center', fontsize=7, color='black')
+        # USTAD JI - TRAP WALA - TELEGRAM ME BHI - YEHI FIX HAI
+        if p.get("trap","") != "":
+            ax2.add_patch(plt.Rectangle((x, 7.0), 3.0, 0.35, facecolor='#e60000'))
+            ax2.text(x+1.5, 7.17, f'{p["trap"]}', ha='center', va='center', fontsize=8, weight='bold', color='white')
         ax2.text(x+1.5, 6.9, f'{ch}% CHANCE', ha='center', va='center', fontsize=14, weight='bold', color=col)
         ax2.text(x+1.5, 6.4, f'LOT {equity_for(ch)[0]} | RISK {equity_for(ch)[1]}', ha='center', va='center', fontsize=8, color='black')
     if mixed:
@@ -954,8 +975,12 @@ def doosre_page_ki_tasveer_banao(yahoo_price_input):
         ax2.add_patch(plt.Rectangle((0.2, 4.8), 9.6, 1.0, facecolor='#14532d' if final_side=="BUY" else '#7f1d1d'))
         ax2.text(5, 5.5, f'FINAL: {final_side} - {final_chance}% Chance', ha='center', va='center', color='white', fontsize=12, weight='bold')
     ax2.text(5, 5.05, f'FINAL ENTRY: {final_entry_price:.2f} | LOT {lot_final} | RISK {risk_final}', ha='center', va='center', color='#ffd700', fontsize=10, weight='bold')
-    ax2.text(5, 4.3, f'KANDLE HISAB: 12 Me Se {total_buy_kandle} BUY | 12 Me Se {total_sell_kandle} SELL', ha='center', va='center', fontsize=10, weight='bold', color='black')
-    ax2.text(5, 3.8, 'Pakki Candle Se Bana Hai - Pehle Discuss Karo - Phir Trade Karo', ha='center', va='center', fontsize=8, color='#555555')
+    # USTAD JI - FINAL KE NEECHE BHI TRAP - AGAR KAHIN BHI TRAP HAI
+    if trap_list_msg:
+        ax2.add_patch(plt.Rectangle((0.2, 4.3), 9.6, 0.4, facecolor='#e60000'))
+        ax2.text(5, 4.5, f'TRAP WARNING: {" | ".join(list(set(trap_list_msg)))} - BACH KE', ha='center', va='center', color='white', fontsize=9, weight='bold')
+    ax2.text(5, 3.9, f'KANDLE HISAB: 12 Me Se {total_buy_kandle} BUY | 12 Me Se {total_sell_kandle} SELL', ha='center', va='center', fontsize=10, weight='bold', color='black')
+    ax2.text(5, 3.5, 'Pakki Candle Se Bana Hai - Pehle Discuss Karo - Phir Trade Karo', ha='center', va='center', fontsize=8, color='#555555')
     buf = io.BytesIO()
     plt.savefig(buf, format='png', bbox_inches='tight', dpi=180)
     plt.close(fig2)
@@ -964,17 +989,17 @@ def doosre_page_ki_tasveer_banao(yahoo_price_input):
 
 # SIRF YEHI WALA ALARM - TEENON EK + KOI EK 48 SE UPAR - HAR BAAR JAYEGA - KOI TALA NAHI
 if teenon_ek and koi_ek_48:
-    poora_msg = f"USTAD JI - TEENON EK HO GAYE - {poora_time_telegram}\n{final_side_msg}\n\nYAHOO LIVE PRICE: {yahoo_price_raw:.2f}\nTIME: {time_txt_telegram}\nDATE: {date_txt_telegram}\n\n5M: {c5} {ch5}% - YAHOO LIVE {yahoo_price_raw:.2f} - TIME {time_txt_telegram}\n15M: {c15} {ch15}% - YAHOO LIVE {yahoo_price_raw:.2f} - TIME {time_txt_telegram}\n1H: {c1h} {ch1h}% - YAHOO LIVE {yahoo_price_raw:.2f} - TIME {time_txt_telegram}\n\nKANDLE WALA HISAB:\n12 Me Se {total_buy_kandle} BUY Par Hain\n12 Me Se {total_sell_kandle} SELL Par Hain\n\nV4.4 WALA HISAB:\nBUY {st.session_state.get('last_buy_c',0)}/12 | SELL {st.session_state.get('last_sell_c',0)}/12 | RSI {st.session_state.get('last_rsi_s','')}\n\nFinal: {final_side} {final_chance}% - YAHOO LIVE {yahoo_price_raw:.2f} - TIME {time_txt_telegram}"
+    poora_msg = f"USTAD JI - TEENON EK HO GAYE - {poora_time_telegram}\n{final_side_msg}\n{trap_msg_txt}\nYAHOO LIVE PRICE: {yahoo_price_raw:.2f}\nTIME: {time_txt_telegram}\nDATE: {date_txt_telegram}\n\n5M: {c5} {ch5}% - YAHOO LIVE {yahoo_price_raw:.2f} - TIME {time_txt_telegram}\n15M: {c15} {ch15}% - YAHOO LIVE {yahoo_price_raw:.2f} - TIME {time_txt_telegram}\n1H: {c1h} {ch1h}% - YAHOO LIVE {yahoo_price_raw:.2f} - TIME {time_txt_telegram}\n\nKANDLE WALA HISAB:\n12 Me Se {total_buy_kandle} BUY Par Hain\n12 Me Se {total_sell_kandle} SELL Par Hain\n\nV4.4 WALA HISAB:\nBUY {st.session_state.get('last_buy_c',0)}/12 | SELL {st.session_state.get('last_sell_c',0)}/12 | RSI {st.session_state.get('last_rsi_s','')}\n\nFinal: {final_side} {final_chance}% - YAHOO LIVE {yahoo_price_raw:.2f} - TIME {time_txt_telegram}"
     telegram_bhejo(poora_msg)
     tasveer_0 = chrome_wali_tasveer_banao()
-    telegram_tasveer_bhejo(tasveer_0, f"USTAD JI - ZERO PAGE - V4.4 Wala - YAHOO {yahoo_price_raw:.2f} - TIME {time_txt_telegram} - DATE {date_txt_telegram}")
+    telegram_tasveer_bhejo(tasveer_0, f"USTAD JI - ZERO PAGE - V4.4 Wala - YAHOO {yahoo_price_raw:.2f} - TIME {time_txt_telegram} - DATE {date_txt_telegram} - TRAP: {', '.join(list(set(trap_list_msg))) if trap_list_msg else 'KOI TRAP NAHI'}")
     tasveer_1 = pehle_page_ki_tasveer_banao(yahoo_price_raw)
     telegram_tasveer_bhejo(tasveer_1, f"USTAD JI - PEHLA PAGE - Kandle Wala - YAHOO {yahoo_price_raw:.2f} - TIME {time_txt_telegram}")
     tasveer_2 = doosre_page_ki_tasveer_banao(yahoo_price_raw)
     telegram_tasveer_bhejo(tasveer_2, f"USTAD JI - DOOSRA PAGE - Final Wala - YAHOO {yahoo_price_raw:.2f} - TIME {time_txt_telegram}")
-    st.success(f"USTAD JI - MESSAGE + TEENON TASVEER BHEJ DI - TIME {time_txt_telegram} - YAHOO {yahoo_price_raw:.2f} - KOI TALA NAHI - HAR BAAR JAYEGA")
+    st.success(f"USTAD JI - MESSAGE + TEENON TASVEER BHEJ DI - TIME {time_txt_telegram} - YAHOO {yahoo_price_raw:.2f} - KOI TALA NAHI - HAR BAAR JAYEGA - TRAP BHI AAYEGA")
 else:
-    st.info(f"Abhi auto nahi bheja - Teenon Ek: {teenon_ek} - Koi 48 par: {koi_ek_48} - TIME {time_txt_telegram} - YAHOO {yahoo_price_raw:.2f}")
+    st.info(f"Abhi auto nahi bheja - Teenon Ek: {teenon_ek} - Koi 48 par: {koi_ek_48} - TIME {time_txt_telegram} - YAHOO {yahoo_price_raw:.2f} - TRAP: {', '.join(list(set(trap_list_msg))) if trap_list_msg else 'KOI TRAP NAHI'}")
 
 st.markdown("---")
 st.subheader("ARZI TEST - TELEGRAM DESIGN CHECK - 3 TASVEER")
@@ -983,11 +1008,11 @@ if st.button("TELEGRAM TEST KARO - TEENON TASVEEREN BHEJO"):
     try:
         test_price = yahoo_price_raw
         tasveer_0 = chrome_wali_tasveer_banao()
-        telegram_tasveer_bhejo(tasveer_0, f"USTAD JI - ZERO PAGE - V4.4 Wala - TEST - YAHOO {test_price:.2f} - TIME {time_txt_telegram}")
+        telegram_tasveer_bhejo(tasveer_0, f"USTAD JI - ZERO PAGE - V4.4 Wala - TEST - YAHOO {test_price:.2f} - TIME {time_txt_telegram} - TRAP TEST")
         tasveer_1 = pehle_page_ki_tasveer_banao(test_price)
         telegram_tasveer_bhejo(tasveer_1, f"USTAD JI - PEHLA PAGE - Kandle Wala - YAHOO {test_price:.2f} - TIME {time_txt_telegram} - TEST")
         tasveer_2 = doosre_page_ki_tasveer_banao(test_price)
         telegram_tasveer_bhejo(tasveer_2, f"USTAD JI - DOOSRA PAGE - Final Wala - YAHOO {test_price:.2f} - TIME {time_txt_telegram} - TEST")
-        st.success(f"Ho gaya! Telegram me teenon tasveeren check karo - Yahoo Live {test_price:.2f}")
+        st.success(f"Ho gaya! Telegram me teenon tasveeren check karo - Yahoo Live {test_price:.2f} - Trap bhi check karo")
     except Exception as e:
         st.error(f"Test me masla aaya: {e}")
