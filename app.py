@@ -17,6 +17,11 @@ import streamlit.components.v1 as components
 st.set_page_config(page_title="WASEEM TRADER - V4.4", layout="centered")
 st.title("WASEEM TRADER - V4.4 - INDICATOR SACH BOLEGA")
 
+# 👇 USTAD JI - YAHAN BITCOIN WALA BUTTON LAGA DIYA HAI - IS SE NEECHE KUCH NAHI BADLA
+if st.button("🟠 BITCOIN WALA PAGE KHOLO ➡️", use_container_width=True):
+    st.switch_page("pages/1_BITCOIN.py")
+# 👆 YAHAN TAK BUTTON HAI - IS SE AAGE WOHI PURANA GOLD WALA SCRIPT HAI
+
 auto_on = st.checkbox("AUTO ON - Khud Se Chalta Rahe - 30 Second Wala", value=True, key="auto_check_v44")
 if auto_on:
     components.html("<meta http-equiv='refresh' content='30'>", height=0)
