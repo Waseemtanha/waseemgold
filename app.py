@@ -897,15 +897,17 @@ st.subheader("ARZI TEST - TELEGRAM DESIGN CHECK")
 if st.button("TELEGRAM TEST KARO - DONO TASVEEREN BHEJO"):
     st.write("Test chal raha hai, Telegram check karo...")
     try:
-        # Yahoo se live price lega, wahi jo Telegram ke liye likha hua hai
-        test_price = get_yahoo_price()
-        if test_price is None:
-            test_price = 3983.0
-            st.write("Yahoo se price nahi mili, 3983 se test kar raha hun")
+        # Yahoo wali price wahi hai jo upar signal me lagi hui hai
+        test_price = yahoo_price_raw
 
-        # Yahan wahi wala function chalega jo asli signal par chalta hai
-        # Is me teenon ek taraf hone wali shart nahi lagegi, sirf design check hoga
-        send_telegram_both_images(test_price)
-        st.success("Ho gaya! Telegram me dono tasveeren check karo")
+        # Pehla page - Kandle wala
+        tasveer_1 = pehle_page_ki_tasveer_banao(test_price)
+        telegram_tasveer_bhejo(tasveer_1, "USTAD JI - PEHLA PAGE - Kandle Wala - Yahoo Live - TEST")
+
+        # Doosra page - Final wala
+        tasveer_2 = doosre_page_ki_tasveer_banao(test_price)
+        telegram_tasveer_bhejo(tasveer_2, "USTAD JI - DOOSRA PAGE - Final Wala - Yahoo Live - TEST")
+
+        st.success(f"Ho gaya! Telegram me dono tasveeren check karo - Yahoo Live {test_price:.2f}")
     except Exception as e:
         st.error(f"Test me masla aaya: {e}")
