@@ -1,6 +1,6 @@
 # WASEEM - V4.4 - FINAL - POORA SCRIPT - USTAD JI WALA - EK HI BAAR ME POORA
 # AUTO 30 SECOND + TALA KHATAM + 3 TASVEER + TIME BEECH ME + TRAP WALA FIX
-# FIX: 48 HI RAHEGA + TRAP ROKEGA NAHI - SIRF WARNING AAYEGI
+# FIX: TRAP ROKEGA NAHI - SIRF WARNING AAYEGI - TF KA NAAM KE SAATH
 import streamlit as st
 import yfinance as yf
 import pandas as pd
@@ -18,7 +18,6 @@ import streamlit.components.v1 as components
 st.set_page_config(page_title="WASEEM TRADER - V4.4", layout="centered")
 st.title("WASEEM TRADER - V4.4 - INDICATOR SACH BOLEGA")
 
-# USTAD JI - AUTO WALA - 30 SECOND - NEXT DABANE KI ZAROORAT NAHI
 auto_on = st.checkbox("AUTO ON - Khud Se Chalta Rahe - 30 Second Wala", value=True, key="auto_check_v44")
 if auto_on:
     components.html("<meta http-equiv='refresh' content='30'>", height=0)
@@ -314,7 +313,6 @@ if st.session_state.get('has_data', False):
 else:
     st.info("👆 PEHLE MANUAL PRICE DALO - PHIR SIGNAL BANAO DABAO - PHIR TASVEER AAYEGI")
 
-# ============ USTAD JI - PEHLA PAGE - FINAL WALA ============
 st.markdown("<h3 style='text-align:center;color:#0a1f44'>USTAD JI - PEHLA PAGE - FINAL WALA</h3>", unsafe_allow_html=True)
 mt5_raw = st.text_input("Ustad Ji, MT5 wali price daalein (misal 3983)", value="3983")
 try:
@@ -762,8 +760,8 @@ if st.button("NEXT ➡️ - Dobara Naya Data Dekho", use_container_width=True):
     st.rerun()
 
 # ============================================================
-# USTAD JI - TELEGRAM WALA - FINAL - TALA KHATAM - HAR BAAR JAYEGA + TRAP FIX
-# FIX: 48 HI RAHEGA - TRAP ROKEGA NAHI - SIRF WARNING
+# USTAD JI - TELEGRAM WALA - FINAL - TALA KHATAM - HAR BAAR JAYEGA
+# FIX: TRAP ROKEGA NAHI - SIRF WARNING - TF KA NAAM KE SAATH
 # ============================================================
 BOT_TOKEN = st.secrets.get("BOT_TOKEN", "")
 CHAT_ID = st.secrets.get("CHAT_ID", "")
@@ -807,13 +805,12 @@ if teenon_buy:
 else:
     final_side_msg = "TEENON SELL - TEENON RED"
 
-# USTAD JI - TIME BEECH ME - PAKISTAN TIME
 abhi_time_pak = datetime.now() + timedelta(hours=5)
 time_txt_telegram = abhi_time_pak.strftime("%I:%M %p")
 date_txt_telegram = abhi_time_pak.strftime("%d %B %Y")
 poora_time_telegram = date_txt_telegram + " | " + time_txt_telegram + " | PAKISTAN TIME"
 
-# USTAD JI - TRAP TEXT - FIX WALA - KAUN SE TF ME TRAP HAI - YEHI ASLI FIX HAI
+# USTAD JI - TRAP FIX - YEHI ASLI FIX HAI - TRAP ROKEGA NAHI
 trap_list_msg = []
 trap_warn_list = []
 if p5.get("trap","") != "":
@@ -1015,7 +1012,6 @@ if teenon_ek and koi_ek_48:
 else:
     st.warning(f"Abhi auto nahi bheja - Teenon Ek: {teenon_ek} - Koi 48 par: {koi_ek_48} - TIME {time_txt_telegram} - YAHOO {yahoo_price_raw:.2f} - TRAP: {' | '.join(trap_warn_list) if trap_warn_list else 'KOI TRAP NAHI'}")
 
-# USTAD JI - TEST WALA BUTTON - HAATH SE BHEJNE KE LIYE
 st.markdown("---")
 if st.button("📩 TEST - Abhi 3 Tasveer Telegram Par Bhejo", use_container_width=True):
     test_msg = f"USTAD JI - TEST - {poora_time_telegram}\n{final_side_msg}\n{trap_msg_txt}\nYAHOO {yahoo_price_raw:.2f}"
