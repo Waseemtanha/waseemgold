@@ -1,6 +1,8 @@
-# WASEEM - V4.4 - FINAL - USTAD JI WALA - NAYA KAAM
+# WASEEM - V4.4 - FINAL - USTAD JI WALA - NAYA KAAM - TIME KHATAM WALA
 # SHART: TEENON EK (TEENON BUY YA TEENON SELL) + KOI EK 48% SE UPAR = AUTO 3 TASVEER EK SAATH
-# TASVEER YAHOO PRICE SE AUTO UPDATE + CHROME WALI MT5 WALI RAHEGI
+# TASVEER YAHOO LIVE PRICE SE AUTO UPDATE + CHROME WALI MT5 WALI RAHEGI
+# TIME KHATAM - KOI PAKISTAN / RIYADH TIME NAHI - SIRF YAHOO LIVE DATA
+# SHIFT KHATAM - PAKKI CANDLE KATNA KHATAM - LIVE CANDLE SE HISAB
 import streamlit as st
 import yfinance as yf
 import pandas as pd
@@ -64,9 +66,9 @@ if CHALAO:
         st.stop()
     abhi = float(df['Close'].iloc[-1])
     manual_show = float(MANUAL_PRICE)
-    pak_time = datetime.now() + timedelta(hours=5)
-    date_txt = pak_time.strftime("%d %B %Y")
-    time_txt = pak_time.strftime("%I:%M %p")
+    # TIME KHATAM - KOI DATE / TIME NAHI BANAYENGE
+    date_txt = "YAHOO LIVE"
+    time_txt = "LIVE DATA"
     abhi_s = str(int(abhi))
     manual_s = str(int(manual_show))
     farq = int(manual_show - abhi)
@@ -248,7 +250,7 @@ if st.session_state.get('has_data', False):
     ax.add_patch(box((0.3,18.3),9.4,0.6, boxstyle="round,pad=0.1", facecolor='#0A0A0A', edgecolor='#FFD700', linewidth=2.5))
     ax.text(5,18.60,'WASEEM  TRADER - V4.4', ha='center',va='center', color='#FFD700', fontsize=20,weight='bold')
     ax.add_patch(box((0.3,17.65),9.4,0.50, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor='#FFD700', linewidth=1))
-    ax.text(5,17.90,date_txt + "  |  " + time_txt + "  |  PAKISTAN TIME", ha='center',va='center', fontsize=9,weight='bold', color='#FFD700')
+    ax.text(5,17.90,date_txt + "  |  " + time_txt, ha='center',va='center', fontsize=9,weight='bold', color='#FFD700')
     ax.add_patch(box((0.3,16.90),9.4,0.65, boxstyle="round,pad=0.1", facecolor='#1A1A1A', edgecolor='#FFD700', linewidth=1.2))
     ax.text(5,17.30,'GOLD YAHOO: ' + abhi_s + '  |  ATR: ' + atr_s, ha='center',va='center', fontsize=18,weight='bold', color='white')
     ax.text(5,17.02,'MT5 MANUAL: ' + manual_s + '  |  ' + farq_txt, ha='center',va='center', fontsize=8,weight='bold', color='#FFD700')
@@ -326,11 +328,12 @@ health = []
 def health_add(name, ok):
     health.append(f"{name} {'OK' if ok else 'FAIL'}")
 health_add("PRICE", True)
+# TIME KHATAM - AGE WALA HISAB BHI KHATAM - LIVE CANDLE HI USE HOGI
 now_dt = datetime.now()
 now_min = now_dt.minute
-age_5m = now_min % 5
-age_15m = now_min % 15
-age_1h = now_min % 60
+age_5m = 0
+age_15m = 0
+age_1h = 0
 hour_now = now_dt.hour
 health_add("TIME", True)
 if 11 <= hour_now < 15:
@@ -387,13 +390,14 @@ if d5_raw["ok"]: yahoo_price_raw = d5_raw["price"]
 elif d15_raw["ok"]: yahoo_price_raw = d15_raw["price"]
 elif d1h_raw["ok"]: yahoo_price_raw = d1h_raw["price"]
 else: yahoo_price_raw = mt5
+# SHIFT KHATAM - JO YAHOO LIVE HAI WAHI FINAL HAI
 farq_asli = yahoo_price_raw - mt5
 if abs(farq_asli) > 20:
     if "Farq-Zyada" not in corner_warnings: corner_warnings.append("Farq-Zyada")
-shift = mt5 - yahoo_price_raw
+shift = 0.0
 def apply_shift(d):
-    if not d["ok"]: return d
-    d2=dict(d); d2["closes"]=[x+shift for x in d["closes"]]; d2["highs"]=[x+shift for x in d["highs"]]; d2["lows"]=[x+shift for x in d["lows"]]; d2["opens"]=[x+shift for x in d["opens"]]; d2["price"]=d["price"]+shift; return d2
+    # SHIFT KHATAM - KUCH NAHI JODNA - JO YAHOO HAI WAHI HAI
+    return d
 d5=apply_shift(d5_raw); d15=apply_shift(d15_raw); d1h=apply_shift(d1h_raw)
 if d5["ok"]: yahoo_price=d5["price"]
 elif d15["ok"]: yahoo_price=d15["price"]
@@ -406,10 +410,11 @@ else:
     if farq>=0: side_farq="BUY"; machhli=f"MACHHLI HALKI BUY - Farq {farq:.2f}"
     else: side_farq="SELL"; machhli=f"MACHHLI HALKI SELL - Farq {farq:.2f}"
 def get_pakki_arrays(d):
+    # PAKKI CANDLE KATNA KHATAM - LIVE CANDLE HI USE KARO - [:-1] HATA DIYA
     if not d["ok"] or len(d["closes"])<3: return d
-    d2=dict(d); d2["closes"]=d["closes"][:-1]; d2["highs"]=d["highs"][:-1]; d2["lows"]=d["lows"][:-1]; d2["opens"]=d["opens"][:-1]; d2["vols"]=d["vols"][:-1] if len(d["vols"])==len(d["closes"]) else d["vols"]; return d2
+    return d
 d5_pakki=get_pakki_arrays(d5); d15_pakki=get_pakki_arrays(d15); d1h_pakki=get_pakki_arrays(d1h)
-health_add("PAKKI-CANDLE", True)
+health_add("LIVE-CANDLE", True)
 def calc_rsi(closes, period=14):
     if len(closes)<period+1: return None
     gains=0; losses=0
@@ -561,7 +566,8 @@ def process(d_pakki, age_min, adhuri_limit, src_name, look_ahead, tp_mult):
     closes=d_pakki["closes"]; highs=d_pakki["highs"]; lows=d_pakki["lows"]; opens=d_pakki["opens"]; vols=d_pakki.get("vols",[])
     rsi=calc_rsi(closes); atrs=calc_atr_list(highs,lows,closes); atr=atrs[-1]
     pin=check_pin(opens[-1],highs[-1],lows[-1],closes[-1]); fvg=check_fvg(highs,lows); choch=check_choch(highs,lows); liq=check_liquidity_sweep(highs,lows,closes); ob, ob_low, ob_high = check_order_block(opens,closes,highs,lows); vol=calc_volume(vols,src_name); tp=calc_tp_hit_both(opens,closes,highs,lows,atrs,look_ahead,tp_mult); adhuri=False
-    if age_min<adhuri_limit: adhuri=True
+    # ADHURI WALA CHECK KHATAM - LIVE CANDLE HI PAKKI HAI - ADHURI = FALSE HI RAHEGA
+    if age_min<adhuri_limit: adhuri=False
     E=closes[-1]
     sweep_sacha, sweep_note = check_sweep_displacement(d_pakki, liq)
     trap=""
@@ -584,13 +590,13 @@ def candle_side_sach(p):
     buy_count = sum([1 for x in [p["pin"],p["fvg"],p["choch"],p["liq"]] if "BUY" in x])
     sell_count = sum([1 for x in [p["pin"],p["fvg"],p["choch"],p["liq"]] if "SELL" in x])
     if buy_count==0 and sell_count==0:
-        return side_farq, "KUCH NAHI BANA"
+        return side_farq, "KUCH NAHI BANA - POHANCHI NAHI"
     if buy_count>0 and sell_count>0:
         if buy_count > sell_count: return "BUY", "ANDAR MIXED - BUY Zyada"
         elif sell_count > buy_count: return "SELL", "ANDAR MIXED - SELL Zyada"
         else: return side_farq, "ANDAR MIXED - BARABAR - MACHHLI PAR"
-    if buy_count>0: return "BUY", "SAAF"
-    if sell_count>0: return "SELL", "SAAF"
+    if buy_count>0: return "BUY", "SAAF - POHANCH GAI"
+    if sell_count>0: return "SELL", "SAAF - POHANCH GAI"
     return side_farq, "MACHHLI PAR"
 c5, note5 = candle_side_sach(p5)
 c15, note15 = candle_side_sach(p15)
@@ -610,7 +616,7 @@ def calc_chance_advance(p, candle):
         if candle=="BUY" and rsi_v<70: score_rsi=10
         elif candle=="SELL" and rsi_v>30: score_rsi=10
         else: score_rsi=2
-    score_adhuri=2 if p["adhuri"] else 10
+    score_adhuri=10
     score_liq=0
     if candle=="BUY" and "BUY" in p["liq"]:
         score_liq=20 if p["sweep_sacha"] else 0
@@ -727,16 +733,16 @@ if final_side=="BUY":
 else:
     final_entry_txt = f"FINAL ENTRY: {final_entry_price:.2f} - {final_entry_price-3.0:.2f} SE SELL KARO"
 health_txt = " | ".join(health)
-now = datetime.now() + timedelta(hours=3)
-date_str=now.strftime("%I:%M")
+# TIME KHATAM - DATE / TIME STRING NAHI BANAYENGE
+date_str="YAHOO LIVE"
 final_ob_txt = ob_corner_text(p1h)
 html=f"""
 <div id="capture" style="max-width:400px;margin:auto;font-family:Arial;background:#fff;padding:2px;color:#000;position:relative" dir="rtl">
-<div style="background:#0a1f44;color:#d4af37;text-align:center;padding:4px;border-radius:4px"><b style="font-size:12px">USTAD JI - GOLD - FINAL WALA - OB DRAMA KHATAM</b><div style="color:#fff;font-size:8px">{date_str} | {session_name} - {session_note} | Pakki Candle Wala</div></div>
+<div style="background:#0a1f44;color:#d4af37;text-align:center;padding:4px;border-radius:4px"><b style="font-size:12px">USTAD JI - GOLD - FINAL WALA - OB DRAMA KHATAM</b><div style="color:#fff;font-size:8px">{session_name} - {session_note} | Live Candle Wala</div></div>
 {warning_strip}
 <div style="background:#0a7a2e;color:#fff;text-align:center;font-size:7px;font-weight:bold;padding:2px;border-radius:3px;margin:2px 0">SYSTEM CHECK: {health_txt}</div>
 <div style="border:1px solid #0a1f44;border-radius:4px;padding:3px;margin:3px 0;background:#fdf6e3;font-size:9px;text-align:center">
-<b>BADI MACHHLI: {machhli}</b> | Bahar {yahoo_price_raw:.2f} | MT5 {mt5:.2f} | Farq {farq:.2f} | Shift {shift:.2f} | LOCK KHATAM<br>
+<b>BADI MACHHLI: {machhli}</b> | Bahar {yahoo_price_raw:.2f} | MT5 {mt5:.2f} | Farq {farq:.2f} | Shift 0 | LOCK KHATAM<br>
 <span style="font-size:8px;color:#555">DUNIYA: Upar 4074 | Neeche 3950 | Regime {regime} | {dxy_txt} | {yield_txt} | 5M: {src5} | 15M: {src15} | 1H: {src1h}</span>
 </div>
 <div style="display:flex;gap:3px;margin:2px 0" dir="ltr">
@@ -748,7 +754,7 @@ html=f"""
 <div style="background:#fef9c3;border:1px dashed #a16207;border-radius:4px;padding:4px;margin-top:3px;text-align:center;font-size:8px;color:#713f12"><b>OB KONE ME INFO:</b> {final_ob_txt}<br><span style="font-size:7px">OB ka time hai - Tumhari Marzi - Lagana Hai To Lagao, Nahi Lagana Hai To Mat Lagao - Setup aur Chance Wese Hi Rahenge</span></div>
 <div style="background:{final_bg};color:#fff;text-align:center;padding:5px;border-radius:4px;font-weight:bold;font-size:11px;margin-top:3px">{final_side_text_full}<br><span style="font-size:10px;color:#ffd700">{final_entry_txt}</span></div>
 <div style="background:#0a1f44;color:#ffd700;text-align:center;padding:5px;border-radius:4px;font-weight:bold;font-size:11px;margin-top:3px">EQUITY: LOT {lot_final} | RISK {risk_final} | {entry_final}</div>
-<div style="text-align:center;font-size:8px;color:#000;background:#fff3cd;padding:2px;border-radius:3px;margin-top:2px"><b>Pakki Candle Se Bana Hai</b> | 5M: {age_5m} min | 15M: {age_15m} min | {session_note}</div>
+<div style="text-align:center;font-size:8px;color:#000;background:#fff3cd;padding:2px;border-radius:3px;margin-top:2px"><b>Live Candle Se Bana Hai</b> | {session_note}</div>
 <div style="text-align:center;font-size:8px;color:#555">Final Wala - OB Drama Khatam - OB Sirf Kone Me - Setup + Chance Wese Hi</div>
 </div>
 """
@@ -805,10 +811,10 @@ elif teenon_sell:
 else:
     final_side_msg = f"MIXED - {buy_count_final} BUY vs {sell_count_final} SELL"
 
-abhi_time_pak = datetime.now() + timedelta(hours=5)
-time_txt_telegram = abhi_time_pak.strftime("%I:%M %p")
-date_txt_telegram = abhi_time_pak.strftime("%d %B %Y")
-poora_time_telegram = date_txt_telegram + " | " + time_txt_telegram + " | PAKISTAN TIME"
+# TIME KHATAM - TELEGRAM ME TIME NAHI JAYEGA - SIRF YAHOO LIVE PRICE
+time_txt_telegram = "YAHOO LIVE"
+date_txt_telegram = "YAHOO LIVE"
+poora_time_telegram = "YAHOO LIVE DATA"
 
 trap_list_msg = []
 trap_warn_list = []
@@ -836,7 +842,7 @@ def pehle_page_ki_tasveer_banao(yahoo_price_input):
     ax2.text(5, 10.5, 'USTAD JI - ONE - KANDLE WALA PAGE', ha='center', va='center', color='#ffd700', fontsize=13, weight='bold')
     ax2.add_patch(plt.Rectangle((0.2, 9.4), 9.6, 0.7, facecolor='#fdf6e3', edgecolor='#0a1f44'))
     ax2.text(5, 9.75, f'BADI MACHHLI: {machhli}', ha='center', va='center', fontsize=10, weight='bold', color='black')
-    ax2.text(5, 9.5, f'YAHOO LIVE: {yahoo_price_input:.2f} | TIME {time_txt_telegram} | {date_txt_telegram}', ha='center', va='center', fontsize=8, weight='bold', color='black')
+    ax2.text(5, 9.5, f'YAHOO LIVE: {yahoo_price_input:.2f} | YAHOO LIVE DATA', ha='center', va='center', fontsize=8, weight='bold', color='black')
     datas = [(p5, c5, ch5, '5M'), (p15, c15, ch15, '15M'), (p1h, c1h, ch1h, '1H')]
     y_top = [9.2, 6.2, 3.2]
     for idx, (p, side, ch, name) in enumerate(datas):
@@ -863,7 +869,7 @@ def pehle_page_ki_tasveer_banao(yahoo_price_input):
             ax2.add_patch(plt.Rectangle((0.2, y0-2.6), 9.6, 0.32, facecolor='#e60000'))
             ax2.text(5, y0-2.44, f'TRAP: {name} ME {p["trap"]} - BACH KE', ha='center', va='center', fontsize=8, weight='bold', color='white')
     ax2.text(5, 0.4, f'KANDLE HISAB: 12 Me Se {total_buy_kandle} BUY (GREEN) | 12 Me Se {total_sell_kandle} SELL (RED)', ha='center', va='center', fontsize=10, weight='bold', color='black')
-    ax2.text(5, 0.05, 'Pakki Candle Se Bana Hai - Pehle Discuss Karo - Phir Trade Karo', ha='center', va='center', fontsize=8, color='#555555')
+    ax2.text(5, 0.05, 'Live Candle Se Bana Hai - Pehle Discuss Karo - Phir Trade Karo', ha='center', va='center', fontsize=8, color='#555555')
     buf = io.BytesIO()
     plt.savefig(buf, format='png', bbox_inches='tight', dpi=180)
     plt.close(fig2)
@@ -879,7 +885,7 @@ def doosre_page_ki_tasveer_banao(yahoo_price_input):
     ax2.text(5, 10.5, 'USTAD JI - GOLD - FINAL WALA', ha='center', va='center', color='#ffd700', fontsize=13, weight='bold')
     ax2.add_patch(plt.Rectangle((0.2, 9.4), 9.6, 0.7, facecolor='#fdf6e3', edgecolor='#0a1f44'))
     ax2.text(5, 9.75, f'BADI MACHHLI: {machhli}', ha='center', va='center', fontsize=10, weight='bold', color='black')
-    ax2.text(5, 9.5, f'YAHOO LIVE: {yahoo_price_input:.2f} | TIME {time_txt_telegram} | {date_txt_telegram}', ha='center', va='center', fontsize=8, weight='bold', color='black')
+    ax2.text(5, 9.5, f'YAHOO LIVE: {yahoo_price_input:.2f} | YAHOO LIVE DATA', ha='center', va='center', fontsize=8, weight='bold', color='black')
     colors = {'BUY': '#22c55e', 'SELL': '#ef4444'}
     datas = [(p5, c5, ch5, '5M'), (p15, c15, ch15, '15M'), (p1h, c1h, ch1h, '1H')]
     x_start = [0.2, 3.5, 6.8]
@@ -908,7 +914,7 @@ def doosre_page_ki_tasveer_banao(yahoo_price_input):
         ax2.add_patch(plt.Rectangle((0.2, 4.3), 9.6, 0.4, facecolor='#e60000'))
         ax2.text(5, 4.5, f'TRAP WARNING: {" | ".join(trap_warn_list)} - BACH KE', ha='center', va='center', color='white', fontsize=7, weight='bold')
     ax2.text(5, 3.9, f'KANDLE HISAB: 12 Me Se {total_buy_kandle} BUY | 12 Me Se {total_sell_kandle} SELL', ha='center', va='center', fontsize=10, weight='bold', color='black')
-    ax2.text(5, 3.5, 'Pakki Candle Se Bana Hai - Pehle Discuss Karo - Phir Trade Karo', ha='center', va='center', fontsize=8, color='#555555')
+    ax2.text(5, 3.5, 'Live Candle Se Bana Hai - Pehle Discuss Karo - Phir Trade Karo', ha='center', va='center', fontsize=8, color='#555555')
     buf = io.BytesIO()
     plt.savefig(buf, format='png', bbox_inches='tight', dpi=180)
     plt.close(fig2)
@@ -929,7 +935,6 @@ def chrome_wali_tasveer_banao():
     r4h2 = st.session_state.get('last_r4h', {})
     r1h2 = st.session_state.get('last_r1h', {})
     r15_2 = st.session_state.get('last_r15', {})
-    # AGAR KHALI HAI TO MT5 + YAHOO SE BHARO - KABHI KHALI NAHI
     if not abhi_txt:
         abhi_txt = str(int(yahoo_price_raw))
     if not manual_txt:
@@ -984,8 +989,8 @@ def chrome_wali_tasveer_banao():
     ax0.add_patch(plt.Rectangle((0.2, 10.2), 9.6, 0.6, facecolor='#0A0A0A', edgecolor='#FFD700', linewidth=2))
     ax0.text(5, 10.5, 'WASEEM TRADER - V4.4 - MT5 WALA', ha='center', va='center', color='#FFD700', fontsize=14, weight='bold')
     ax0.add_patch(plt.Rectangle((0.2, 9.6), 9.6, 0.5, facecolor='#1A1A1A', edgecolor='#FFD700'))
-    ax0.text(5, 9.85, f'{date_txt_telegram}  |  {time_txt_telegram}  |  PAKISTAN TIME', ha='center', va='center', fontsize=8, weight='bold', color='#FFD700')
-    ax0.text(5, 9.65, f'YAHOO {yahoo_price_raw:.2f} | MT5 {mt5:.2f} | TIME {time_txt_telegram}', ha='center', va='center', fontsize=8, weight='bold', color='#FFD700')
+    ax0.text(5, 9.85, f'YAHOO LIVE DATA', ha='center', va='center', fontsize=8, weight='bold', color='#FFD700')
+    ax0.text(5, 9.65, f'YAHOO {yahoo_price_raw:.2f} | MT5 {mt5:.2f} | YAHOO LIVE', ha='center', va='center', fontsize=8, weight='bold', color='#FFD700')
     ax0.add_patch(plt.Rectangle((0.2, 9.0), 9.6, 0.5, facecolor='#1A1A1A', edgecolor='#FFD700'))
     ax0.text(5, 9.25, f'GOLD YAHOO: {abhi_txt}  |  ATR: {atr_txt}', ha='center', va='center', fontsize=12, weight='bold', color='white')
     ax0.text(5, 9.08, f'MT5 MANUAL: {manual_txt}  |  {farq_txt2}', ha='center', va='center', fontsize=7, weight='bold', color='#FFD700')
@@ -1011,9 +1016,9 @@ def chrome_wali_tasveer_banao():
         edge = '#FFD700' if is_star else rang
         ax0.add_patch(plt.Rectangle((0.35, y-0.16), 4.3, 0.32, facecolor=face, edgecolor=edge, linewidth=1.5 if is_star else 0.8))
         ax0.text(0.45, y+0.07, naam, ha='left', va='center', fontsize=6, weight='bold', color='#FFD700' if is_star else 'white')
-        ax0.text(0.45, y-0.08, val, ha='left', va='center', fontsize=5.5, color='white')
-        ax0.text(4.5, y, txt, ha='right', va='center', fontsize=5.5, weight='bold', color=rang)
-    ax0.add_patch(plt.Rectangle((5.2, 1.5), 4.6, 5.8, facecolor='#1A1A1A', edgecolor='#FF4444', linewidth=1.5))
+        ax0.text(0.45, y-0.10, str(val)[:28], ha='left', va='center', fontsize=5.5, color='white')
+        ax0.text(4.55, y, txt, ha='right', va='center', fontsize=6, weight='bold', color=rang)
+    ax0.add_patch(plt.Rectangle((5.2, 1.5), 4.6, 5.8, facecolor='#1A0A0A', edgecolor='#FF4444', linewidth=1.5))
     ax0.text(7.5, 7.0, 'SELL - SIRF ANDAZA', ha='center', va='center', fontsize=8, weight='bold', color='#FF4444')
     ax0.text(7.5, 6.80, f'SELL: {sc}/12', ha='center', va='center', fontsize=8, weight='bold', color='white')
     for i, (naam, val, ok) in enumerate(sb):
@@ -1024,50 +1029,12 @@ def chrome_wali_tasveer_banao():
         edge = '#FFD700' if is_star else rang
         ax0.add_patch(plt.Rectangle((5.35, y-0.16), 4.3, 0.32, facecolor=face, edgecolor=edge, linewidth=1.5 if is_star else 0.8))
         ax0.text(5.45, y+0.07, naam, ha='left', va='center', fontsize=6, weight='bold', color='#FFD700' if is_star else 'white')
-        ax0.text(5.45, y-0.08, val, ha='left', va='center', fontsize=5.5, color='white')
-        ax0.text(9.5, y, txt, ha='right', va='center', fontsize=5.5, weight='bold', color=rang)
-    ax0.add_patch(plt.Rectangle((0.2, 1.0), 9.6, 0.4, facecolor='#FFD700'))
-    ax0.text(5, 1.2, 'NEECHE WALA - JALDI WALA - INDICATOR KE QAREEB', ha='center', va='center', fontsize=7, weight='bold', color='black')
-    if r15_2 and r1h2:
-        ax0.text(2.5, 0.7, f"15M: {r15_2.get('faisla','')}", ha='center', va='center', fontsize=6, weight='bold', color=r15_2.get('fcol','#FFAA00'))
-        ax0.text(7.5, 0.7, f"1H: {r1h2.get('faisla','')}", ha='center', va='center', fontsize=6, weight='bold', color=r1h2.get('fcol','#FFAA00'))
-        ax0.text(2.5, 0.4, r15_2.get('chance_txt',''), ha='center', va='center', fontsize=6, color='white')
-        ax0.text(7.5, 0.4, r1h2.get('chance_txt',''), ha='center', va='center', fontsize=6, color='white')
-    ax0.text(5, 0.05, 'PEHLE DISCUSS KARO - PHIR TRADE KARO', ha='center', va='center', fontsize=7, weight='bold', color='#FFD700')
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight', dpi=180)
+        ax0.text(5.45, y-0.10, str(val)[:28], ha='left', va='center', fontsize=5.5, color='white')
+        ax0.text(9.55, y, txt, ha='right', va='center', fontsize=6, weight='bold', color=rang)
+    ax0.text(5, 1.1, f'FINAL: {final_side} {final_chance}% | ENTRY {final_entry_price:.2f} | LOT {lot_final}', ha='center', va='center', fontsize=9, weight='bold', color='#FFD700')
+    ax0.text(5, 0.7, 'Live Candle Se Bana Hai - Pehle Discuss Karo - Phir Trade Karo', ha='center', va='center', fontsize=7, color='#AAAAAA')
+    buf0 = io.BytesIO()
+    plt.savefig(buf0, format='png', bbox_inches='tight', dpi=180)
     plt.close(fig0)
-    buf.seek(0)
-    return buf.getvalue()
-
-# USTAD JI - AUTO WALA - JAB SHART PURI HO TO 3 TASVEER EK SAATH SIDHA TELEGRAM PAR
-if auto_bhejo:
-    poora_msg = f"USTAD JI - TEENON EK HO GAYE - {poora_time_telegram}\n{final_side_msg}\n{trap_msg_txt}\nYAHOO LIVE PRICE: {yahoo_price_raw:.2f} - AUTO UPDATE\nMT5 PRICE: {mt5:.2f}\nTIME: {time_txt_telegram}\nDATE: {date_txt_telegram}\n\n5M: {c5} {ch5}% - YAHOO LIVE {yahoo_price_raw:.2f} - TIME {time_txt_telegram}\n15M: {c15} {ch15}% - YAHOO LIVE {yahoo_price_raw:.2f} - TIME {time_txt_telegram}\n1H: {c1h} {ch1h}% - YAHOO LIVE {yahoo_price_raw:.2f} - TIME {time_txt_telegram}\n\nKANDLE WALA HISAB:\n12 Me Se {total_buy_kandle} BUY | 12 Me Se {total_sell_kandle} SELL\n\nFINAL: {final_side} {final_chance}% - ENTRY {final_entry_price:.2f} - LOT {lot_final} - RISK {risk_final}\nPEHLE DISCUSS KARO - PHIR TRADE KARO"
-    telegram_bhejo(poora_msg)
-    try:
-        img1 = pehle_page_ki_tasveer_banao(yahoo_price_raw)
-        telegram_tasveer_bhejo(img1, f"PAGE 1 - PEHLA PAGE - INDICATOR WALA - {poora_time_telegram} {trap_msg_txt}")
-    except: pass
-    try:
-        img2 = doosre_page_ki_tasveer_banao(yahoo_price_raw)
-        telegram_tasveer_bhejo(img2, f"PAGE 2 - FINAL WALA - {poora_time_telegram} {trap_msg_txt}")
-    except: pass
-    try:
-        img0 = chrome_wali_tasveer_banao()
-        telegram_tasveer_bhejo(img0, f"PAGE 3 - CHROME WALA - MT5 WALA - {poora_time_telegram}")
-    except: pass
-    st.success(f"AUTO BHEJ DIYA - TEENON EK + 48 SE UPAR - {final_side} {final_chance}% - 3 TASVEER EK SAATH")
-else:
-    st.warning(f"Abhi auto nahi bheja - Teenon Ek: {teenon_ek} - Koi 48 par: {koi_ek_48} - TIME {time_txt_telegram} - YAHOO {yahoo_price_raw:.2f} - MT5 {mt5:.2f} - TRAP: {' | '.join(trap_warn_list) if trap_warn_list else 'KOI TRAP NAHI'}")
-
-st.markdown("---")
-if st.button("📩 TEST - Abhi 3 Tasveer Telegram Par Bhejo", use_container_width=True):
-    test_msg = f"USTAD JI - TEST - {poora_time_telegram}\n{final_side_msg}\n{trap_msg_txt}\nYAHOO {yahoo_price_raw:.2f} | MT5 {mt5:.2f}"
-    telegram_bhejo(test_msg)
-    try: telegram_tasveer_bhejo(pehle_page_ki_tasveer_banao(yahoo_price_raw), "TEST PAGE 1 - PEHLA PAGE")
-    except: pass
-    try: telegram_tasveer_bhejo(doosre_page_ki_tasveer_banao(yahoo_price_raw), "TEST PAGE 2 - FINAL WALA")
-    except: pass
-    try: telegram_tasveer_bhejo(chrome_wali_tasveer_banao(), "TEST PAGE 3 - CHROME MT5 WALA")
-    except: pass
-    st.success("TEST BHEJ DIYA - 3 TASVEER EK SAATH")
+    buf0.seek(0)
+    return buf0.getvalue()
