@@ -1,4 +1,5 @@
-# WASEEM - V4.4 - FINAL FIXED - POORA SCRIPT - USTAD JI WALA
+# WASEEM - V4.4 - FINAL - POORA SCRIPT - USTAD JI WALA - EK HI BAAR ME POORA
+# AUTO 30 SECOND + TALA KHATAM + 3 TASVEER + TIME BEECH ME
 import streamlit as st
 import yfinance as yf
 import pandas as pd
@@ -15,6 +16,11 @@ import streamlit.components.v1 as components
 
 st.set_page_config(page_title="WASEEM TRADER - V4.4", layout="centered")
 st.title("WASEEM TRADER - V4.4 - INDICATOR SACH BOLEGA")
+
+# USTAD JI - AUTO WALA - 30 SECOND - NEXT DABANE KI ZAROORAT NAHI
+auto_on = st.checkbox("AUTO ON - Khud Se Chalta Rahe - 30 Second Wala", value=True, key="auto_check_v44")
+if auto_on:
+    components.html("<meta http-equiv='refresh' content='30'>", height=0)
 
 if "next_count" not in st.session_state:
     st.session_state.next_count = 0
@@ -755,8 +761,7 @@ if st.button("NEXT ➡️ - Dobara Naya Data Dekho", use_container_width=True):
     st.rerun()
 
 # ============================================================
-# USTAD JI - TELEGRAM WALA - SIRF WAHI JO BAAT HUI THI
-# PEHLA PAGE NAHI CHHEDA - SIRF TELEGRAM WALA HISSA
+# USTAD JI - TELEGRAM WALA - FINAL - TALA KHATAM - HAR BAAR JAYEGA
 # ============================================================
 BOT_TOKEN = st.secrets.get("BOT_TOKEN", "")
 CHAT_ID = st.secrets.get("CHAT_ID", "")
@@ -800,7 +805,86 @@ if teenon_buy:
 else:
     final_side_msg = "TEENON SELL - TEENON RED"
 
-# ---- USTAD JI - ONE WALA - SIRF KANDLE WALA PAGE ----
+# USTAD JI - TIME BEECH ME - PAKISTAN TIME
+abhi_time_pak = datetime.now() + timedelta(hours=5)
+time_txt_telegram = abhi_time_pak.strftime("%I:%M %p")
+date_txt_telegram = abhi_time_pak.strftime("%d %B %Y")
+poora_time_telegram = date_txt_telegram + " | " + time_txt_telegram + " | PAKISTAN TIME"
+
+def chrome_wali_tasveer_banao():
+    bb = st.session_state.get('last_buy_buttons', [])
+    sb = st.session_state.get('last_sell_buttons', [])
+    bc = st.session_state.get('last_buy_c', 0)
+    sc = st.session_state.get('last_sell_c', 0)
+    rsi_txt = st.session_state.get('last_rsi_s', '')
+    abhi_txt = st.session_state.get('last_abhi_s', '')
+    manual_txt = st.session_state.get('last_manual_s', '')
+    farq_txt2 = st.session_state.get('last_farq', '')
+    atr_txt = st.session_state.get('last_atr_s', '')
+    date_txt2 = st.session_state.get('last_date', '')
+    time_txt2 = st.session_state.get('last_time', '')
+    r4h2 = st.session_state.get('last_r4h', {})
+    r1h2 = st.session_state.get('last_r1h', {})
+    r15_2 = st.session_state.get('last_r15', {})
+    fig0, ax0 = plt.subplots(figsize=(8, 11))
+    ax0.set_xlim(0, 10); ax0.set_ylim(0, 11); ax0.axis('off')
+    fig0.patch.set_facecolor('#0A0A0A'); ax0.set_facecolor('#0A0A0A')
+    ax0.add_patch(plt.Rectangle((0.2, 10.2), 9.6, 0.6, facecolor='#0A0A0A', edgecolor='#FFD700', linewidth=2))
+    ax0.text(5, 10.5, 'WASEEM TRADER - V4.4', ha='center', va='center', color='#FFD700', fontsize=14, weight='bold')
+    ax0.add_patch(plt.Rectangle((0.2, 9.6), 9.6, 0.5, facecolor='#1A1A1A', edgecolor='#FFD700'))
+    ax0.text(5, 9.85, f'{date_txt_telegram}  |  {time_txt_telegram}  |  PAKISTAN TIME', ha='center', va='center', fontsize=8, weight='bold', color='#FFD700')
+    ax0.text(5, 9.65, f'YAHOO {yahoo_price_raw:.2f} | TIME {time_txt_telegram}', ha='center', va='center', fontsize=8, weight='bold', color='#FFD700')
+    ax0.add_patch(plt.Rectangle((0.2, 9.0), 9.6, 0.5, facecolor='#1A1A1A', edgecolor='#FFD700'))
+    ax0.text(5, 9.25, f'GOLD YAHOO: {abhi_txt}  |  ATR: {atr_txt}', ha='center', va='center', fontsize=12, weight='bold', color='white')
+    ax0.text(5, 9.08, f'MT5 MANUAL: {manual_txt}  |  {farq_txt2}', ha='center', va='center', fontsize=7, weight='bold', color='#FFD700')
+    if r4h2:
+        ax0.add_patch(plt.Rectangle((0.2, 8.0), 9.6, 0.9, facecolor='#1A1A1A', edgecolor=r4h2.get('fcol','#FFAA00'), linewidth=2))
+        ax0.text(5, 8.7, '4H SETUP - MAZBOOT WALA', ha='center', va='center', fontsize=8, weight='bold', color='#FFD700')
+        ax0.text(5, 8.4, r4h2.get('faisla',''), ha='center', va='center', fontsize=7, weight='bold', color=r4h2.get('fcol','#FFAA00'))
+        ax0.text(5, 8.1, r4h2.get('entry','') + '  |  ' + r4h2.get('sl',''), ha='center', va='center', fontsize=6, color='white')
+    ax0.add_patch(plt.Rectangle((0.2, 7.5), 9.6, 0.4, facecolor='#FFD700'))
+    ax0.text(5, 7.7, 'BUTTON - SIRF ANDAZA - FAISLA NAHI KARTA', ha='center', va='center', fontsize=8, weight='bold', color='black')
+    ax0.text(5, 7.55, f'BUY {bc}/12  |  SELL {sc}/12  |  RSI: {rsi_txt}', ha='center', va='center', fontsize=7, color='black')
+    ax0.add_patch(plt.Rectangle((0.2, 1.5), 4.6, 5.8, facecolor='#0A1A0A', edgecolor='#00FF88', linewidth=1.5))
+    ax0.text(2.5, 7.15, 'BUY - SIRF ANDAZA', ha='center', va='center', fontsize=8, weight='bold', color='#00FF88')
+    ax0.text(2.5, 6.95, f'BUY: {bc}/12', ha='center', va='center', fontsize=8, weight='bold', color='white')
+    for i, (naam, val, ok) in enumerate(bb):
+        y = 6.6 - i*0.42
+        if ok: rang = '#00FF88'; face = '#003311'; txt = "SABZ"
+        else: rang = '#555555'; face = '#1A1A1A'; txt = "NAHI"
+        is_star = "★" in naam
+        edge = '#FFD700' if is_star else rang
+        ax0.add_patch(plt.Rectangle((0.35, y-0.16), 4.3, 0.32, facecolor=face, edgecolor=edge, linewidth=1.5 if is_star else 0.8))
+        ax0.text(0.45, y+0.07, naam, ha='left', va='center', fontsize=6, weight='bold', color='#FFD700' if is_star else 'white')
+        ax0.text(0.45, y-0.08, val, ha='left', va='center', fontsize=5.5, color='white')
+        ax0.text(4.5, y, txt, ha='right', va='center', fontsize=5.5, weight='bold', color=rang)
+    ax0.add_patch(plt.Rectangle((5.2, 1.5), 4.6, 5.8, facecolor='#1A1A1A', edgecolor='#FF4444', linewidth=1.5))
+    ax0.text(7.5, 7.15, 'SELL - SIRF ANDAZA', ha='center', va='center', fontsize=8, weight='bold', color='#FF4444')
+    ax0.text(7.5, 6.95, f'SELL: {sc}/12', ha='center', va='center', fontsize=8, weight='bold', color='white')
+    for i, (naam, val, ok) in enumerate(sb):
+        y = 6.6 - i*0.42
+        if ok: rang = '#FF4444'; face = '#330000'; txt = "LAL"
+        else: rang = '#555555'; face = '#1A1A1A'; txt = "NAHI"
+        is_star = "★" in naam
+        edge = '#FFD700' if is_star else rang
+        ax0.add_patch(plt.Rectangle((5.35, y-0.16), 4.3, 0.32, facecolor=face, edgecolor=edge, linewidth=1.5 if is_star else 0.8))
+        ax0.text(5.45, y+0.07, naam, ha='left', va='center', fontsize=6, weight='bold', color='#FFD700' if is_star else 'white')
+        ax0.text(5.45, y-0.08, val, ha='left', va='center', fontsize=5.5, color='white')
+        ax0.text(9.5, y, txt, ha='right', va='center', fontsize=5.5, weight='bold', color=rang)
+    ax0.add_patch(plt.Rectangle((0.2, 1.0), 9.6, 0.4, facecolor='#FFD700'))
+    ax0.text(5, 1.2, 'NEECHE WALA - JALDI WALA - INDICATOR KE QAREEB', ha='center', va='center', fontsize=7, weight='bold', color='black')
+    if r15_2 and r1h2:
+        ax0.text(2.5, 0.7, f"15M: {r15_2.get('faisla','')}", ha='center', va='center', fontsize=6, weight='bold', color=r15_2.get('fcol','#FFAA00'))
+        ax0.text(7.5, 0.7, f"1H: {r1h2.get('faisla','')}", ha='center', va='center', fontsize=6, weight='bold', color=r1h2.get('fcol','#FFAA00'))
+        ax0.text(2.5, 0.4, r15_2.get('chance_txt',''), ha='center', va='center', fontsize=6, color='white')
+        ax0.text(7.5, 0.4, r1h2.get('chance_txt',''), ha='center', va='center', fontsize=6, color='white')
+    ax0.text(5, 0.05, 'PEHLE DISCUSS KARO - PHIR TRADE KARO', ha='center', va='center', fontsize=7, weight='bold', color='#FFD700')
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', bbox_inches='tight', dpi=180)
+    plt.close(fig0)
+    buf.seek(0)
+    return buf.getvalue()
+
 def pehle_page_ki_tasveer_banao(yahoo_price_input):
     fig2, ax2 = plt.subplots(figsize=(8, 11))
     ax2.set_xlim(0, 10); ax2.set_ylim(0, 11); ax2.axis('off')
@@ -809,7 +893,7 @@ def pehle_page_ki_tasveer_banao(yahoo_price_input):
     ax2.text(5, 10.5, 'USTAD JI - ONE - KANDLE WALA PAGE', ha='center', va='center', color='#ffd700', fontsize=13, weight='bold')
     ax2.add_patch(plt.Rectangle((0.2, 9.4), 9.6, 0.7, facecolor='#fdf6e3', edgecolor='#0a1f44'))
     ax2.text(5, 9.75, f'BADI MACHHLI: {machhli}', ha='center', va='center', fontsize=10, weight='bold', color='black')
-    ax2.text(5, 9.5, f'YAHOO LIVE: {yahoo_price_input:.2f}', ha='center', va='center', fontsize=9, color='black')
+    ax2.text(5, 9.5, f'YAHOO LIVE: {yahoo_price_input:.2f} | TIME {time_txt_telegram} | {date_txt_telegram}', ha='center', va='center', fontsize=8, weight='bold', color='black')
     datas = [(p5, c5, ch5, '5M'), (p15, c15, ch15, '15M'), (p1h, c1h, ch1h, '1H')]
     y_top = [9.2, 6.2, 3.2]
     for idx, (p, side, ch, name) in enumerate(datas):
@@ -840,7 +924,6 @@ def pehle_page_ki_tasveer_banao(yahoo_price_input):
     buf.seek(0)
     return buf.getvalue()
 
-# ---- USTAD JI - TWO WALA - FINAL WALA PAGE - WAHI PURANA ----
 def doosre_page_ki_tasveer_banao(yahoo_price_input):
     fig2, ax2 = plt.subplots(figsize=(8, 11))
     ax2.set_xlim(0, 10); ax2.set_ylim(0, 11); ax2.axis('off')
@@ -849,7 +932,7 @@ def doosre_page_ki_tasveer_banao(yahoo_price_input):
     ax2.text(5, 10.5, 'USTAD JI - GOLD - FINAL WALA', ha='center', va='center', color='#ffd700', fontsize=13, weight='bold')
     ax2.add_patch(plt.Rectangle((0.2, 9.4), 9.6, 0.7, facecolor='#fdf6e3', edgecolor='#0a1f44'))
     ax2.text(5, 9.75, f'BADI MACHHLI: {machhli}', ha='center', va='center', fontsize=10, weight='bold', color='black')
-    ax2.text(5, 9.5, f'YAHOO LIVE: {yahoo_price_input:.2f}', ha='center', va='center', fontsize=9, color='black')
+    ax2.text(5, 9.5, f'YAHOO LIVE: {yahoo_price_input:.2f} | TIME {time_txt_telegram} | {date_txt_telegram}', ha='center', va='center', fontsize=8, weight='bold', color='black')
     colors = {'BUY': '#22c55e', 'SELL': '#ef4444'}
     datas = [(p5, c5, ch5, '5M'), (p15, c15, ch15, '15M'), (p1h, c1h, ch1h, '1H')]
     x_start = [0.2, 3.5, 6.8]
@@ -879,35 +962,32 @@ def doosre_page_ki_tasveer_banao(yahoo_price_input):
     buf.seek(0)
     return buf.getvalue()
 
-# SIRF YEHI WALA ALARM - TEENON EK + KOI EK 48 SE UPAR - BAS 2 TASVEER
+# SIRF YEHI WALA ALARM - TEENON EK + KOI EK 48 SE UPAR - HAR BAAR JAYEGA - KOI TALA NAHI
 if teenon_ek and koi_ek_48:
-    poora_msg = f"USTAD JI - TEENON EK HO GAYE\n{final_side_msg}\n\n5M: {c5} {ch5}% - YAHOO LIVE {yahoo_price_raw:.2f}\n15M: {c15} {ch15}% - YAHOO LIVE {yahoo_price_raw:.2f}\n1H: {c1h} {ch1h}% - YAHOO LIVE {yahoo_price_raw:.2f}\n\nKANDLE WALA HISAB:\n12 Me Se {total_buy_kandle} BUY Par Hain\n12 Me Se {total_sell_kandle} SELL Par Hain\n\nFinal: {final_side} {final_chance}% - YAHOO LIVE {yahoo_price_raw:.2f}"
+    poora_msg = f"USTAD JI - TEENON EK HO GAYE - {poora_time_telegram}\n{final_side_msg}\n\nYAHOO LIVE PRICE: {yahoo_price_raw:.2f}\nTIME: {time_txt_telegram}\nDATE: {date_txt_telegram}\n\n5M: {c5} {ch5}% - YAHOO LIVE {yahoo_price_raw:.2f} - TIME {time_txt_telegram}\n15M: {c15} {ch15}% - YAHOO LIVE {yahoo_price_raw:.2f} - TIME {time_txt_telegram}\n1H: {c1h} {ch1h}% - YAHOO LIVE {yahoo_price_raw:.2f} - TIME {time_txt_telegram}\n\nKANDLE WALA HISAB:\n12 Me Se {total_buy_kandle} BUY Par Hain\n12 Me Se {total_sell_kandle} SELL Par Hain\n\nV4.4 WALA HISAB:\nBUY {st.session_state.get('last_buy_c',0)}/12 | SELL {st.session_state.get('last_sell_c',0)}/12 | RSI {st.session_state.get('last_rsi_s','')}\n\nFinal: {final_side} {final_chance}% - YAHOO LIVE {yahoo_price_raw:.2f} - TIME {time_txt_telegram}"
     telegram_bhejo(poora_msg)
+    tasveer_0 = chrome_wali_tasveer_banao()
+    telegram_tasveer_bhejo(tasveer_0, f"USTAD JI - ZERO PAGE - V4.4 Wala - YAHOO {yahoo_price_raw:.2f} - TIME {time_txt_telegram} - DATE {date_txt_telegram}")
     tasveer_1 = pehle_page_ki_tasveer_banao(yahoo_price_raw)
-    telegram_tasveer_bhejo(tasveer_1, "USTAD JI - PEHLA PAGE - Kandle Wala - Yahoo Live")
+    telegram_tasveer_bhejo(tasveer_1, f"USTAD JI - PEHLA PAGE - Kandle Wala - YAHOO {yahoo_price_raw:.2f} - TIME {time_txt_telegram}")
     tasveer_2 = doosre_page_ki_tasveer_banao(yahoo_price_raw)
-    telegram_tasveer_bhejo(tasveer_2, "USTAD JI - DOOSRA PAGE - Teenon Ek Wala - Yahoo Live")
-    st.success("USTAD JI - MESSAGE + DONON TASVEER BHEJ DI - Teenon Ek + Ek 48% Par")
+    telegram_tasveer_bhejo(tasveer_2, f"USTAD JI - DOOSRA PAGE - Final Wala - YAHOO {yahoo_price_raw:.2f} - TIME {time_txt_telegram}")
+    st.success(f"USTAD JI - MESSAGE + TEENON TASVEER BHEJ DI - TIME {time_txt_telegram} - YAHOO {yahoo_price_raw:.2f} - KOI TALA NAHI - HAR BAAR JAYEGA")
 else:
-    st.info(f"Abhi auto nahi bheja - Teenon Ek: {teenon_ek} - Koi 48 par: {koi_ek_48}")
-    # --- ARZI TEST BUTTON - SIRF TEST KE LIYE ---
-st.markdown("---")
-st.subheader("ARZI TEST - TELEGRAM DESIGN CHECK")
+    st.info(f"Abhi auto nahi bheja - Teenon Ek: {teenon_ek} - Koi 48 par: {koi_ek_48} - TIME {time_txt_telegram} - YAHOO {yahoo_price_raw:.2f}")
 
-if st.button("TELEGRAM TEST KARO - DONO TASVEEREN BHEJO"):
+st.markdown("---")
+st.subheader("ARZI TEST - TELEGRAM DESIGN CHECK - 3 TASVEER")
+if st.button("TELEGRAM TEST KARO - TEENON TASVEEREN BHEJO"):
     st.write("Test chal raha hai, Telegram check karo...")
     try:
-        # Yahoo wali price wahi hai jo upar signal me lagi hui hai
         test_price = yahoo_price_raw
-
-        # Pehla page - Kandle wala
+        tasveer_0 = chrome_wali_tasveer_banao()
+        telegram_tasveer_bhejo(tasveer_0, f"USTAD JI - ZERO PAGE - V4.4 Wala - TEST - YAHOO {test_price:.2f} - TIME {time_txt_telegram}")
         tasveer_1 = pehle_page_ki_tasveer_banao(test_price)
-        telegram_tasveer_bhejo(tasveer_1, "USTAD JI - PEHLA PAGE - Kandle Wala - Yahoo Live - TEST")
-
-        # Doosra page - Final wala
+        telegram_tasveer_bhejo(tasveer_1, f"USTAD JI - PEHLA PAGE - Kandle Wala - YAHOO {test_price:.2f} - TIME {time_txt_telegram} - TEST")
         tasveer_2 = doosre_page_ki_tasveer_banao(test_price)
-        telegram_tasveer_bhejo(tasveer_2, "USTAD JI - DOOSRA PAGE - Final Wala - Yahoo Live - TEST")
-
-        st.success(f"Ho gaya! Telegram me dono tasveeren check karo - Yahoo Live {test_price:.2f}")
+        telegram_tasveer_bhejo(tasveer_2, f"USTAD JI - DOOSRA PAGE - Final Wala - YAHOO {test_price:.2f} - TIME {time_txt_telegram} - TEST")
+        st.success(f"Ho gaya! Telegram me teenon tasveeren check karo - Yahoo Live {test_price:.2f}")
     except Exception as e:
         st.error(f"Test me masla aaya: {e}")
